@@ -1,0 +1,17 @@
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": 3,
+    "userName": null,
+    "userAccount": "TestUser1773334149699",
+    "avatarUrl": null,
+    "gender": null,
+    "phone": null,
+    "email": null,
+    "userStatus": null,
+    "userRole": 1,
+    "createTime": null,
+    "updateTime": null
+  }
+}

@@ -1,0 +1,1 @@
+export const SYSTEM_LOGENT_URL = '/鱼.svg';
