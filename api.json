@@ -1,0 +1,739 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "厦门水产养殖智能管理系统 - PC端决策API",
+    "description": "面向养殖场老板的集中管控与数据决策平台。PC端聚焦看大局、管风险、算细账，非流水账录入。",
+    "version": "1.0.0",
+    "contact": {
+      "name": "厦门水产养殖智能软件项目组",
+      "email": "support@aquaculture.xm"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.aquaculture.xm/v1",
+      "description": "生产环境"
+    },
+    {
+      "url": "http://localhost:8080/api/v1",
+      "description": "本地开发环境"
+    }
+  ],
+  "tags": [
+    { "name": "pond", "description": "塘口档案管理" },
+    { "name": "log", "description": "远程批量日志录入（投喂/用药）" },
+    { "name": "compliance", "description": "合规性风控（休药期拦截）" },
+    { "name": "analytics", "description": "经营分析（成本/利润/库存）" },
+    { "name": "dashboard", "description": "GIS地图与水质监控" },
+    { "name": "weather", "description": "场景化气象与潮汐" },
+    { "name": "market", "description": "行情与供应商导航" },
+    { "name": "ai", "description": "AI赋能接口" }
+  ],
+  "paths": {
+    "/ponds": {
+      "get": {
+        "tags": ["pond"],
+        "summary": "获取所有塘口列表（用于GIS一张图）",
+        "operationId": "listPonds",
+        "parameters": [
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/size" },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "warning", "alarm"]
+            },
+            "description": "状态筛选：绿色=active, 黄色=warning, 红色=alarm"
+          },
+          {
+            "name": "regionId",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "区域ID，用于聚合展示"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PondListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedings/batch": {
+      "post": {
+        "tags": ["log"],
+        "summary": "批量投喂记录（代填模式）",
+        "operationId": "batchCreateFeedingLogs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchFeedingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "创建成功" },
+          "400": { "description": "参数错误" }
+        }
+      }
+    },
+    "/medications/batch": {
+      "post": {
+        "tags": ["log"],
+        "summary": "批量用药记录（触发休药期计算）",
+        "operationId": "batchCreateMedicationLogs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchMedicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "创建成功" },
+          "403": {
+            "description": "休药期冲突，禁止用药",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 403 },
+                    "message": { "type": "string", "example": "POND_001 处于休药期，禁止用药" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compliance/check-harvest": {
+      "get": {
+        "tags": ["compliance"],
+        "summary": "捕捞前合规检查（休药期拦截）",
+        "operationId": "checkHarvestCompliance",
+        "parameters": [
+          {
+            "name": "pondId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "harvestDate",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回合规状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HarvestComplianceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/cost-per-pond": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "单塘口成本核算表",
+        "operationId": "getCostPerPond",
+        "parameters": [
+          { "$ref": "#/components/parameters/pondId" },
+          { "$ref": "#/components/parameters/startDate" },
+          { "$ref": "#/components/parameters/endDate" }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回成本明细",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostAnalysisResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/profit-ranking": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "利润排行榜（按塘口）",
+        "operationId": "getProfitRanking",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["day", "week", "month"]
+            },
+            "default": "month"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回排名列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfitRankItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/warnings": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "库存预警（饲料/药品）",
+        "operationId": "getInventoryWarnings",
+        "responses": {
+          "200": {
+            "description": "返回预警列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryWarning"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/pond-status-map": {
+      "get": {
+        "tags": ["dashboard"],
+        "summary": "GIS基地分布状态（一张图）",
+        "operationId": "getPondStatusMap",
+        "responses": {
+          "200": {
+            "description": "返回带坐标的塘口状态列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PondStatusItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/water-quality/history": {
+      "get": {
+        "tags": ["dashboard"],
+        "summary": "水质历史曲线（24小时）",
+        "operationId": "getWaterQualityHistory",
+        "parameters": [
+          { "$ref": "#/components/parameters/pondId" },
+          {
+            "name": "hours",
+            "in": "query",
+            "schema": { "type": "integer", "default": 24 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回时间序列数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaterQualityHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/farming-dashboard": {
+      "get": {
+        "tags": ["weather"],
+        "summary": "养殖气象看板（场景化翻译）",
+        "operationId": "getFarmingWeatherDashboard",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "xiamen" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回当前+3天场景化预报",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmingWeatherDashboard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tide/xiamen-port": {
+      "get": {
+        "tags": ["weather"],
+        "summary": "厦门港潮汐专项（含本地术语）",
+        "operationId": "getXiamenTideData",
+        "parameters": [
+          { "$ref": "#/components/parameters/date" }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回潮位曲线与作业建议",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TideDataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/market/prices": {
+      "get": {
+        "tags": ["market"],
+        "summary": "个性化行情推送",
+        "operationId": "getUserSubscribedPrices",
+        "parameters": [
+          { "$ref": "#/components/parameters/userId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回订阅品种行情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceAlert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/suppliers/nearby": {
+      "get": {
+        "tags": ["market"],
+        "summary": "附近供应商名录（本地化）",
+        "operationId": "getNearbySuppliers",
+        "parameters": [
+          { "$ref": "#/components/parameters/lat" },
+          { "$ref": "#/components/parameters/lng" },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["feed", "medicine", "seedling", "equipment"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回供应商列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/disease-diagnose": {
+      "post": {
+        "tags": ["ai"],
+        "summary": "AI拍照识病",
+        "operationId": "diagnoseDiseaseByImage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://oss.xm/fish_disease.jpg"
+                  }
+                },
+                "required": ["imageUrl"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "返回诊断结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "disease": { "type": "string", "example": "弧菌病" },
+                    "confidence": { "type": "number", "format": "float", "example": 0.85 },
+                    "advice": { "type": "string", "example": "隔离+氯霉素治疗" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "page": {
+        "name": "page",
+        "in": "query",
+        "schema": { "type": "integer", "default": 1, "minimum": 1 }
+      },
+      "size": {
+        "name": "size",
+        "in": "query",
+        "schema": { "type": "integer", "default": 20, "maximum": 100 }
+      },
+      "pondId": {
+        "name": "pondId",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      "userId": {
+        "name": "userId",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      "startDate": {
+        "name": "startDate",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "endDate": {
+        "name": "endDate",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "date": {
+        "name": "date",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "lat": {
+        "name": "lat",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "number", "format": "float" }
+      },
+      "lng": {
+        "name": "lng",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "number", "format": "float" }
+      }
+    },
+    "schemas": {
+      "PondListResponse": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pondId": { "type": "string" },
+                "name": { "type": "string" },
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "lat": { "type": "number", "format": "float" },
+                    "lng": { "type": "number", "format": "float" }
+                  }
+                },
+                "status": { "type": "string", "enum": ["active", "warning", "alarm"] },
+                "species": { "type": "string" },
+                "area": { "type": "number", "description": "平方米" }
+              }
+            }
+          },
+          "total": { "type": "integer" }
+        }
+      },
+      "BatchFeedingRequest": {
+        "type": "object",
+        "properties": {
+          "operatorId": { "type": "string" },
+          "feedingDate": { "type": "string", "format": "date" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pondId": { "type": "string" },
+                "feedAmountKg": { "type": "number" },
+                "feedBrand": { "type": "string" }
+              },
+              "required": ["pondId", "feedAmountKg"]
+            }
+          }
+        },
+        "required": ["operatorId", "feedingDate", "items"]
+      },
+      "BatchMedicationRequest": {
+        "type": "object",
+        "properties": {
+          "operatorId": { "type": "string" },
+          "applyDate": { "type": "string", "format": "date" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pondId": { "type": "string" },
+                "medicineName": { "type": "string" },
+                "dose": { "type": "string" },
+                "withdrawalDays": { "type": "integer" }
+              },
+              "required": ["pondId", "medicineName", "withdrawalDays"]
+            }
+          }
+        },
+        "required": ["operatorId", "applyDate", "items"]
+      },
+      "HarvestComplianceResponse": {
+        "type": "object",
+        "properties": {
+          "isCompliant": { "type": "boolean" },
+          "reason": { "type": "string" },
+          "earliestHarvestDate": { "type": "string", "format": "date" }
+        }
+      },
+      "CostAnalysisResponse": {
+        "type": "object",
+        "properties": {
+          "pondId": { "type": "string" },
+          "totalFeedCost": { "type": "number" },
+          "totalMedicineCost": { "type": "number" },
+          "electricityCost": { "type": "number" },
+          "seedlingCost": { "type": "number" },
+          "totalProductionKg": { "type": "number" },
+          "costPerKg": { "type": "number", "description": "元/公斤" }
+        }
+      },
+      "ProfitRankItem": {
+        "type": "object",
+        "properties": {
+          "pondId": { "type": "string" },
+          "profitYuan": { "type": "number" },
+          "rank": { "type": "integer" }
+        }
+      },
+      "InventoryWarning": {
+        "type": "object",
+        "properties": {
+          "itemId": { "type": "string" },
+          "itemName": { "type": "string" },
+          "currentStockKg": { "type": "number" },
+          "dailyConsumptionKg": { "type": "number" },
+          "daysRemaining": { "type": "number" },
+          "warningLevel": { "type": "string", "enum": ["low", "critical"] }
+        }
+      },
+      "PondStatusItem": {
+        "type": "object",
+        "properties": {
+          "pondId": { "type": "string" },
+          "name": { "type": "string" },
+          "lat": { "type": "number", "format": "float" },
+          "lng": { "type": "number", "format": "float" },
+          "statusColor": { "type": "string", "enum": ["green", "yellow", "red"] },
+          "statusReason": { "type": "string" }
+        }
+      },
+      "WaterQualityHistory": {
+        "type": "object",
+        "properties": {
+          "timestamps": {
+            "type": "array",
+            "items": { "type": "string", "format": "date-time" }
+          },
+          "doValues": {
+            "type": "array",
+            "items": { "type": "number", "description": "mg/L" }
+          },
+          "tempValues": {
+            "type": "array",
+            "items": { "type": "number", "description": "℃" }
+          }
+        }
+      },
+      "FarmingWeatherDashboard": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "object",
+            "properties": {
+              "temp": { "type": "number" },
+              "windSpeed": { "type": "number", "description": "m/s" },
+              "rainProbability": { "type": "integer" },
+              "tideStatus": { "type": "string", "enum": ["rising", "falling"] },
+              "bestWaterExchangeWindow": { "type": "string", "example": "2h" }
+            }
+          },
+          "forecast3Days": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": { "type": "string", "format": "date" },
+                "farmingAdvice": { "type": "string" },
+                "indices": {
+                  "type": "object",
+                  "properties": {
+                    "seaGoing": { "type": "integer", "minimum": 1, "maximum": 5 },
+                    "waterExchange": { "type": "integer", "minimum": 1, "maximum": 5 },
+                    "feeding": { "type": "integer", "minimum": 1, "maximum": 5 }
+                  }
+                }
+              }
+            }
+          },
+          "disasterWarning": {
+            "type": "object",
+            "properties": {
+              "level": { "type": "string", "enum": ["blue", "yellow", "orange", "red"] },
+              "message": { "type": "string" },
+              "evacuationPoint": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "lat": { "type": "number" },
+                  "lng": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TideDataResponse": {
+        "type": "object",
+        "properties": {
+          "tideCurve": {
+            "type": "array",
+            "items": { "type": "number" }
+          },
+          "highTides": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$" }
+          },
+          "lowTides": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$" }
+          },
+          "localTerms": { "type": "string", "example": "初一十五流，大潮汛" },
+          "recommendedActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timeRange": { "type": "string" },
+                "action": { "type": "string" },
+                "icon": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "PriceAlert": {
+        "type": "object",
+        "properties": {
+          "species": { "type": "string" },
+          "region": { "type": "string" },
+          "currentPrice": { "type": "number" },
+          "yesterdayPrice": { "type": "number" },
+          "changePercent": { "type": "number" },
+          "alertTriggered": { "type": "boolean" }
+        }
+      },
+      "SupplierItem": {
+        "type": "object",
+        "properties": {
+          "supplierId": { "type": "string" },
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "phone": { "type": "string" },
+          "mainProducts": { "type": "string" },
+          "serviceRegion": { "type": "string" },
+          "distanceKm": { "type": "number" }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

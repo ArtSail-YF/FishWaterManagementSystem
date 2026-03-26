@@ -1,0 +1,648 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "API Documentation",
+    "version" : "1.0"
+  },
+  "paths" : {
+    "/user/currentUser" : {
+      "get" : {
+        "summary" : "getCurrentUser",
+        "description" : "getCurrentUser",
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "message" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "integer",
+                          "description" : "用户ID",
+                          "format" : "int64"
+                        },
+                        "userName" : {
+                          "type" : "string",
+                          "description" : "用户名"
+                        },
+                        "userAccount" : {
+                          "type" : "string",
+                          "description" : "用户账号"
+                        },
+                        "avatarUrl" : {
+                          "type" : "string",
+                          "description" : "用户头像"
+                        },
+                        "gender" : {
+                          "type" : "integer",
+                          "description" : "性别"
+                        },
+                        "phone" : {
+                          "type" : "string",
+                          "description" : "电话"
+                        },
+                        "email" : {
+                          "type" : "string",
+                          "description" : "邮箱"
+                        },
+                        "userStatus" : {
+                          "type" : "integer",
+                          "description" : "用户状态 0-正常"
+                        },
+                        "userRole" : {
+                          "type" : "integer",
+                          "description" : "用户角色 0-普通用户 1-管理员"
+                        },
+                        "createTime" : {
+                          "type" : "string",
+                          "description" : "创建时间"
+                        },
+                        "updateTime" : {
+                          "type" : "string",
+                          "description" : "更新时间"
+                        }
+                      },
+                      "description" : ""
+                    },
+                    "description" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/register/account" : {
+      "post" : {
+        "summary" : "userRegister",
+        "description" : "userRegister",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "userAccount" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "userPassword" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "checkPassword" : {
+                    "type" : "string",
+                    "description" : ""
+                  }
+                },
+                "description" : ""
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "message" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "integer",
+                          "description" : "",
+                          "format" : "int64"
+                        }
+                      },
+                      "description" : ""
+                    },
+                    "description" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/login/account" : {
+      "post" : {
+        "summary" : "userLogin",
+        "description" : "userLogin",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "userAccount" : {
+                    "type" : "string",
+                    "description" : ""
+                  },
+                  "userPassword" : {
+                    "type" : "string",
+                    "description" : ""
+                  }
+                },
+                "description" : ""
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "message" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "object",
+                      "properties" : {
+                        "status" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "type" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "currentAuthority" : {
+                          "type" : "string",
+                          "description" : ""
+                        },
+                        "user" : {
+                          "type" : "object",
+                          "properties" : {
+                            "id" : {
+                              "type" : "integer",
+                              "description" : "用户ID",
+                              "format" : "int64"
+                            },
+                            "userName" : {
+                              "type" : "string",
+                              "description" : "用户名"
+                            },
+                            "userAccount" : {
+                              "type" : "string",
+                              "description" : "用户账号"
+                            },
+                            "avatarUrl" : {
+                              "type" : "string",
+                              "description" : "用户头像"
+                            },
+                            "gender" : {
+                              "type" : "integer",
+                              "description" : "性别"
+                            },
+                            "phone" : {
+                              "type" : "string",
+                              "description" : "电话"
+                            },
+                            "email" : {
+                              "type" : "string",
+                              "description" : "邮箱"
+                            },
+                            "userStatus" : {
+                              "type" : "integer",
+                              "description" : "用户状态 0-正常"
+                            },
+                            "userRole" : {
+                              "type" : "integer",
+                              "description" : "用户角色 0-普通用户 1-管理员"
+                            },
+                            "createTime" : {
+                              "type" : "string",
+                              "description" : "创建时间"
+                            },
+                            "updateTime" : {
+                              "type" : "string",
+                              "description" : "更新时间"
+                            }
+                          },
+                          "description" : "创建一个UserVO来隐藏敏感信息"
+                        }
+                      },
+                      "description" : ""
+                    },
+                    "description" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/search" : {
+      "get" : {
+        "summary" : "searchUsers",
+        "description" : "searchUsers",
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "userAccount",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "gender",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "phone",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "email",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "userRole",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        }, {
+          "name" : "createTime",
+          "in" : "query",
+          "description" : "",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "nullable" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "message" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "array",
+                      "description" : "",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "id" : {
+                            "type" : "integer",
+                            "description" : "id",
+                            "format" : "int64"
+                          },
+                          "userName" : {
+                            "type" : "string",
+                            "description" : "用户昵称"
+                          },
+                          "userAccount" : {
+                            "type" : "string",
+                            "description" : "账号"
+                          },
+                          "avatarUrl" : {
+                            "type" : "string",
+                            "description" : "用户头像"
+                          },
+                          "gender" : {
+                            "type" : "integer",
+                            "description" : "性别"
+                          },
+                          "userPassword" : {
+                            "type" : "string",
+                            "description" : "密码"
+                          },
+                          "phone" : {
+                            "type" : "string",
+                            "description" : "电话"
+                          },
+                          "email" : {
+                            "type" : "string",
+                            "description" : "邮箱"
+                          },
+                          "userRole" : {
+                            "type" : "integer",
+                            "description" : "角色 0 - 普通用户 1 - 管理员"
+                          },
+                          "userStatus" : {
+                            "type" : "integer",
+                            "description" : "状态 0 - 正常"
+                          },
+                          "createTime" : {
+                            "type" : "string",
+                            "description" : "创建时间"
+                          },
+                          "updateTime" : {
+                            "type" : "string",
+                            "description" : ""
+                          },
+                          "isDelete" : {
+                            "type" : "integer",
+                            "description" : "是否删除 (0-未删除，1-已删除)"
+                          }
+                        },
+                        "description" : "用户\n&#064;TableName  user"
+                      }
+                    },
+                    "description" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/delete" : {
+      "post" : {
+        "summary" : "delete",
+        "description" : "delete",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "integer",
+                "description" : ""
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/deletes" : {
+      "post" : {
+        "summary" : "delete",
+        "description" : "delete",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "description" : "",
+                "items" : {
+                  "type" : "integer"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/logout" : {
+      "post" : {
+        "summary" : "userLogout",
+        "description" : "userLogout",
+        "responses" : {
+          "200" : {
+            "description" : "",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "code" : {
+                      "type" : "integer",
+                      "description" : ""
+                    },
+                    "message" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "data" : {
+                      "type" : "string",
+                      "description" : ""
+                    },
+                    "description" : {
+                      "type" : "string",
+                      "description" : ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "com.artsail.admin.model.domain.VO.UserVO" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "description" : "用户ID",
+            "format" : "int64"
+          },
+          "userName" : {
+            "type" : "string",
+            "description" : "用户名"
+          },
+          "userAccount" : {
+            "type" : "string",
+            "description" : "用户账号"
+          },
+          "avatarUrl" : {
+            "type" : "string",
+            "description" : "用户头像"
+          },
+          "gender" : {
+            "type" : "integer",
+            "description" : "性别"
+          },
+          "phone" : {
+            "type" : "string",
+            "description" : "电话"
+          },
+          "email" : {
+            "type" : "string",
+            "description" : "邮箱"
+          },
+          "userStatus" : {
+            "type" : "integer",
+            "description" : "用户状态 0-正常"
+          },
+          "userRole" : {
+            "type" : "integer",
+            "description" : "用户角色 0-普通用户 1-管理员"
+          },
+          "createTime" : {
+            "type" : "string",
+            "description" : "创建时间"
+          },
+          "updateTime" : {
+            "type" : "string",
+            "description" : "更新时间"
+          }
+        },
+        "description" : "创建一个UserVO来隐藏敏感信息"
+      },
+      "用户\n&#064;TableName  user" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "description" : "id",
+            "format" : "int64"
+          },
+          "userName" : {
+            "type" : "string",
+            "description" : "用户昵称"
+          },
+          "userAccount" : {
+            "type" : "string",
+            "description" : "账号"
+          },
+          "avatarUrl" : {
+            "type" : "string",
+            "description" : "用户头像"
+          },
+          "gender" : {
+            "type" : "integer",
+            "description" : "性别"
+          },
+          "userPassword" : {
+            "type" : "string",
+            "description" : "密码"
+          },
+          "phone" : {
+            "type" : "string",
+            "description" : "电话"
+          },
+          "email" : {
+            "type" : "string",
+            "description" : "邮箱"
+          },
+          "userRole" : {
+            "type" : "integer",
+            "description" : "角色 0 - 普通用户 1 - 管理员"
+          },
+          "userStatus" : {
+            "type" : "integer",
+            "description" : "状态 0 - 正常"
+          },
+          "createTime" : {
+            "type" : "string",
+            "description" : "创建时间"
+          },
+          "updateTime" : {
+            "type" : "string",
+            "description" : ""
+          },
+          "isDelete" : {
+            "type" : "integer",
+            "description" : "是否删除 (0-未删除，1-已删除)"
+          }
+        },
+        "description" : "用户\n&#064;TableName  user"
+      }
+    }
+  }
+}

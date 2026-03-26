@@ -14,7 +14,7 @@ export default [
   {
     path: '/user',
     layout: false,
-    static : true,
+    static: true,
     routes: [
       {
         name: 'login',
@@ -31,100 +31,180 @@ export default [
 
   },
   {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
-
-    
-  },
-  {
-    path: '/fishLog',
-    name: '水产日志',
-    icon: 'crown',
-    access: 'canAdmin',
+    path: '/dashboard',
+    name: 'dashboard',
+    icon: 'dashboard',
     routes: [
       {
-        path: '/fishLog/sub-page',
-        name: '日志展示',
-        component: './fishLog/logData',
+        path: '/dashboard',
+        redirect: '/dashboard/base-distribution',
+      },
+      {
+        path: '/dashboard/base-distribution',
+        name: 'base-distribution',
+        component: './dashboard/BaseDistribution',
+      },
+      {
+        path: '/dashboard/water-quality',
+        name: 'water-quality',
+        component: './dashboard/WaterQuality',
+      },
+      {
+        path: '/dashboard/production-plan',
+        name: 'production-plan',
+        component: './dashboard/ProductionPlan',
+      },
+      {
+        path: '/dashboard/business-analysis',
+        name: 'business-analysis',
+        component: './dashboard/BusinessAnalysis',
       },
     ],
- 
+  },
+  {
+    path: '/warning',
+    name: 'warning',
+    icon: 'warning',
+    routes: [
+      {
+        path: '/warning',
+        redirect: '/warning/comprehensive',
+        // component: './warning/Comprehensive',
+      },
+      {
+        path: '/warning/comprehensive',
+        name: 'comprehensive',
+        component: './warning/Comprehensive',
+      },
+      {
+        path: '/warning/records',
+        name: 'records',
+        component: './warning/Records',
+      },
+    ],
+  },
+  {
+    path: '/weather',
+    name: 'weather',
+    icon: 'cloud',
+    routes: [
+      {
+        path: '/weather',
+        redirect: '/weather/disaster',
+        // component: './weather/Disaster',
+      },
+      {
+        path: '/weather/real-time',
+        name: 'real-time',
+        component: './weather/RealTime',
+      },
+      {
+        path: '/weather/disaster',
+        name: 'disaster',
+        component: './weather/Disaster',
+      },
+      {
+        path: '/weather/history',
+        name: 'history',
+        component: './weather/History',
+      },
+    ],
+  },
+  {
+    path: '/production',
+    name: 'production',
+    icon: 'setting',
+    routes: [
+      {
+        path: '/production',
+        redirect: '/production/logs',
+        // component: './production/Logs',
+      },
+      {
+        path: '/production/logs',
+        name: 'logs',
+        routes: [
+          {
+            path: '/production/logs',
+            redirect: '/production/logs/feeding',
+          },
+          {
+            path: '/production/logs/feeding',
+            name: 'feeding',
+            component: './production/logs/Feeding',
+          },
+          {
+            path: '/production/logs/medicine',
+            name: 'medicine',
+            component: './production/logs/Medicine',
+          },
+        ],
+      },
+      {
+        path: '/production/pond-archives',
+        name: 'pond-archives',
+        component: './production/PondArchives',
+      },
+      {
+        path: '/production/input-records',
+        name: 'input-records',
+        component: './production/InputRecords',
+      },
+    ],
+  },
+  {
+    path: '/info-nav',
+    name: 'info-nav',
+    icon: 'infoCircle',
+    routes: [
+      {
+        path: '/info-nav',
+        redirect: '/info-nav/market',
+        // component: './info-nav/Market',
+      },
+      {
+        path: '/info-nav/market',
+        name: 'market',
+        component: './info-nav/Market',
+      },
+      {
+        path: '/info-nav/suppliers',
+        name: 'suppliers',
+        component: './info-nav/Suppliers',
+      },
+      {
+        path: '/info-nav/contacts',
+        name: 'contacts',
+        component: './info-nav/Contacts',
+      },
+      {
+        path: '/info-nav/knowledge',
+        name: 'knowledge',
+        component: './info-nav/Knowledge',
+      },
+    ],
   },
   {
     path: '/admin',
-    name: '管理页',
+    name: 'admin',
     icon: 'crown',
     access: 'canAdmin',
-       component: './admin/userManage',
     routes: [
       {
-        path: '/admin/sub-page',
-        name: '用户管理',
+        path: '/admin',
+        redirect: '/admin/userManage',
+      },
+      {
+        path: '/admin/userManage',
+        name: 'UserManage',
         component: './admin/userManage',
       },
     ],
- 
   },
-    {
-    path: '/waterLife',
-    name: '水产监控',
-    icon: 'crown',
-    access: 'canAdmin',
-        
-    routes: [
-      {
-        path: '/waterLife/momonitoring',
-        name: '监控列表',
-        component: './waterLife/momonitoring',
-      },
-       {
-        path: '/waterLife/weather',
-        name: '气象监测',
-        component: './waterLife/weather',
-      },
-    ],
- 
-  },
-    {
-    path: '/hotspot',
-    name: '热点监控',
-    icon: 'crown',
-    access: 'canAdmin',
-        component: './hotspot/monitoring',
-    routes: [
-      {
-        path: '/hotspot/sub-page',
-        name: '监控列表',
-        component: './hotspot/monitoring',
-      },
-    ],
- 
-  },
-
-      {
-    path: '/aiEngine',
-    name: '智慧AI',
-    icon: 'crown',
-    access: 'canAdmin',
-     component: './aiEngine/qaPair',
-    routes: [
-      {
-        path: '/aiEngine/sub-page',
-        name: '知识问答',
-        component: './aiEngine/qaPair',
-      },
-    ],
- 
-  },
-
-
-
 
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/dashboard',
   },
   {
     path: '*',
