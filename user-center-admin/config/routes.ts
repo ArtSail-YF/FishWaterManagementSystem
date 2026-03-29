@@ -45,6 +45,11 @@ export default [
         component: './dashboard/BaseDistribution',
       },
       {
+        path: '/dashboard/pond-archives',
+        name: 'pond-archives',
+        component: './dashboard/PondArchives',
+      },
+      {
         path: '/dashboard/water-quality',
         name: 'water-quality',
         component: './dashboard/WaterQuality',
@@ -90,8 +95,8 @@ export default [
     routes: [
       {
         path: '/weather',
-        redirect: '/weather/disaster',
-        // component: './weather/Disaster',
+        redirect: '/weather/real-time',
+     
       },
       {
         path: '/weather/real-time',
@@ -141,9 +146,9 @@ export default [
         ],
       },
       {
-        path: '/production/pond-archives',
-        name: 'pond-archives',
-        component: './production/PondArchives',
+        path: '/production/pond-management',
+        name: 'pond-management',
+        component: './production/PondManagement',
       },
       {
         path: '/production/input-records',

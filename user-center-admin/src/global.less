@@ -92,3 +92,84 @@ ol {
     }
   }
 }
+
+
+/* 金融软件风格样式注入 */
+.fin-number {
+  font-family: 'Roboto Mono', 'JetBrains Mono', 'Courier New', Courier, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.fin-card {
+  border-radius: 2px !important;
+  border: 1px solid #f0f0f0 !important;
+  box-shadow: none !important;
+  
+  .ant-card-head {
+    min-height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #fafafa;
+    
+    .ant-card-head-title {
+      padding: 8px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #595959;
+    }
+  }
+}
+
+.fin-ticker-label {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.fin-ticker-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.fin-trend-up {
+  color: #cf1322;
+  font-weight: 600;
+}
+
+.fin-trend-down {
+  color: #3f8600;
+  font-weight: 600;
+}
+
+
+/* 自定义滚动条 - 金融极简风格 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* 针对特定容器优化 */
+.ant-table-body, 
+.ant-list, 
+.ant-drawer-body,
+div {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+}
+

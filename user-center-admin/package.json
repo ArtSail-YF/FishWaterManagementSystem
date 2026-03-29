@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "-": "^0.0.1",
+    "@amap/amap-jsapi-loader": "^1.0.1",
     "@ant-design/icons": "^5.6.1",
     "@ant-design/pro-components": "^2.7.19",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
@@ -44,6 +45,8 @@
     "antd-style": "^3.7.0",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6",
     "g": "^2.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

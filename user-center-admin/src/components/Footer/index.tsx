@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
           key: 'ArtSail',
           title: 'ArtSail',
           href: 'http://artsail.top',
-          blankTarget: true,
+          // blankTarget: true,
         },
   
       ]}
