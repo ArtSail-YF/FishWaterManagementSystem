@@ -67,7 +67,7 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
     };
   }, []);
 
-  // 地图初始化 useEffect
+  // 地图初始化和样式更新 useEffect
   useEffect(() => {
     // 解决 AMap 2.0 INVALID_USER_KEY 错误，设置安全密钥
     // 注意：正式环境建议通过环境变量注入
@@ -113,7 +113,15 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
         map.destroy();
       }
     };
-  }, [isDarkMode]); // 依赖暗黑模式状态，当状态变化时重新初始化地图
+  }, []); // 只在组件挂载时初始化一次
+
+  // 当地图实例和暗黑模式状态变化时更新地图样式
+  useEffect(() => {
+    if (map) {
+      // 直接更新地图样式，而不是重新初始化地图
+      map.setMapStyle(isDarkMode ? 'amap://styles/darkblue' : 'amap://styles/normal');
+    }
+  }, [map, isDarkMode]); // 依赖地图实例和暗黑模式状态
 
   // 处理底图切换
   const handleMapTypeChange = (e: RadioChangeEvent) => {
