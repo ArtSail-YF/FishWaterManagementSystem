@@ -1,17 +1,8 @@
 import { Button, Card, Space, Table, Tag, Tooltip, Typography } from 'antd';
 import React from 'react';
+import type { AlertItem } from '@/services/ant-design-pro/warning';
 
 const { Text } = Typography;
-
-export interface AlertItem {
-  key: string;
-  level: 'P0' | 'P1' | 'P2';
-  time: string;
-  source: string;
-  description: string;
-  duration: string;
-  status: 'pending' | 'processing' | 'resolved';
-}
 
 interface RealTimeAlertListProps {
   data: AlertItem[];

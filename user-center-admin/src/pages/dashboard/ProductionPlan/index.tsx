@@ -1,13 +1,36 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Card, Col, Row, Typography } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import React, { useState } from 'react';
-import PlanCalendar, { CalendarTask } from './components/PlanCalendar';
+import React, { use, useState } from 'react';
+import PlanCalendar from './components/PlanCalendar';
 import PlanDetailTimeline from './components/PlanDetailTimeline';
 import PlanStats from './components/PlanStats';
 import TaskCenter, { TaskItem } from './components/TaskCenter';
+import { getPlanStats   }from '@/services/api/task';
+import { useEffect } from 'react';  
+import { userInfo } from 'os';
+
+
+//========类型定义======
+
+type CalendarTask = {
+  type: 'feed' | 'water' | 'harvest' | 'medicine';
+  content: string;
+};
+ type PlanStatsProps ={
+    todayTasks: number;
+    completedTasks: number;
+    activePlans: number;
+    overdueTasks: number;
+}
+//===========
+
+
 
 const { Title } = Typography;
+
+
+//=====模拟数据======
 
 // 模拟日历任务
 const MOCK_CALENDAR_TASKS: Record<string, CalendarTask[]> = {
@@ -40,16 +63,58 @@ const MOCK_TASKS: Record<string, TaskItem[]> = {
   ],
 };
 
+
+
+
+const MOCK_STATS: PlanStatsProps = {
+    todayTasks: 3,
+    completedTasks: 2,
+    activePlans: 1,
+    overdueTasks: 1,
+};
+
+//===============
+
+
+
 const ProductionPlan: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs('2026-03-27'));
   const [tasks, setTasks] = useState<TaskItem[]>(MOCK_TASKS['2026-03-27'] || []);
+const [stats, setStats] = useState<PlanStatsProps>(MOCK_STATS);
 
-  const stats = {
-    todayTasks: 4,
-    completedTasks: 1,
-    activePlans: 12,
-    overdueTasks: 1,
+
+const [pond, setPond] = useState({ Name: '萧山 1 号塘', Id: '1' });
+  const fetchStats = async () => {
+    try {
+      const response = await getPlanStats();
+      setStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+      setStats(MOCK_STATS);
+    }
   };
+
+  const fetchTasks = async () => {
+    try {
+      const dateStr = selectedDate.format('YYYY-MM-DD');
+      setTasks(MOCK_TASKS[dateStr] || []);
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error);
+      setTasks(MOCK_TASKS['2026-03-27'] || []);
+    }
+  };
+
+
+
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+
+
+
+
 
   const handleSelectDate = (date: Dayjs) => {
     setSelectedDate(date);
@@ -69,7 +134,7 @@ const ProductionPlan: React.FC = () => {
   };
 
   return (
-    <PageContainer header={{ title: '生产计划' }}>
+    <PageContainer header={undefined} title={false}>
       <PlanStats stats={stats} />
       
       <Row gutter={16}>
@@ -90,7 +155,7 @@ const ProductionPlan: React.FC = () => {
         
         {/* 右侧：进度追踪 */}
         <Col xs={24} lg={10}>
-          <PlanDetailTimeline pondName="萧山 1 号塘" />
+          <PlanDetailTimeline pond={pond} />
         </Col>
       </Row>
     </PageContainer>

@@ -1,29 +1,72 @@
 import { Card, Segmented, Typography } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import React, { useMemo, useState } from 'react';
-import type { PondStatus } from './PondCardGrid';
+import {type PondWaterLog}from '@/services/api/water';
+import { getPondDetailTrend } from '@/services/api/water';
+import { useEffect } from 'react';
+
 
 const { Title } = Typography;
 
 interface QualityTrendChartProps {
-  pond?: PondStatus;
+  pond?:API.PondStatus;
   loading?: boolean;
 }
 
-const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond, loading }) => {
+const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
   const [metric, setMetric] = useState<'oxygen' | 'temp' | 'ph'>('oxygen');
+  const [loading, setLoading] = useState(false);
 
-  // 模拟趋势数据
+  const [trendData, setTrendData] = useState<PondWaterLog[]>([]);
+  useEffect(() => {
+    if (!pond?.id) {
+      setTrendData([]);
+      return;
+    }
+
+    const fetchTrend = async () => {
+      setLoading(true);
+      try {
+        const response = await getPondDetailTrend(pond.id); // 拦截器已返回 data 数组
+        setTrendData(response.data || []);
+      } catch (error) {
+        console.error('获取趋势数据失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrend();
+  }, [pond?.id]);
+
+
+
+
+  // 趋势数据
   const chartOptions = useMemo(() => {
     if (!pond) return {};
+    if (trendData.length === 0) return {};
 
-    const times = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-    const data = Array.from({ length: 24 }, () => {
-      if (metric === 'oxygen') return (Math.random() * 4 + 4).toFixed(2);
-      if (metric === 'temp') return (Math.random() * 5 + 22).toFixed(2);
-      return (Math.random() * 2 + 7).toFixed(2);
-    });
 
+
+
+    //获取数据
+    const times = trendData.map(item =>
+      new Date(item.timestamp).toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+    );
+
+    const data = trendData.map(item => {
+      if (metric === 'oxygen') return item.dissolvedOxygen;
+      if (metric === 'temp') return item.waterTemperature;
+      return item.pH;
+    }).map(val => (val != null ? Number(val.toFixed(2)) : null));
+
+    
+    //配置指标
     const metricLabels = {
       oxygen: { name: '溶氧量', unit: 'mg/L', color: '#1890ff', warnLine: 5, errorLine: 4 },
       temp: { name: '水温', unit: '℃', color: '#faad14', warnLine: 28, errorLine: 32 },
@@ -31,6 +74,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond, loading }) 
     };
 
     const currentMetric = metricLabels[metric];
+
 
     return {
       title: {
@@ -45,21 +89,11 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond, loading }) 
           return `${p.name}<br/>${currentMetric.name}: <b>${p.value} ${currentMetric.unit}</b>`;
         },
       },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true,
+      grid: {left: '3%', right: '4%',bottom: '3%', containLabel: true,
       },
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: times,
+      xAxis: {type: 'category',boundaryGap: false,data: times,
       },
-      yAxis: {
-        type: 'value',
-        name: currentMetric.unit,
-        scale: true,
+      yAxis: {type: 'value',name: currentMetric.unit,scale: true,
       },
       series: [
         {
@@ -101,7 +135,11 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond, loading }) 
         },
       ],
     };
-  }, [pond, metric]);
+  }, [pond, metric,trendData]);
+
+
+
+
 
   return (
     <Card

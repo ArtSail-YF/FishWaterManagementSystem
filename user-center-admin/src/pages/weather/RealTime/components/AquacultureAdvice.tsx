@@ -1,38 +1,29 @@
-import { Badge, Card, Col, List, Rate, Row, Space, Tag, Typography } from 'antd';
-import React from 'react';
+import { Badge, Card, Col, List, Rate, Row, Space, Tag, Typography, Spin } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { getAquacultureAdvice, type AquacultureAdviceItem } from '@/services/api/weather';
 
 const { Text, Title } = Typography;
 
 const AquacultureAdvice: React.FC = () => {
-  const indices = [
-    { label: '出海指数', value: 4, desc: '风浪适宜，适合出海。' },
-    { label: '换水指数', value: 2, desc: '降雨概率大，温差大，不宜换水。' },
-    { label: '投喂指数', value: 3, desc: '水温波动中等，正常投喂。' },
-  ];
+  const [data, setData] = useState<AquacultureAdviceItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const forecast = [
-    { 
-      day: '明天', 
-      weather: '8级大风', 
-      isWarning: true, 
-      advice: '⚠️ 明天 8 级大风，不适合出海/换水，建议加固渔排。',
-      color: '#cf1322'
-    },
-    { 
-      day: '后天', 
-      weather: '阵雨', 
-      isWarning: false, 
-      advice: '🌧️ 局部阵雨，注意池塘盐度波动，适量加氧。',
-      color: '#1890ff'
-    },
-    { 
-      day: '2026-03-30', 
-      weather: '晴转多云', 
-      isWarning: false, 
-      advice: '☀️ 天气转晴，日照增强，注意藻类过度生长。',
-      color: '#52c41a'
-    }
-  ];
+  useEffect(() => {
+    getAquacultureAdvice().then(res => {
+      setData(res.data || null);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading || !data) {
+    return (
+      <Card className="fin-card" style={{ height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Spin tip="分析专家建议..." />
+      </Card>
+    );
+  }
+
+  const { indices, forecast } = data;
 
   return (
     <Card 

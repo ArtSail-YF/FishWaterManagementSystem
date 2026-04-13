@@ -1,15 +1,11 @@
 import { Badge, Card, Col, Row, Space, Typography } from 'antd';
 import React from 'react';
+import type { AlertSummaryData } from '@/services/ant-design-pro/warning';
 
 const { Text } = Typography;
 
 interface AlertSummaryProps {
-  data: {
-    unprocessed: number;
-    newInHour: number;
-    processedToday: number;
-    avgResponseTime: string;
-  };
+  data: AlertSummaryData;
 }
 
 const AlertSummary: React.FC<AlertSummaryProps> = ({ data }) => {

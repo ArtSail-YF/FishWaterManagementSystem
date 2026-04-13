@@ -2,24 +2,15 @@ import { ArrowDownOutlined, ArrowUpOutlined, DashboardOutlined } from '@ant-desi
 import { Badge, Card, Col, Row, Space, Tag, Typography } from 'antd';
 import React from 'react';
 
+
 const { Text } = Typography;
 
-export interface PondStatus {
-  id: string;
-  name: string;
-  baseName: string;
-  status: 'normal' | 'warning' | 'error';
-  indicators: {
-    oxygen: { value: number; trend: 'up' | 'down' | 'stable' };
-    temp: { value: number; trend: 'up' | 'down' | 'stable' };
-    ph: { value: number; trend: 'up' | 'down' | 'stable' };
-  };
-}
+
 
 interface PondCardGridProps {
-  ponds: PondStatus[];
+  ponds:API. PondStatus[];
   selectedPondId?: string;
-  onSelect: (pond: PondStatus) => void;
+  onSelect: (pond: API.PondStatus) => void;
 }
 
 const PondCardGrid: React.FC<PondCardGridProps> = ({ ponds, selectedPondId, onSelect }) => {

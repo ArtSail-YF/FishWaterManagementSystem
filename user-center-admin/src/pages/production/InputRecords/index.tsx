@@ -2,79 +2,35 @@ import { PlusOutlined, DeleteOutlined, ExportOutlined, CheckCircleOutlined, Arro
 import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Space, Modal, message, Badge, Tooltip, Row, Col, Card, Statistic } from 'antd';
 import dayjs from 'dayjs';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
-
-export interface InputRecordItem {
-  id: string;
-  date: string;
-  name: string;
-  category: 'feed' | 'medicine' | 'seed' | 'equipment' | 'other'; // 增加设备类
-  type: 'in' | 'out'; // 增加类型：入库(采购) / 出库(使用)
-  specification: string;
-  quantity: number;
-  unit: string;
-  price: number;
-  totalPrice: number;
-  pondName?: string; // 使用时必填
-  operator: string;
-  supplier?: string; // 采购时必填
-  status: 'pending' | 'approved' | 'rejected';
-}
+import { getInputRecords, deleteInputRecord, type InputRecordItem } from '@/services/ant-design-pro/input';
+import { MOCK_INPUT_RECORDS } from '@/services/ant-design-pro/mock';
 
 const InputRecords: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentRow, setCurrentRow] = useState<InputRecordItem | null>(null);
   const [selectedRowsState, setSelectedRows] = useState<InputRecordItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<InputRecordItem[]>([]);
 
-  // 模拟数据
-  const mockData: InputRecordItem[] = [
-    {
-      id: 'REC001',
-      date: '2026-03-28',
-      name: '特种对虾饲料 (1号)',
-      category: 'feed',
-      type: 'in',
-      specification: '20kg/袋',
-      quantity: 100,
-      unit: '袋',
-      price: 185.00,
-      totalPrice: 18500.00,
-      operator: '张三',
-      supplier: '海大饲料有限公司',
-      status: 'approved',
-    },
-    {
-      id: 'REC002',
-      date: '2026-03-28',
-      name: '特种对虾饲料 (1号)',
-      category: 'feed',
-      type: 'out',
-      specification: '20kg/袋',
-      quantity: 5,
-      unit: '袋',
-      price: 185.00,
-      totalPrice: 925.00,
-      pondName: '1号精养塘',
-      operator: '李四',
-      status: 'approved',
-    },
-    {
-      id: 'REC003',
-      date: '2026-03-27',
-      name: '1.5KW 叶轮增氧机',
-      category: 'equipment',
-      type: 'in',
-      specification: '台',
-      quantity: 10,
-      unit: '台',
-      price: 850.00,
-      totalPrice: 8500.00,
-      operator: '王五',
-      supplier: '恒盛机电',
-      status: 'approved',
-    },
-  ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getInputRecords();
+      setData(res.data || []);
+    } catch (error) {
+      console.error('获取投入记录失败，使用降级数据:', error);
+      setData(MOCK_INPUT_RECORDS as any);
+      message.warning('投入记录已降级为离线模式');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleBatchApprove = (selectedRows: InputRecordItem[]) => {
     Modal.confirm({
@@ -320,7 +276,8 @@ const InputRecords: React.FC = () => {
       <ProTable<InputRecordItem>
         headerTitle="投入记录清单"
         columns={columns}
-        dataSource={mockData}
+        dataSource={data}
+        loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
         pagination={{ pageSize: 10 }}
@@ -363,7 +320,7 @@ const InputRecords: React.FC = () => {
           <Button 
             key="export" 
             icon={<ExportOutlined />} 
-            onClick={() => handleExport(mockData, `全量投入记录_${dayjs().format('YYYYMMDD')}`)}
+            onClick={() => handleExport(data, `全量投入记录_${dayjs().format('YYYYMMDD')}`)}
           >
             导出全部
           </Button>,

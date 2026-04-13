@@ -1,9 +1,28 @@
-import { Badge, Card, Col, Row, Space, Statistic, Typography } from 'antd';
-import React from 'react';
+import { Badge, Card, Col, Row, Space, Statistic, Typography, Spin } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { getRealTimeWeather } from '@/services/api/weather';
 
 const { Text } = Typography;
 
 const StatusHeader: React.FC = () => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getRealTimeWeather().then(res => {
+      setData(res.data || {});
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <Card variant="borderless" className="fin-card" style={{ textAlign: 'center', padding: '20px' }}>
+        <Spin tip="采集实时气象数据..." />
+      </Card>
+    );
+  }
+
   return (
     <Card variant="borderless" className="fin-card" styles={{ body: { padding: '12px 20px' } }}>
       <Row gutter={24} align="middle">
@@ -11,8 +30,10 @@ const StatusHeader: React.FC = () => {
           <Space direction="vertical" size={0}>
             <Text type="secondary" style={{ fontSize: '12px' }}>当前养殖气象状态 / LIVE STATUS</Text>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-              <span className="fin-number" style={{ fontSize: '28px', color: '#cf1322' }}>26.4°C</span>
-              <Text type="secondary">体感 28°C</Text>
+              <span className="fin-number" style={{ fontSize: '28px', color: data?.status === 'extreme' ? '#cf1322' : '#262626' }}>
+                {data?.avgTemp || '--'}°C
+              </span>
+              <Text type="secondary">体感 {Math.round((data?.avgTemp || 0) + 2)}°C</Text>
             </div>
           </Space>
         </Col>
@@ -22,7 +43,7 @@ const StatusHeader: React.FC = () => {
             <Col span={12}>
               <Statistic 
                 title={<span style={{ fontSize: '12px' }}>持续风速</span>}
-                value={4.2}
+                value={data?.maxWind || 0}
                 precision={1}
                 suffix="m/s"
                 valueStyle={{ fontSize: '18px' }}
@@ -32,7 +53,7 @@ const StatusHeader: React.FC = () => {
             <Col span={12}>
               <Statistic 
                 title={<span style={{ fontSize: '12px' }}>阵风</span>}
-                value={6.8}
+                value={(data?.maxWind || 0) * 1.5}
                 precision={1}
                 suffix="m/s"
                 valueStyle={{ fontSize: '18px', color: '#fa8c16' }}

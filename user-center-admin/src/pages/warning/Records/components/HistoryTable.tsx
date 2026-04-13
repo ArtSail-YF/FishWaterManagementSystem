@@ -1,29 +1,17 @@
 import { Badge, Card, Drawer, Table, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import type { WarningHistoryRecord } from '@/services/ant-design-pro/warning';
 
 const { Text } = Typography;
 
-export interface HistoryRecord {
-  id: string;
-  level: 'P0' | 'P1' | 'P2';
-  startTime: string;
-  endTime: string;
-  duration: string;
-  source: string;
-  description: string;
-  handler: string;
-  status: 'resolved' | 'ignored' | 'pending';
-  comment: string;
-}
-
 interface HistoryTableProps {
-  data: HistoryRecord[];
+  data: WarningHistoryRecord[];
 }
 
 const HistoryTable: React.FC<HistoryTableProps> = ({ data }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<HistoryRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<WarningHistoryRecord | null>(null);
 
   const getStatusTag = (status: string) => {
     switch (status) {

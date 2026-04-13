@@ -3,44 +3,29 @@ import { VideoCameraOutlined, ThunderboltOutlined, BulbOutlined, ReloadOutlined 
 import React, { useMemo } from 'react';
 import WaterQualitySparkline from './WaterQualitySparkline';
 
+
 const { Text } = Typography;
 
-export interface PondItem {
-  id: string;
-  name: string;
-  baseId: string; // 关联基地 ID
-  status: 'breeding' | 'empty' | 'locked' | 'ready';
-  species: string;
-  days: number;
-  temp: number;
-  do: number; // Dissolved Oxygen
-  doTrend: number[];
-  area: number;
-  estWeight: number;
-}
-
 interface PondGridProps {
-  onPondClick: (pond: PondItem) => void;
+   ponds: Pond.PondItem[];
+   loading: boolean;
+  onPondClick: (pond: Pond.PondItem) => void;
   viewMode: 'production' | 'device';
   filterValues: any;
 }
 
-const PondGrid: React.FC<PondGridProps> = ({ onPondClick, viewMode, filterValues }) => {
-  const ponds: PondItem[] = useMemo(() => Array.from({ length: 18 }, (_, i) => ({
-    id: `P${(i + 1).toString().padStart(3, '0')}`,
-    name: `${i + 1}号池塘`,
-    baseId: i < 5 ? 'B001' : i < 10 ? 'B002' : i < 15 ? 'B003' : 'B004', // 模拟分配到不同基地
-    status: i === 4 ? 'locked' : i % 5 === 0 ? 'empty' : i % 7 === 0 ? 'ready' : 'breeding',
-    species: i % 2 === 0 ? '南美白对虾' : '大黄鱼',
-    days: 45 + i * 2,
-    temp: 24.5 + Math.random() * 2,
-    do: 5.2 + Math.random() * 1.5,
-    doTrend: [4.2, 4.5, 5.1, 5.8, 5.4, 5.2, 4.9, 5.3],
-    area: 600,
-    estWeight: 1200 + i * 50,
-  })), []);
+const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, viewMode, filterValues }) => {
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+        <ReloadOutlined spin style={{ fontSize: '24px', color: '#1890ff', marginBottom: '16px' }} />
+        <div style={{ color: '#999' }}>加载塘口数据中...</div>
+      </div>
+    );
+  }
 
   const filteredPonds = useMemo(() => {
+    if (!ponds) return [];
     return ponds.filter(pond => {
       const matchSearch = !filterValues.searchText || 
         pond.id.toLowerCase().includes(filterValues.searchText.toLowerCase()) ||
@@ -52,7 +37,7 @@ const PondGrid: React.FC<PondGridProps> = ({ onPondClick, viewMode, filterValues
     });
   }, [ponds, filterValues]);
 
-  const getStatusColor = (status: PondItem['status']) => {
+  const getStatusColor = (status: Pond.PondItem['status']) => {
     switch (status) {
       case 'breeding': return '#1890ff';
       case 'empty': return '#52c41a';
@@ -62,7 +47,7 @@ const PondGrid: React.FC<PondGridProps> = ({ onPondClick, viewMode, filterValues
     }
   };
 
-  const getStatusText = (status: PondItem['status']) => {
+  const getStatusText = (status: Pond.PondItem['status']) => {
     switch (status) {
       case 'breeding': return '养殖中';
       case 'empty': return '空塘';
@@ -75,6 +60,13 @@ const PondGrid: React.FC<PondGridProps> = ({ onPondClick, viewMode, filterValues
   if (filteredPonds.length === 0) {
     return <Empty description="未找到匹配的塘口" style={{ padding: '40px' }} />;
   }
+
+
+
+
+
+
+
 
   return (
     <Row gutter={[12, 12]}>

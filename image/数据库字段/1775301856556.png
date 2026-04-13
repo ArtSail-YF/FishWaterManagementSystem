@@ -1,0 +1,163 @@
+CREATE TABLE `Base` (
+  `id` string PRIMARY KEY COMMENT '基地唯一标识 (如 B001)',
+  `name` string NOT NULL COMMENT '基地名称',
+  `latitude` float NOT NULL COMMENT '纬度 (WGS84)',
+  `longitude` float NOT NULL COMMENT '经度 (WGS84)',
+  `status` ENUM ('normal', 'warning', 'todo') NOT NULL COMMENT '状态:normal, warning, todo',
+  `oxygen_avg` float COMMENT '基地平均溶氧量 (mg/L)',
+  `temp_avg` float COMMENT '基地平均水温 (°C)',
+  `ph_avg` float COMMENT '基地平均 PH 值'
+);
+
+CREATE TABLE `Pond` (
+  `id` string PRIMARY KEY COMMENT '塘口编号 (如 P001)',
+  `name` string NOT NULL COMMENT '塘口名称',
+  `base_id` string NOT NULL COMMENT '所属基地 ID (外键)',
+  `type` string NOT NULL COMMENT '养殖类型 (南美白对虾/蟹苗/混养)',
+  `area` float NOT NULL COMMENT '面积 (亩)',
+  `depth` float NOT NULL COMMENT '平均深度 (m)',
+  `status` ENUM ('breeding', 'empty', 'locked', 'ready') NOT NULL COMMENT '养殖状态:breeding, empty, locked, ready',
+  `species` string COMMENT '当前养殖品种',
+  `breeding_days` int COMMENT '已养殖天数',
+  `current_temp` float COMMENT '实时水温 (°C)',
+  `current_do` float COMMENT '实时溶氧 (mg/L)',
+  `do_trend` json COMMENT '溶氧历史趋势数据 (Array)',
+  `est_biomass` float COMMENT '预计产量 (kg)',
+  `video_status` string COMMENT '视频状态:online, offline, error',
+  `video_url` string COMMENT '监控流地址 (RTSP/HLS)',
+  `sensor_count` int COMMENT '关联传感器数量',
+  `iot_config` json COMMENT '关联的 IoT 节点 ID 列表'
+);
+
+CREATE TABLE `ProductionLog` (
+  `id` string PRIMARY KEY,
+  `log_time` datetime NOT NULL COMMENT '记录时间',
+  `pond_id` string NOT NULL COMMENT '关联塘口 ID',
+  `type` ENUM ('feeding', 'medicine', 'water', 'patrol') NOT NULL COMMENT '类型:feeding, medicine, water, patrol',
+  `content` string NOT NULL COMMENT '行为摘要',
+  `operator` string NOT NULL COMMENT '记录人/执行人',
+  `status` string COMMENT '状态描述',
+  `details` json COMMENT '原始业务数据'
+);
+
+CREATE TABLE `InputRecord` (
+  `id` string PRIMARY KEY COMMENT '流水号',
+  `record_date` date NOT NULL COMMENT '发生日期',
+  `name` string NOT NULL COMMENT '物资名称',
+  `category` ENUM ('feed', 'medicine', 'seed', 'equipment', 'other') NOT NULL COMMENT '类别:feed, medicine, seed, equipment, other',
+  `type` ENUM ('in', 'out') NOT NULL COMMENT '交易类型:in(入库), out(出库)',
+  `specification` string COMMENT '规格型号 (如: 20kg/袋)',
+  `quantity` float NOT NULL COMMENT '数量',
+  `unit` string NOT NULL COMMENT '单位',
+  `price` decimal NOT NULL COMMENT '单价 (元)',
+  `total_price` decimal NOT NULL COMMENT '总金额 (元)',
+  `pond_name` string COMMENT '关联塘口名称 (出库时必填)',
+  `operator` string NOT NULL COMMENT '经办人',
+  `supplier` string COMMENT '供应商 (入库时必填)',
+  `status` string COMMENT '审核状态:pending, approved, rejected'
+);
+
+CREATE TABLE `Task` (
+  `id` string PRIMARY KEY COMMENT '任务 ID',
+  `plan_time` datetime NOT NULL COMMENT '计划执行时间',
+  `type` ENUM ('feed', 'medicine', 'water', 'harvest') NOT NULL COMMENT '类型:feed, medicine, water, harvest',
+  `content` string NOT NULL COMMENT '任务内容描述',
+  `status` ENUM ('pending', 'completed', 'overdue') NOT NULL COMMENT '状态:pending, completed, overdue',
+  `executor` string COMMENT '预定执行人',
+  `pond_id` string NOT NULL COMMENT '关联塘口'
+);
+
+CREATE TABLE `Supplier` (
+  `id` string PRIMARY KEY COMMENT '供应商 ID',
+  `name` string NOT NULL COMMENT '供应商名称',
+  `category` ENUM ('feed', 'medicine', 'seed', 'equipment', 'other') NOT NULL COMMENT '物资分类:feed, medicine, seed, equipment',
+  `rating` int COMMENT '综合评分 (1-5)',
+  `contact` string COMMENT '联系人',
+  `phone` string COMMENT '联系电话',
+  `main_products` json COMMENT '主营产品列表 (Array)',
+  `is_certified` boolean COMMENT '是否官方认证',
+  `region` string COMMENT '所在地区'
+);
+
+CREATE TABLE `Contact` (
+  `id` string PRIMARY KEY COMMENT '成员 ID',
+  `name` string NOT NULL COMMENT '姓名',
+  `avatar` string COMMENT '头像 URL',
+  `role` string COMMENT '角色/职位',
+  `department` string COMMENT '部门:management, technical, field, external',
+  `phone` string COMMENT '电话',
+  `email` string COMMENT '邮箱',
+  `expertise` json COMMENT '专业领域 (Array)',
+  `status` string COMMENT '在线状态:online, offline'
+);
+
+CREATE TABLE `Knowledge` (
+  `id` string PRIMARY KEY COMMENT '文章 ID',
+  `title` string NOT NULL COMMENT '文章标题',
+  `summary` string COMMENT '文章摘要',
+  `category` string COMMENT '分类:disease, water, feed, policy',
+  `tags` json COMMENT '标签列表 (Array)',
+  `views` int COMMENT '浏览量',
+  `likes` int COMMENT '点赞量',
+  `update_time` date COMMENT '更新日期'
+);
+
+CREATE TABLE `User` (
+  `id` bigint PRIMARY KEY COMMENT '用户 ID',
+  `user_name` string NOT NULL COMMENT '用户名',
+  `user_account` string NOT NULL COMMENT '账号',
+  `avatar_url` string COMMENT '头像地址',
+  `gender` int COMMENT '性别 (0:女, 1:男)',
+  `phone` string COMMENT '手机号',
+  `email` string COMMENT '邮箱',
+  `user_status` int COMMENT '状态 (0:禁用, 1:正常)',
+  `user_role` int COMMENT '角色 (0:普通, 1:管理员)',
+  `user_vip` int COMMENT 'VIP 等级',
+  `create_time` datetime COMMENT '创建时间'
+);
+
+CREATE TABLE `WaterQualityHistory` (
+  `pond_id` string NOT NULL COMMENT '塘口 ID',
+  `timestamp` datetime NOT NULL COMMENT '采集时间',
+  `oxygen` float COMMENT '溶氧 (mg/L)',
+  `temperature` float COMMENT '水温 (°C)',
+  `ph` float COMMENT 'PH 值',
+  `turbidity` float COMMENT '浊度 (NTU)'
+);
+
+CREATE TABLE `WeatherHistory` (
+  `id` string PRIMARY KEY COMMENT '记录 ID',
+  `log_time` datetime NOT NULL COMMENT '采集时间',
+  `base_id` string NOT NULL COMMENT '基地 ID',
+  `condition` string COMMENT '天气现象 (晴/多云/暴雨等)',
+  `avg_temp` float COMMENT '平均气温 (°C)',
+  `max_wind` int COMMENT '最大风力 (级)',
+  `total_rain` float COMMENT '总降水量 (mm)',
+  `avg_pressure` float COMMENT '平均气压 (hPa)',
+  `risk_level` string COMMENT '风险等级:normal, extreme'
+);
+
+CREATE TABLE `WarningRecord` (
+  `id` string PRIMARY KEY COMMENT '预警编号',
+  `level` ENUM ('P0', 'P1', 'P2') NOT NULL COMMENT '级别:P0, P1, P2',
+  `start_time` datetime NOT NULL COMMENT '发生时间',
+  `end_time` datetime COMMENT '恢复时间',
+  `duration` string COMMENT '持续时长',
+  `source` string COMMENT '预警来源',
+  `description` string COMMENT '异常描述',
+  `handler` string COMMENT '处理人',
+  `status` ENUM ('resolved', 'ignored', 'pending') NOT NULL COMMENT '状态:resolved, ignored, pending',
+  `comment` string COMMENT '处置方案/备注'
+);
+
+CREATE INDEX `idx_pond_time` ON `WaterQualityHistory` (`pond_id`, `timestamp`);
+
+ALTER TABLE `Pond` ADD FOREIGN KEY (`base_id`) REFERENCES `Base` (`id`);
+
+ALTER TABLE `ProductionLog` ADD FOREIGN KEY (`pond_id`) REFERENCES `Pond` (`id`);
+
+ALTER TABLE `Task` ADD FOREIGN KEY (`pond_id`) REFERENCES `Pond` (`id`);
+
+ALTER TABLE `WaterQualityHistory` ADD FOREIGN KEY (`pond_id`) REFERENCES `Pond` (`id`);
+
+ALTER TABLE `WeatherHistory` ADD FOREIGN KEY (`base_id`) REFERENCES `Base` (`id`);

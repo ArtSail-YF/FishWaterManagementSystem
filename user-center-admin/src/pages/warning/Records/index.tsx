@@ -1,76 +1,44 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Space, message } from 'antd';
+import { Button, Space, message, Spin } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
-import React, { useState } from 'react';
-import HistoryTable, { HistoryRecord } from './components/HistoryTable';
+import React, { useState, useEffect } from 'react';
+import HistoryTable from './components/HistoryTable';
 import RecordsFilter from './components/RecordsFilter';
 import RecordsStats from './components/RecordsStats';
-
-// 模拟历史数据
-const MOCK_HISTORY: HistoryRecord[] = [
-  {
-    id: 'AL-20260327-001',
-    level: 'P0',
-    startTime: '2026-03-27 02:15:12',
-    endTime: '2026-03-27 02:45:00',
-    duration: '29m 48s',
-    source: '萧山基地 / 1号塘',
-    description: '溶氧量 (DO) 骤降: 1.8 mg/L ↓',
-    handler: '张三',
-    status: 'resolved',
-    comment: '手动开启 2 号增氧机，溶氧恢复正常。建议检查传感器探头是否挂草。',
-  },
-  {
-    id: 'AL-20260326-045',
-    level: 'P1',
-    startTime: '2026-03-26 14:30:45',
-    endTime: '2026-03-26 15:10:22',
-    duration: '39m 37s',
-    source: '余杭基地 / 2号塘',
-    description: '水温异常上升: 29.2 ℃ ↑',
-    handler: '李四',
-    status: 'resolved',
-    comment: '开启遮阳网，增加进水量。',
-  },
-  {
-    id: 'AL-20260326-012',
-    level: 'P2',
-    startTime: '2026-03-26 09:15:00',
-    endTime: '2026-03-26 09:20:00',
-    duration: '5m',
-    source: '富阳基地 / 3号塘',
-    description: '投喂设备瞬时离线',
-    handler: '系统自动',
-    status: 'ignored',
-    comment: '网络波动，5分钟后自动恢复。',
-  },
-  {
-    id: 'AL-20260325-088',
-    level: 'P0',
-    startTime: '2026-03-25 22:10:00',
-    endTime: '2026-03-25 23:30:00',
-    duration: '1h 20m',
-    source: '桐庐基地 / 4号塘',
-    description: 'PH 值超标: 9.2 ↑',
-    handler: '王五',
-    status: 'resolved',
-    comment: '使用有机酸调水，PH 降至 8.4。',
-  },
-];
+import { getWarningHistory, getWarningStats, type WarningHistoryRecord, type WarningStatsData } from '@/services/ant-design-pro/warning';
+import { MOCK_WARNING_HISTORY, MOCK_WARNING_STATS } from '@/services/ant-design-pro/mock';
 
 const WarningRecords: React.FC = () => {
-  const [data, setData] = useState<HistoryRecord[]>(MOCK_HISTORY);
+  const [data, setData] = useState<WarningHistoryRecord[]>([]);
+  const [statsData, setStatsData] = useState<WarningStatsData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const statsData = {
-    total: 1254,
-    solveRate: 99.2,
-    avgHandleTime: '8m 45s',
-    trend: { value: 12.5, isUp: false },
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [historyRes, statsRes] = await Promise.all([
+        getWarningHistory(),
+        getWarningStats()
+      ]);
+      setData(historyRes.data || []);
+      setStatsData(statsRes.data || null);
+    } catch (error) {
+      console.error('获取预警历史失败，使用降级数据:', error);
+      setData(MOCK_WARNING_HISTORY as any);
+      setStatsData(MOCK_WARNING_STATS);
+      message.warning('预警历史已降级为本地档案');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleSearch = (values: any) => {
     message.info('正在执行高级检索...');
-    // 实际业务中这里会调用后端 API
+    fetchData(); // 重新加载数据
   };
 
   const handleExport = () => {
@@ -78,6 +46,14 @@ const WarningRecords: React.FC = () => {
       message.success('预警记录报表导出成功！');
     });
   };
+
+  if (loading && !statsData) {
+    return (
+      <div style={{ padding: '100px', textAlign: 'center' }}>
+        <Spin size="large" tip="检索历史档案..." />
+      </div>
+    );
+  }
 
   return (
     <PageContainer 
@@ -90,7 +66,7 @@ const WarningRecords: React.FC = () => {
         ]
       }}
     >
-      <RecordsStats data={statsData} />
+      {statsData && <RecordsStats data={statsData} />}
       
       <RecordsFilter onSearch={handleSearch} />
       

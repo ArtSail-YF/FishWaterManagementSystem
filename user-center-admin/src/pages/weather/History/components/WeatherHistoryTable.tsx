@@ -1,23 +1,30 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Card, Space, Tag, Typography } from 'antd';
-import React from 'react';
+import { Card, Space, Tag, Typography, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { getWeatherHistory, type WeatherHistoryItem } from '@/services/api/weather';
+import { MOCK_WEATHER_HISTORY } from '@/services/ant-design-pro/mock';
 
 const { Text } = Typography;
 
-export type WeatherHistoryItem = {
-  id: string;
-  time: string;
-  base: string;
-  weather: string;
-  avgTemp: number;
-  maxWind: number;
-  totalRain: number;
-  avgPressure: number;
-  status: 'normal' | 'extreme';
-};
-
 const WeatherHistoryTable: React.FC = () => {
+  const [data, setData] = useState<WeatherHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getWeatherHistory()
+      .then(res => {
+        setData(res.data || []);
+      })
+      .catch(() => {
+        console.error('获取气象历史失败，使用降级数据');
+        setData(MOCK_WEATHER_HISTORY as any);
+        message.warning('当前展示为气象历史模拟数据');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
   const columns: ProColumns<WeatherHistoryItem>[] = [
     {
       title: '采集时间',
@@ -118,7 +125,7 @@ const WeatherHistoryTable: React.FC = () => {
     >
       <ProTable<WeatherHistoryItem>
         columns={columns}
-        dataSource={mockData}
+        dataSource={data}
         rowKey="id"
         search={false}
         options={{

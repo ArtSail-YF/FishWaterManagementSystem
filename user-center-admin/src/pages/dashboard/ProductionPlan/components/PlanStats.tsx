@@ -2,8 +2,8 @@ import { CheckCircleOutlined, ClockCircleOutlined, DeploymentUnitOutlined, Warni
 import { Card, Col, Row, Statistic } from 'antd';
 import React from 'react';
 
-interface PlanStatsProps {
-  stats: {
+export interface PlanStatsProps {
+  stats?: {
     todayTasks: number;
     completedTasks: number;
     activePlans: number;
@@ -11,8 +11,15 @@ interface PlanStatsProps {
   };
 }
 
+
 const PlanStats: React.FC<PlanStatsProps> = ({ stats }) => {
+
+  if (!stats) {
+    return <Card>暂无统计数据</Card>;
+  }
+
   return (
+
     <Card variant="borderless" styles={{ body: { padding: '16px 24px' } }} style={{ marginBottom: 16 }}>
       <Row gutter={24} justify="space-around">
         <Col span={6}>

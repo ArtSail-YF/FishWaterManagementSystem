@@ -59,7 +59,7 @@ const useStyles = createStyles(({ token }) => {
       height: '100vh',
       overflow: 'auto',
       backgroundImage:
-        "url('https://ts1.tc.mm.bing.net/th/id/R-C.ba89cab7a601143ff59f2c5e5f9f32fe?rik=MjhMhfZ%2fku0Nbg&riu=http%3a%2f%2fimg.52desk.com%2ftp%2f235534nSvWn.jpg&ehk=IW1740oJAQyLPrm2ZFtNw4WfXclBHxTB4V5bopZJiXA%3d&risl=1&pid=ImgRaw&r=0')",
+        "url('/生成水产养殖设备图片.png')",
       backgroundSize: '100% 100%',
     },
   };

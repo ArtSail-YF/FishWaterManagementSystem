@@ -2,6 +2,7 @@ import { SearchOutlined, AppstoreOutlined, VideoCameraOutlined } from '@ant-desi
 import { Button, Card, Col, Form, Input, Row, Select, Space, Radio, Typography } from 'antd';
 import React from 'react';
 
+
 const { Text } = Typography;
 
 interface PondFilterBarProps {
@@ -9,15 +10,36 @@ interface PondFilterBarProps {
   viewMode: 'production' | 'device';
   onViewModeChange: (mode: 'production' | 'device') => void;
   initialValues?: any;
+  dict?: API.DictData;
 }
 
 const PondFilterBar: React.FC<PondFilterBarProps> = ({ 
   onSearch, 
   viewMode, 
   onViewModeChange,
-  initialValues 
+  initialValues,
+  dict
 }) => {
   const [form] = Form.useForm();
+
+  const baseOptions = dict?.baseList || [
+                  { label: '海宁1号基地', value: 'B001' },
+                  { label: '嘉兴南湖基地', value: 'B002' },
+                  { label: '舟山定海基地', value: 'B003' },
+                  { label: '温州苍南基地', value: 'B004' },
+                ];
+  const statusOptions = dict?.pondStatusList || [
+                  { label: '养殖中', value: 'breeding' },
+                  { label: '空塘', value: 'empty' },
+                  { label: '待出塘', value: 'ready' },
+                  { label: '锁定', value: 'locked' },
+                ];
+  const speciesOptions = dict?.speciesList || [
+                  { label: '南美白对虾', value: '南美白对虾' },
+                  { label: '大黄鱼', value: '大黄鱼' },
+                  { label: '鲍鱼', value: '鲍鱼' },
+                ];
+
 
   return (
     <Card variant="borderless" className="fin-card" styles={{ body: { padding: '12px 24px' } }}>
@@ -35,12 +57,7 @@ const PondFilterBar: React.FC<PondFilterBarProps> = ({
                 placeholder="全部基地"
                 style={{ width: '160px' }}
                 allowClear
-                options={[
-                  { label: '海宁1号基地', value: 'B001' },
-                  { label: '嘉兴南湖基地', value: 'B002' },
-                  { label: '舟山定海基地', value: 'B003' },
-                  { label: '温州苍南基地', value: 'B004' },
-                ]}
+                options={baseOptions}
               />
             </Form.Item>
 
@@ -58,12 +75,7 @@ const PondFilterBar: React.FC<PondFilterBarProps> = ({
                 placeholder="全部状态"
                 style={{ width: '120px' }}
                 allowClear
-                options={[
-                  { label: '养殖中', value: 'breeding' },
-                  { label: '空塘', value: 'empty' },
-                  { label: '待出塘', value: 'ready' },
-                  { label: '锁定', value: 'locked' },
-                ]}
+                options={statusOptions}
               />
             </Form.Item>
 
@@ -72,11 +84,7 @@ const PondFilterBar: React.FC<PondFilterBarProps> = ({
                 placeholder="全部品种"
                 style={{ width: '140px' }}
                 allowClear
-                options={[
-                  { label: '南美白对虾', value: '南美白对虾' },
-                  { label: '大黄鱼', value: '大黄鱼' },
-                  { label: '鲍鱼', value: '鲍鱼' },
-                ]}
+                options={speciesOptions}
               />
             </Form.Item>
           </Form>
@@ -93,12 +101,14 @@ const PondFilterBar: React.FC<PondFilterBarProps> = ({
                 buttonStyle="solid"
                 size="small"
               >
-                <Radio.Button value="production">
-                  <Space size={4}><AppstoreOutlined />生产指标</Space>
-                </Radio.Button>
+
                 <Radio.Button value="device">
                   <Space size={4}><VideoCameraOutlined />监控画面</Space>
                 </Radio.Button>
+                <Radio.Button value="production">
+                  <Space size={4}><AppstoreOutlined />生产指标</Space>
+                </Radio.Button>
+            
               </Radio.Group>
             </div>
           </Space>

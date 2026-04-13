@@ -1,60 +1,100 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Col, Row } from 'antd';
-import React, { useState } from 'react';
-import BaseFilter, { BaseItem } from './components/BaseFilter';
+import React, { useState, useEffect } from 'react';
+import BaseFilter from './components/BaseFilter';
 import GISStats from './components/GISStats';
 import GisMap from './components/GisMap';
-
-// 模拟数据
-const MOCK_BASES: BaseItem[] = [
-  {
-    id: '1',
-    name: '萧山生态基地 01',
-    location: [120.253576, 30.227459],
-    status: 'normal',
-    waterQuality: { oxygen: 6.8, temp: 24.5, ph: 7.8 },
-  },
-  {
-    id: '2',
-    name: '余杭育苗基地 02',
-    location: [120.003576, 30.287459],
-    status: 'warning',
-    waterQuality: { oxygen: 4.2, temp: 26.1, ph: 8.2 },
-  },
-  {
-    id: '3',
-    name: '富阳智慧渔场 03',
-    location: [119.953576, 30.057459],
-    status: 'todo',
-    waterQuality: { oxygen: 7.2, temp: 23.8, ph: 7.5 },
-  },
-  {
-    id: '4',
-    name: '桐庐淡水养殖区 04',
-    location: [119.653576, 29.857459],
-    status: 'normal',
-    waterQuality: { oxygen: 6.5, temp: 25.2, ph: 7.6 },
-  },
-];
+import { getBaseList } from '@/services/api/base';
+import { MOCK_BASES } from '@/services/ant-design-pro/mock';
+import { message } from 'antd';
 
 const BaseDistribution: React.FC = () => {
-  const [bases, setBases] = useState<BaseItem[]>(MOCK_BASES);
-  const [selectedBase, setSelectedBase] = useState<BaseItem | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [bases, setBases] = useState<Pond.BaseItem[]>([]);
+  const [selectedBase, setSelectedBase] = useState<Pond.BaseItem | undefined>(undefined);
   const [searchText, setSearchText] = useState('');
+  const [filteredBases, setFilteredBases] = useState<Pond.BaseItem[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  // 高级筛选状态
+  const [advancedFilters, setAdvancedFilters] = useState({
+    region: [] as string[],
+    baseType: 'all',
+    cooperationAttrs: {
+      taiwanCooperation: false,
+      deepSeaCertified: false,
+      greenCertification: false,
+    },
+  });
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getBaseList();
+      setBases(response.data || []);
+    } catch (error) {
+      console.error('获取基地数据失败，使用降级数据:', error);
+      setBases(MOCK_BASES);
+      message.warning('当前处于基地模拟视图');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // 统计数据
   const stats = {
-    normal: MOCK_BASES.filter((b) => b.status === 'normal').length,
-    todo: MOCK_BASES.filter((b) => b.status === 'todo').length,
-    warning: MOCK_BASES.filter((b) => b.status === 'warning').length,
+    normal: bases.filter((b) => b.status === 'normal').length,
+    todo: bases.filter((b) => b.status === 'todo').length,
+    warning: bases.filter((b) => b.status === 'warning').length,
   };
 
-  // 搜索过滤
-  const filteredBases = bases.filter((b) =>
-    b.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // 过滤数据
+  useEffect(() => {
+    let result = bases;
+    
+    // 搜索过滤
+    if (searchText) {
+      result = result.filter((b) =>
+        b.name.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+    
+    // 状态过滤
+    if (statusFilter !== 'all') {
+      result = result.filter((b) => b.status === statusFilter);
+    }
+    
+    // 区域过滤
+    if (advancedFilters.region.length > 0) {
+      result = result.filter((b) => 
+        advancedFilters.region.some(region => b.region?.includes(region))
+      );
+    }
+    
+    // 基地类型过滤
+    if (advancedFilters.baseType !== 'all') {
+      result = result.filter((b) => b.baseType === advancedFilters.baseType);
+    }
+    
+    // 合作属性过滤
+    const { cooperationAttrs } = advancedFilters;
+    if (cooperationAttrs.taiwanCooperation) {
+      result = result.filter((b) => b.taiwanCooperation === true);
+    }
+    if (cooperationAttrs.deepSeaCertified) {
+      result = result.filter((b) => b.deepSeaCertified === true);
+    }
+    if (cooperationAttrs.greenCertification) {
+      result = result.filter((b) => b.greenCertification === true);
+    }
+    
+    setFilteredBases(result);
+  }, [bases, searchText, statusFilter, advancedFilters]);
 
-  const handleSelectBase = (base: BaseItem) => {
+  const handleSelectBase = (base: Pond.BaseItem) => {
     setSelectedBase(base);
   };
 
@@ -62,19 +102,47 @@ const BaseDistribution: React.FC = () => {
     setSearchText(value);
   };
 
+  const handleStatusFilter = (status: string) => {
+    setStatusFilter(status);
+  };
+
+  // 处理高级筛选变化
+  const handleAdvancedFilterChange = (filters: {
+    region: string[];
+    baseType: string;
+    cooperationAttrs: {
+      taiwanCooperation: boolean;
+      deepSeaCertified: boolean;
+      greenCertification: boolean;
+    };
+  }) => {
+    setAdvancedFilters(filters);
+  };
+
   return (
-    <PageContainer header={{ title: '基地分布' }}>
-      <GISStats stats={stats} />
-      <Row gutter={16}>
-        <Col span={7}>
+    <PageContainer title={false}>
+      {/* 顶部状态条 */}
+      <GISStats 
+        stats={stats} 
+        onStatusClick={handleStatusFilter} 
+      />
+      
+      {/* 主内容区域 */}
+      <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
+        {/* 左侧筛选面板 - 25%宽度 */}
+        <Col span={6} style={{ height: '100%' }}>
           <BaseFilter
             bases={filteredBases}
             selectedBaseId={selectedBase?.id}
             onSelect={handleSelectBase}
             onSearch={handleSearch}
+            onAdvancedFilterChange={handleAdvancedFilterChange}
+            advancedFilters={advancedFilters}
           />
         </Col>
-        <Col span={17}>
+        
+        {/* 中央地图区域 - 75%宽度 */}
+        <Col span={18} style={{ height: '100%' }}>
           <GisMap
             bases={filteredBases}
             selectedBase={selectedBase}

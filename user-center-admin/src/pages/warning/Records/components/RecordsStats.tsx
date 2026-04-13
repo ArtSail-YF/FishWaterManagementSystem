@@ -1,13 +1,9 @@
 import { Card, Col, Row, Space, Statistic } from 'antd';
 import React from 'react';
+import type { WarningStatsData } from '@/services/ant-design-pro/warning';
 
 interface RecordsStatsProps {
-  data: {
-    total: number;
-    solveRate: number;
-    avgHandleTime: string;
-    trend: { value: number; isUp: boolean };
-  };
+  data: WarningStatsData;
 }
 
 const RecordsStats: React.FC<RecordsStatsProps> = ({ data }) => {

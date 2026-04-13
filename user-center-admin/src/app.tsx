@@ -3,22 +3,28 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
-import React from 'react';
+
+
 import {
   AvatarDropdown,
   AvatarName,
   Footer,
   Question,
   SelectLang,
+  DarkModeToggle,
 } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { currentUser as queryCurrentUser , getDictData } from '@/services/ant-design-pro/api';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
-import type { RequestOptions } from '@@/plugin-request/request';
+
+
+
+
+
 
 
 
@@ -28,10 +34,13 @@ import type { RequestOptions } from '@@/plugin-request/request';
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
+  dict?: API.DictData;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }> {
   alert(process.env.NODE_ENV);
+
+  // 获取用户信息
   const fetchUserInfo = async () => {
     try {
       const msg = await queryCurrentUser({
@@ -48,6 +57,20 @@ export async function getInitialState(): Promise<{
     return undefined;
   };
 
+  // 字典数据加载
+ const fetchDictData = async () => {
+    try {
+      // 这里替换为你实际的接口路径
+      const response = await getDictData() ; 
+      return response.data; // 返回字典数据
+    } catch (error) {
+      console.error('字典加载失败', error);
+      return {}; // 失败返回空对象
+    }
+  };
+
+
+
   // 如果不是登录页面，执行
   const { location } = history;
   if (
@@ -56,12 +79,19 @@ export async function getInitialState(): Promise<{
     )
   ) {
     const currentUser = await fetchUserInfo();
+    const dict = await fetchDictData(); 
     return {
       fetchUserInfo,
       currentUser,
+      dict, 
       settings: defaultSettings as Partial<LayoutSettings>,
     };
   }
+
+
+
+
+
   return {
     fetchUserInfo,
     settings: defaultSettings as Partial<LayoutSettings>,
@@ -80,6 +110,7 @@ export const layout: RunTimeLayoutConfig = ({
     actionsRender: () => [
       <Question key="doc" />,
       <SelectLang key="SelectLang" />,
+      <DarkModeToggle key="darkMode" />,
     ],
     avatarProps: {
       src: initialState?.currentUser?.avatarUrl,
@@ -156,6 +187,7 @@ export const layout: RunTimeLayoutConfig = ({
     ...initialState?.settings,
   };
 };
+
 
 
 /**

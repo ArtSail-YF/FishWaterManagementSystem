@@ -829,6 +829,8 @@ public class BusinessException extends RuntimeException{
 
 添加请求日志
 
+# 自定义组件
+
 # 多环境
 
 [多环境 | 鱼皮的编程宝典](https://code.yupi.icu/%E5%A4%9A%E7%8E%AF%E5%A2%83/)
@@ -1361,6 +1363,11 @@ services:
 4.1 GitHub Actions 配置（.github/workflows/deploy.yml）
 
 ```yaml
+
+
+
+
+
 name: Deploy to Environments
 
 on:
@@ -1446,4 +1453,115 @@ jobs:
             docker-compose down
             git pull origin main
             docker-compose up -d --build
+
+
+
 ```
+
+# 黑夜模式
+
+### 第一步：配置 ConfigProvider
+
+**这是全局主题入口。你需要在项目的最外层（通常是** `App.tsx` **或** `index.tsx`）包裹 `ConfigProvider`，并根据状态切换算法。
+
+**tsx****编辑**
+
+```
+importReact,{ useState, useMemo }from'react';
+import{ConfigProvider, theme }from'antd';
+importMyDashboardfrom'./MyDashboard';// 你的页面组件
+
+constApp:React.FC=()=>{
+const[isDark, setIsDark]=useState(false);// 控制暗黑模式的状态
+
+// 使用 useMemo 优化性能，避免不必要的重渲染
+const customTheme =useMemo(()=>({
+    algorithm: isDark ? theme.darkAlgorithm: theme.defaultAlgorithm,
+  
+// 可以在这里覆盖具体的颜色变量（可选）
+    token:{
+      colorPrimary:'#1890ff',// 你的品牌主色
+},
+    components:{
+// 针对特定组件微调（可选）
+Button:{
+        borderRadius:4,
+},
+},
+}),[isDark]);
+
+return(
+<ConfigProvider theme={customTheme}>
+<div className={isDark ?'dark':'light'}>
+{/* 把你的切换按钮和页面内容放这里 */}
+<MyDashboard isDark={isDark} toggleTheme={()=>setIsDark(!isDark)}/>
+</div>
+</ConfigProvider>
+);
+};
+
+exportdefaultApp;
+```
+
+### 第二步：处理页面背景（关键！）
+
+**你会发现，开启** `darkAlgorithm` **后，Ant Design 的** **组件** **（按钮、表格、菜单）自动变黑了，但** **页面背景** **（body）可能还是白的。这是因为 Ant Design 只管组件内部，管不到全局 body**
+
+
+
+
+**你需要写一点 CSS 来配合：**
+
+### 第三步：解决地图“发白光”问题（完美融合）
+
+**这是原生方案最大的优势！你可以精准控制地图。**
+
+**Ant Design 的暗黑模式通常会给根节点加一个类名，或者你自己控制一个状态。高德地图/百度地图本身支持“深色样式 JSON”。**
+
+**逻辑是这样的：**
+
+1. **当** `isDark` **为 true 时，给地图组件传入“深色样式 JSON”。**
+2. **当** `isDark` **为 false 时，传回默认样式。**
+
+**代码示例（伪代码）：**
+
+**tsx****编辑**
+
+```
+// MapComponent.tsx
+importReactfrom'react';
+import{MapContainer}from'your-map-library';// 假设你用的某个地图库
+import{ darkStyleJson }from'./map-dark-style';// 你需要去高德/百度官网申请或找一个深色的JSON配置
+
+constMapComponent=({ isDarkMode }:{ isDarkMode:boolean})=>{
+return(
+<MapContainer 
+      style={{ width:'100%', height:'100%'}}
+// 核心：根据模式动态切换地图的皮肤
+      mapStyle={isDarkMode ? darkStyleJson :'amap://styles/normal'} 
+/>
+);
+};
+
+exportdefaultMapComponent;
+```
+
+> **去哪找地图的深色 JSON？**
+>
+> * **高德地图** **：去“高德开放平台” -> “控制台” -> “个性化地图”，里面有很多现成的深色模板，直接复制 JSON 即可。**
+> * **Google Maps** **：使用 "Snazzy Maps" 网站找深色主题。**
+
+### 总结：原生方案 vs Dark Reader
+
+**表格**
+
+| **特性**       | **原生方案 (Antd v5)**                  | **Dark Reader (你的上一版)**                    |
+| -------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| **实现难度**   | **⭐⭐⭐ (需要改代码)**                 | **⭐ (直接引入库)**                             |
+| **视觉精致度** | **极高** **(官方设计，颜色完美)** | **一般** **(暴力反转，颜色可能怪异)**     |
+| **地图处理**   | **完美** **(可切换地图皮肤)**     | **极差** **(要么刺眼白光，要么图片反色)** |
+| **性能**       | **高** **(直接切换 CSS 变量)**    | **低** **(需要实时计算样式)**             |
+| **图片处理**   | **图片保持原样**                        | **图片可能会变色/变暗**                         |
+
+**建议：**
+既然你是在做系统， **强烈建议使用原生方案** **。虽然刚开始多写几十行代码，但以后维护起来，以及给用户展示时，那个质感完全是两个档次的。**

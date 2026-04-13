@@ -1,17 +1,35 @@
-import { Typography } from 'antd';
-import React from 'react';
+import { Typography, Spin, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { getWeatherSummary, type WeatherSummaryItem } from '@/services/api/weather';
+import { MOCK_WEATHER_SUMMARY } from '@/services/ant-design-pro/mock';
 
 const { Text } = Typography;
 
 const WeatherSummary: React.FC = () => {
-  const data = [
-    { label: '杭州基地', value: '26.4°C', trend: 'up' },
-    { label: '舟山基地', value: '22.1°C', trend: 'down' },
-    { label: '宁波基地', value: '24.8°C', trend: 'up' },
-    { label: '温州基地', value: '27.2°C', trend: 'up' },
-    { label: '风力', value: '4.2m/s', trend: 'stable' },
-    { label: '气压', value: '1012hPa', trend: 'down' },
-  ];
+  const [data, setData] = useState<WeatherSummaryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getWeatherSummary()
+      .then(res => {
+        setData(res.data || []);
+      })
+      .catch(() => {
+        console.error('获取气象摘要失败，使用降级数据');
+        setData(MOCK_WEATHER_SUMMARY);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#001529' }}>
+        <Spin size="small" />
+      </div>
+    );
+  }
 
   return (
     <div style={{ 

@@ -2,33 +2,43 @@ import { PlusOutlined, UserAddOutlined, ExportOutlined } from '@ant-design/icons
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, Space, Tag, Typography, Modal, message } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BatchFeedingModal from './BatchFeedingModal';
 import dayjs from 'dayjs';
+import { getProductionLogs } from '@/services/api/logs';
+import { MOCK_FEEDING_LOGS } from '@/services/ant-design-pro/mock';
 
 const { Text } = Typography;
 
-export type FeedingLogItem = {
-  id: string;
-  time: string;
-  pondId: string;
-  feedType: string;
-  amount: number;
-  method: 'auto' | 'manual';
-  operator: string;
-  status: 'normal' | 'low' | 'high';
-  remarks?: string;
-};
-
 const FeedingLogTable: React.FC = () => {
   const [batchModalVisible, setBatchModalVisible] = useState(false);
-  const [selectedRowsState, setSelectedRows] = useState<FeedingLogItem[]>([]);
+  const [selectedRowsState, setSelectedRows] = useState<Pond.ProductionLogItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<Pond.ProductionLogItem[]>([]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getProductionLogs('feeding');
+      setData(res.data || []);
+    } catch (error) {
+      console.error('获取投喂记录失败，使用降级数据:', error);
+      setData(MOCK_FEEDING_LOGS);
+      message.warning('当前展示为投喂模拟数据');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   /**
    * 模拟数据导出逻辑
    */
-  const handleExport = (data: FeedingLogItem[], fileName: string = '投喂记录报表') => {
-    if (data.length === 0) {
+  const handleExport = (dataList: Pond.ProductionLogItem[], fileName: string = '投喂记录报表') => {
+    if (dataList.length === 0) {
       message.warning('暂无数据可导出');
       return;
     }
@@ -42,9 +52,9 @@ const FeedingLogTable: React.FC = () => {
         content: (
           <div>
             <p>已成功生成 <b>{fileName}.xlsx</b></p>
-            <p>包含记录: <span className="fin-number">{data.length}</span> 条</p>
-            <p>总投喂量: <span className="fin-number" style={{ color: '#1890ff', fontWeight: 600 }}>
-              {data.reduce((sum, item) => sum + item.amount, 0).toFixed(2)} kg
+            <p>包含记录: <span className="fin-number">{dataList.length}</span> 条</p>
+            <p>涉及总投喂: <span className="fin-number" style={{ color: '#1890ff', fontWeight: 600 }}>
+              {dataList.reduce((sum, item) => sum + (item.details?.amount || 0), 0).toFixed(2)} kg
             </span></p>
           </div>
         ),
@@ -53,7 +63,7 @@ const FeedingLogTable: React.FC = () => {
     }, 1200);
   };
 
-  const columns: ProColumns<FeedingLogItem>[] = [
+  const columns: ProColumns<Pond.ProductionLogItem>[] = [
     {
       title: '投喂时间',
       dataIndex: 'time',
@@ -62,70 +72,40 @@ const FeedingLogTable: React.FC = () => {
       render: (text) => <Text className="fin-number" style={{ fontSize: '13px' }}>{text}</Text>,
     },
     {
-      title: '池塘编号',
+      title: '塘口',
       dataIndex: 'pondId',
       width: 100,
-      render: (text) => <Tag color="blue" style={{ borderRadius: '2px', fontSize: '11px', margin: 0 }}>{text}</Tag>,
+      render: (text) => <Tag color="blue">{text}</Tag>,
     },
     {
-      title: '饲料品种',
-      dataIndex: 'feedType',
-      width: 120,
+      title: '操作内容',
+      dataIndex: 'content',
+      ellipsis: true,
     },
     {
-      title: '投喂量 (kg)',
-      dataIndex: 'amount',
-      width: 100,
-      align: 'right',
-      render: (text: any) => (
-        <Text className="fin-number" strong style={{ fontSize: '13px' }}>
-          {text}
-        </Text>
-      ),
-    },
-    {
-      title: '投喂方式',
-      dataIndex: 'method',
-      width: 100,
+      title: '方式',
+      dataIndex: ['details', 'method'],
+      width: 80,
       valueEnum: {
-        auto: { text: '智能自动', status: 'Processing' },
-        manual: { text: '人工投喂', status: 'Default' },
+        auto: { text: '智能', status: 'Processing' },
+        manual: { text: '人工', status: 'Default' },
       },
     },
     {
-      title: '记录人/代填',
-      dataIndex: 'operator',
-      width: 120,
-      render: (text: any) => (
-        <Space size={4}>
-          <Text style={{ fontSize: '12px' }}>{text}</Text>
-          {text.includes('代录') && <Tag color="cyan" style={{ fontSize: '10px', scale: '0.85', margin: 0 }}>代填</Tag>}
-        </Space>
-      )
-    },
-    {
-      title: '摄食状态',
+      title: '状态',
       dataIndex: 'status',
       width: 100,
       valueEnum: {
         normal: { text: '正常', status: 'Success' },
-        low: { text: '摄食下降', status: 'Error' },
-        high: { text: '摄食旺盛', status: 'Warning' },
+        low: { text: '偏低', status: 'Warning' },
+        high: { text: '偏高', status: 'Error' },
       },
     },
     {
-      title: '备注',
-      dataIndex: 'remarks',
-      ellipsis: true,
+      title: '记录人',
+      dataIndex: 'operator',
+      width: 100,
     },
-  ];
-
-  const mockData: FeedingLogItem[] = [
-    { id: '1', time: '2026-03-27 18:30:00', pondId: 'P001', feedType: '1.5mm 高蛋白', amount: 45.2, method: 'auto', operator: '系统自动', status: 'normal', remarks: '定时任务执行' },
-    { id: '2', time: '2026-03-27 18:15:00', pondId: 'P003', feedType: '1.5mm 高蛋白', amount: 38.5, method: 'manual', operator: '王大牛', status: 'high', remarks: '补投 5kg' },
-    { id: '3', time: '2026-03-27 17:45:00', pondId: 'P002', feedType: '1.0mm 幼鱼料', amount: 12.0, method: 'auto', operator: '代录文员-张晓明', status: 'low', remarks: '摄食欲望一般，水温偏低' },
-    { id: '4', time: '2026-03-27 12:00:00', pondId: 'P001', feedType: '1.5mm 高蛋白', amount: 42.0, method: 'auto', operator: '系统自动', status: 'normal' },
-    { id: '5', time: '2026-03-27 08:30:00', pondId: 'P001', feedType: '1.5mm 高蛋白', amount: 45.0, method: 'auto', operator: '系统自动', status: 'normal' },
   ];
 
   return (
@@ -134,9 +114,10 @@ const FeedingLogTable: React.FC = () => {
       variant="borderless" 
       styles={{ body: { padding: '0' } }}
     >
-      <ProTable<FeedingLogItem>
+      <ProTable<Pond.ProductionLogItem>
         columns={columns}
-        dataSource={mockData}
+        dataSource={data}
+        loading={loading}
         rowKey="id"
         search={false}
         options={{
@@ -174,7 +155,7 @@ const FeedingLogTable: React.FC = () => {
           <Button 
             key="export" 
             icon={<ExportOutlined />} 
-            onClick={() => handleExport(mockData, `全量投喂记录_${dayjs().format('YYYYMMDD')}`)}
+            onClick={() => handleExport(data, `全量投喂记录_${dayjs().format('YYYYMMDD')}`)}
           >
             导出全部
           </Button>,

@@ -2,17 +2,24 @@ import { Badge, Calendar, Card, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React from 'react';
 
+
+
 const { Title } = Typography;
 
-export interface CalendarTask {
-  type: 'feed' | 'medicine' | 'water' | 'harvest';
+
+//====类型
+type CalendarTask = {
+  type: 'feed' | 'water' | 'harvest' | 'medicine';
   content: string;
-}
+};
 
 interface PlanCalendarProps {
   onSelect: (date: Dayjs) => void;
   getTasksForDate: (date: Dayjs) => CalendarTask[];
 }
+//============
+
+
 
 const PlanCalendar: React.FC<PlanCalendarProps> = ({ onSelect, getTasksForDate }) => {
   const dateCellRender = (value: Dayjs) => {

@@ -18,9 +18,10 @@ interface TaskCenterProps {
   selectedDate: Dayjs;
   tasks: TaskItem[];
   onExecute: (id: string) => void;
+  onClick?: (pondName: string) => void; 
 }
 
-const TaskCenter: React.FC<TaskCenterProps> = ({ selectedDate, tasks, onExecute }) => {
+const TaskCenter: React.FC<TaskCenterProps> = ({ selectedDate, tasks, onExecute, onClick }) => {
   const getStatusTag = (status: string) => {
     switch (status) {
       case 'pending':

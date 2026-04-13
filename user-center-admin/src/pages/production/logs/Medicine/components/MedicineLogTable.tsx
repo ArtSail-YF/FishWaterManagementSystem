@@ -2,35 +2,43 @@ import { PlusOutlined, UserAddOutlined, ExportOutlined } from '@ant-design/icons
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, Progress, Space, Tag, Typography, Modal, message } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BatchMedicineModal from './BatchMedicineModal';
 import dayjs from 'dayjs';
+import { getProductionLogs } from '@/services/api/logs';
+import { MOCK_MEDICINE_LOGS } from '@/services/ant-design-pro/mock';
 
 const { Text } = Typography;
 
-export type MedicineLogItem = {
-  id: string;
-  time: string;
-  pondId: string;
-  medicineName: string;
-  dose: number;
-  reason: string;
-  withdrawalDays: number;
-  withdrawalRemaining: number;
-  operator: string;
-  status: 'locked' | 'safe';
-  remarks?: string;
-};
-
 const MedicineLogTable: React.FC = () => {
   const [batchModalVisible, setBatchModalVisible] = useState(false);
-  const [selectedRowsState, setSelectedRows] = useState<MedicineLogItem[]>([]);
+  const [selectedRowsState, setSelectedRows] = useState<Pond.ProductionLogItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<Pond.ProductionLogItem[]>([]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getProductionLogs('medicine');
+      setData(res.data || []);
+    } catch (error) {
+      console.error('获取用药记录失败，使用降级数据:', error);
+      setData(MOCK_MEDICINE_LOGS);
+      message.warning('当前展示为用药模拟数据');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   /**
    * 模拟数据导出逻辑
    */
-  const handleExport = (data: MedicineLogItem[], fileName: string = '用药记录报表') => {
-    if (data.length === 0) {
+  const handleExport = (dataList: Pond.ProductionLogItem[], fileName: string = '用药记录报表') => {
+    if (dataList.length === 0) {
       message.warning('暂无数据可导出');
       return;
     }
@@ -44,9 +52,9 @@ const MedicineLogTable: React.FC = () => {
         content: (
           <div>
             <p>已成功生成 <b>{fileName}.xlsx</b></p>
-            <p>包含记录: <span className="fin-number">{data.length}</span> 条</p>
+            <p>包含记录: <span className="fin-number">{dataList.length}</span> 条</p>
             <p>涉及药物: <span style={{ color: '#722ed1', fontWeight: 600 }}>
-              {Array.from(new Set(data.map(item => item.medicineName))).join(', ')}
+              {Array.from(new Set(dataList.map(item => item.details?.medicineName || '未知'))).join(', ')}
             </span></p>
           </div>
         ),
@@ -55,7 +63,7 @@ const MedicineLogTable: React.FC = () => {
     }, 1200);
   };
 
-  const columns: ProColumns<MedicineLogItem>[] = [
+  const columns: ProColumns<Pond.ProductionLogItem>[] = [
     {
       title: '用药时间',
       dataIndex: 'time',
@@ -70,13 +78,19 @@ const MedicineLogTable: React.FC = () => {
       render: (text) => <Tag color="blue" style={{ borderRadius: '2px', fontSize: '11px', margin: 0 }}>{text}</Tag>,
     },
     {
+      title: '行为摘要',
+      dataIndex: 'content',
+      width: 180,
+      ellipsis: true,
+    },
+    {
       title: '药物品种',
-      dataIndex: 'medicineName',
+      dataIndex: ['details', 'medicineName'],
       width: 120,
     },
     {
       title: '剂量 (g/ml)',
-      dataIndex: 'dose',
+      dataIndex: ['details', 'dose'],
       width: 100,
       align: 'right',
       render: (text: any) => (
@@ -87,7 +101,7 @@ const MedicineLogTable: React.FC = () => {
     },
     {
       title: '用药原因',
-      dataIndex: 'reason',
+      dataIndex: ['details', 'reason'],
       width: 120,
       valueEnum: {
         '预防': { text: '预防性消毒', status: 'Default' },
@@ -98,24 +112,31 @@ const MedicineLogTable: React.FC = () => {
     },
     {
       title: '休药期状态',
-      dataIndex: 'withdrawalRemaining',
+      key: 'withdrawal',
       width: 180,
-      render: (_, record) => (
-        <Space direction="vertical" size={0} style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-            <Text type={record.status === 'locked' ? 'danger' : 'secondary'}>
-              {record.status === 'locked' ? '锁定中' : '安全'}
-            </Text>
-            <Text className="fin-number">剩 {record.withdrawalRemaining} 天</Text>
-          </div>
-          <Progress 
-            percent={Math.max(0, (1 - record.withdrawalRemaining / record.withdrawalDays) * 100)} 
-            size="small" 
-            showInfo={false}
-            strokeColor={record.status === 'locked' ? '#ff4d4f' : '#52c41a'}
-          />
-        </Space>
-      ),
+      render: (_, record) => {
+        const details = record.details || {};
+        const withdrawalRemaining = details.withdrawalRemaining || 0;
+        const withdrawalDays = details.withdrawalDays || 1;
+        const status = details.status;
+
+        return (
+          <Space direction="vertical" size={0} style={{ width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+              <Text type={status === 'locked' ? 'danger' : 'secondary'}>
+                {status === 'locked' ? '锁定中' : '安全'}
+              </Text>
+              <Text className="fin-number">剩 {withdrawalRemaining} 天</Text>
+            </div>
+            <Progress 
+              percent={Math.max(0, (1 - withdrawalRemaining / withdrawalDays) * 100)} 
+              size="small" 
+              showInfo={false}
+              strokeColor={status === 'locked' ? '#ff4d4f' : '#52c41a'}
+            />
+          </Space>
+        );
+      },
     },
     {
       title: '记录人/代填',
@@ -124,7 +145,7 @@ const MedicineLogTable: React.FC = () => {
       render: (text: any) => (
         <Space size={4}>
           <Text style={{ fontSize: '12px' }}>{text}</Text>
-          {text.includes('代录') || text.includes('技术员') ? (
+          {text?.includes('代录') || text?.includes('技术员') ? (
             <Tag color="cyan" style={{ fontSize: '10px', scale: '0.85', margin: 0 }}>代填</Tag>
           ) : null}
         </Space>
@@ -132,16 +153,9 @@ const MedicineLogTable: React.FC = () => {
     },
     {
       title: '备注',
-      dataIndex: 'remarks',
+      dataIndex: ['details', 'remarks'],
       ellipsis: true,
     },
-  ];
-
-  const mockData: MedicineLogItem[] = [
-    { id: '1', time: '2026-03-27 10:30:00', pondId: 'P005', medicineName: '聚维酮碘', dose: 120, reason: '预防', withdrawalDays: 7, withdrawalRemaining: 7, operator: '技术员-李工', status: 'locked', remarks: '常规消毒' },
-    { id: '2', time: '2026-03-27 09:15:00', pondId: 'P012', medicineName: '恩诺沙星', dose: 50, reason: '肠炎', withdrawalDays: 15, withdrawalRemaining: 15, operator: '技术员-李工', status: 'locked', remarks: '部分鱼只出现肠炎迹象' },
-    { id: '3', time: '2026-03-20 17:45:00', pondId: 'P002', medicineName: '三黄散', dose: 200, reason: '预防', withdrawalDays: 3, withdrawalRemaining: 0, operator: '代录文员-张晓明', status: 'safe', remarks: '拌料投喂' },
-    { id: '4', time: '2026-03-15 12:00:00', pondId: 'P001', medicineName: '二氧化氯', dose: 100, reason: '预防', withdrawalDays: 0, withdrawalRemaining: 0, operator: '系统自动', status: 'safe' },
   ];
 
   return (
@@ -150,9 +164,10 @@ const MedicineLogTable: React.FC = () => {
       variant="borderless" 
       styles={{ body: { padding: '0' } }}
     >
-      <ProTable<MedicineLogItem>
+      <ProTable<Pond.ProductionLogItem>
         columns={columns}
-        dataSource={mockData}
+        dataSource={data}
+        loading={loading}
         rowKey="id"
         search={false}
         options={{
@@ -190,7 +205,7 @@ const MedicineLogTable: React.FC = () => {
           <Button 
             key="export" 
             icon={<ExportOutlined />} 
-            onClick={() => handleExport(mockData, `全量用药记录_${dayjs().format('YYYYMMDD')}`)}
+            onClick={() => handleExport(data, `全量用药记录_${dayjs().format('YYYYMMDD')}`)}
           >
             导出全部
           </Button>,

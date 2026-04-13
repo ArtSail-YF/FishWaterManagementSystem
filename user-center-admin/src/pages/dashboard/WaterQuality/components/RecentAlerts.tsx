@@ -1,20 +1,41 @@
 import { Badge, List, Tag, Typography } from 'antd';
 import React from 'react';
-import type { PondStatus } from './PondCardGrid';
+import{ getWaterAlarmList } from'@/services/api/water';
+import { type WaterAlarmLog } from '@/services/api/water';
+import { useState, useEffect } from 'react';
 
 const { Text } = Typography;
 
 interface RecentAlertsProps {
-  pond?: PondStatus;
+  pond?: API.PondStatus;
 }
 
 const RecentAlerts: React.FC<RecentAlertsProps> = ({ pond }) => {
-  // 模拟最近报警数据
-  const alerts = [
-    { id: '1', time: '2026-03-27 08:30:12', metric: '溶氧', value: 4.2, threshold: 5.0, status: 'warning', handle: '已通知管理员' },
-    { id: '2', time: '2026-03-27 10:15:45', metric: '溶氧', value: 3.8, threshold: 4.0, status: 'error', handle: '增氧机已开启' },
-    { id: '3', time: '2026-03-26 14:20:00', metric: 'PH值', value: 8.6, threshold: 8.5, status: 'warning', handle: '已处理' },
-  ];
+
+  const [alerts, setAlerts] = useState<WaterAlarmLog[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+           setLoading(true);
+            const req= await getWaterAlarmList();
+            setAlerts(req.data);
+            setLoading(false);
+      } catch (error) {
+        console.error('获取数据失败', error);
+      }
+ 
+    };
+    fetchData();
+  }, []);
+
+  // // 模拟最近报警数据
+  // const alerts = [
+  //   { id: '1', time: '2026-03-27 08:30:12', metric: '溶氧', value: 4.2, threshold: 5.0, status: 'warning', handle: '已通知管理员' },
+  //   { id: '2', time: '2026-03-27 10:15:45', metric: '溶氧', value: 3.8, threshold: 4.0, status: 'error', handle: '增氧机已开启' },
+  //   { id: '3', time: '2026-03-26 14:20:00', metric: 'PH值', value: 8.6, threshold: 8.5, status: 'warning', handle: '已处理' },
+  // ];
 
   return (
     <List
