@@ -1,7 +1,7 @@
 import { Typography, Spin, message } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getWeatherSummary, type WeatherSummaryItem } from '@/services/api/weather';
-import { MOCK_WEATHER_SUMMARY } from '@/services/ant-design-pro/mock';
+import { MOCK_WEATHER_SUMMARY } from '@/services/api/mock';
 
 const { Text } = Typography;
 

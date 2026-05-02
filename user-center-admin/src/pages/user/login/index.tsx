@@ -1,13 +1,14 @@
 import {
-  AlipayCircleOutlined,
+  AlipayOutlined,
   LockOutlined,
   MobileOutlined,
-  TaobaoCircleOutlined,
+  TaobaoOutlined,
   UserOutlined,
-  WeiboCircleOutlined,
+  WeiboOutlined,
 } from '@ant-design/icons';
 import {
-  LoginForm,
+  LoginFormPage,
+  ProConfigProvider,
   ProFormCaptcha,
   ProFormCheckbox,
   ProFormText,
@@ -19,7 +20,7 @@ import {
   useIntl,
   useModel,
 } from '@umijs/max';
-import { Alert, App, Tabs } from 'antd';
+import { Alert, App, Button, Divider, Space, Tabs, message, theme } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -28,6 +29,15 @@ import { login } from '@/services/ant-design-pro/api';
 import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import Settings from '../../../../config/defaultSettings';
 import { SYSTEM_LOGENT_URL } from '@/constants';
+
+const iconStyles = {
+  color: 'rgba(0, 0, 0, 0.2)',
+  fontSize: '18px',
+  verticalAlign: 'middle',
+  cursor: 'pointer',
+};
+
+type LoginType = 'phone' | 'account';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -66,23 +76,73 @@ const useStyles = createStyles(({ token }) => {
 });
 
 const ActionIcons = () => {
-  const { styles } = useStyles();
-
+  const { token } = theme.useToken();
+  
   return (
-    <>
-      <AlipayCircleOutlined
-        key="AlipayCircleOutlined"
-        className={styles.action}
-      />
-      <TaobaoCircleOutlined
-        key="TaobaoCircleOutlined"
-        className={styles.action}
-      />
-      <WeiboCircleOutlined
-        key="WeiboCircleOutlined"
-        className={styles.action}
-      />
-    </>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+      }}
+    >
+      <Divider plain>
+        <span
+          style={{
+            color: token.colorTextPlaceholder,
+            fontWeight: 'normal',
+            fontSize: 14,
+          }}
+        >
+          其他登录方式
+        </span>
+      </Divider>
+      <Space align="center" size={24}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            height: 40,
+            width: 40,
+            border: '1px solid ' + token.colorPrimaryBorder,
+            borderRadius: '50%',
+          }}
+        >
+          <AlipayOutlined style={{ ...iconStyles, color: '#1677FF' }} />
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            height: 40,
+            width: 40,
+            border: '1px solid ' + token.colorPrimaryBorder,
+            borderRadius: '50%',
+          }}
+        >
+          <TaobaoOutlined style={{ ...iconStyles, color: '#FF6A10' }} />
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            height: 40,
+            width: 40,
+            border: '1px solid ' + token.colorPrimaryBorder,
+            borderRadius: '50%',
+          }}
+        >
+          <WeiboOutlined style={{ ...iconStyles, color: '#1890ff' }} />
+        </div>
+      </Space>
+    </div>
   );
 };
 
@@ -136,6 +196,7 @@ const Login: React.FC = () => {
         // 登录
         const msg = await login({ ...values, type });
         console.log('msg:', msg);
+
         if(msg) {
 
             console.log('登录成功，用户数据:', msg);
@@ -165,44 +226,62 @@ const Login: React.FC = () => {
  
   };
   const { status, type: loginType } = userLoginState;
+  const { token } = theme.useToken();
 
   return (
-    <div className={styles.container}>
-      <Helmet>
-        <title>
-          {intl.formatMessage({
-            id: 'menu.login',
-            defaultMessage: '登录页',
-          })}
-          {Settings.title && ` - ${Settings.title}`}
-        </title>
-      </Helmet>
-      <Lang />
+    <ProConfigProvider>
       <div
         style={{
-          flex: '1',
-          padding: '32px 0',
+          backgroundColor: 'white',
+          height: '100vh',
         }}
       >
-        <LoginForm
-          contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
-          }}
-          logo={<img alt="logo" src={ SYSTEM_LOGENT_URL} />}
+        <Helmet>
+          <title>
+            {`${intl.formatMessage({
+              id: 'menu.login',
+              defaultMessage: '登录页',
+            })}${Settings.title ? ` - ${Settings.title}` : ''}`}
+          </title>
+        </Helmet>
+        <Lang />
+        <LoginFormPage
+          // backgroundImageUrl="https://mdn.alipayobjects.com/huamei_gcee1x/afts/img/A*y0ZTS6WLwvgAAAAAAAAAAAAADml6AQ/fmt.webp"
+          logo={<img alt="logo" src={SYSTEM_LOGENT_URL} />}
+          backgroundVideoUrl="/wallpaper-dynamic_Working_c.mp4"
           title="ArtSail"
-          subTitle={'最好的管理系统'}
-          initialValues={{
-            autoLogin: false,
+          containerStyle={{
+            backgroundColor: 'rgba(239, 237, 237, 0.65)',
+            backdropFilter: 'blur(4px)',
           }}
-          actions={[
-            <FormattedMessage
-              key="loginWith"
-              id="pages.login.loginWith"
-              defaultMessage="其他登录方式"
-            />,
-            <ActionIcons key="icons" />,
-          ]}
+          subTitle="最好的管理系统"
+          // activityConfig={{
+          //   style: {
+          //     boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.2)',
+          //     color: token.colorTextHeading,
+          //     borderRadius: 8,
+          //     backgroundColor: 'rgba(255,255,255,0.25)',
+          //     backdropFilter: 'blur(4px)',
+          //   },
+          //   title: '活动标题，可配置图片',
+          //   subTitle: '活动介绍说明文字',
+          //   action: (
+          //     <Button
+          //       size="large"
+          //       style={{
+          //         borderRadius: 20,
+          //         background: token.colorBgElevated,
+          //         color: token.colorPrimary,
+          //         width: 120,
+          //       }}
+          //     >
+          //       去看看
+          //     </Button>
+          //   ),
+          // }}
+          actions={
+            <ActionIcons />
+          }
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}
@@ -243,12 +322,16 @@ const Login: React.FC = () => {
                 name="userAccount"
                 fieldProps={{
                   size: 'large',
-                  prefix: <UserOutlined />,
+                  prefix: (
+                    <UserOutlined
+                      style={{
+                        color: token.colorText,
+                      }}
+                      className={'prefixIcon'}
+                    />
+                  ),
                 }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.userAccount.placeholder',
-                  defaultMessage: '用户名: xxxx',
-                })}
+                placeholder="用户名: admin 或 user"
                 rules={[
                   {
                     required: true,
@@ -265,12 +348,16 @@ const Login: React.FC = () => {
                 name="userPassword"
                 fieldProps={{
                   size: 'large',
-                  prefix: <LockOutlined />,
+                  prefix: (
+                    <LockOutlined
+                      style={{
+                        color: token.colorText,
+                      }}
+                      className={'prefixIcon'}
+                    />
+                  ),
                 }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.userPassword.placeholder',
-                  defaultMessage: '',
-                })}
+                placeholder="密码: ant.design"
                 rules={[
                   {
                     required: true,
@@ -280,7 +367,6 @@ const Login: React.FC = () => {
                         defaultMessage="请输入密码！"
                       />
                     ),
-                    
                   },
                   {
                     message: (
@@ -305,7 +391,14 @@ const Login: React.FC = () => {
               <ProFormText
                 fieldProps={{
                   size: 'large',
-                  prefix: <MobileOutlined />,
+                  prefix: (
+                    <MobileOutlined
+                      style={{
+                        color: token.colorText,
+                      }}
+                      className={'prefixIcon'}
+                    />
+                  ),
                 }}
                 name="mobile"
                 placeholder={intl.formatMessage({
@@ -416,14 +509,10 @@ const Login: React.FC = () => {
                 defaultMessage="注册账户"
               />
             </a>
-
-  
-
           </div>
-        </LoginForm>
+        </LoginFormPage>
       </div>
-      <Footer />
-    </div>
+    </ProConfigProvider>
   );
 };
 

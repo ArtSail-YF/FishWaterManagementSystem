@@ -3,7 +3,7 @@
  * 这些类型定义应该与后端API文档保持一致
  */
 
-import { BaseResponse } from './common';
+import { BaseResponse } from '../common';
 
 /** 池塘状态 */
 export type PondStatus = 'breeding' | 'empty' | 'locked' | 'ready';

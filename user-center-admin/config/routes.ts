@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @name umi 的路由配置
  * @description 只支持 path,component,routes,redirect,wrappers,name,icon 的配置
  * @param path  path 只支持两种占位符配置，第一种是动态参数 :id 的形式，第二种是 * 通配符，通配符只能出现路由字符串的最后。
@@ -63,6 +63,11 @@ export default [
         path: '/dashboard/business-analysis',
         name: 'business-analysis',
         component: './dashboard/BusinessAnalysis',
+      },
+      {
+        path: '/dashboard/integrated-dashboard',
+        name: 'integrated-dashboard',
+        component: './dashboard/IntegratedDashboard',
       },
     ],
   },
@@ -145,6 +150,12 @@ export default [
           },
         ],
       },
+      
+      {
+        path: '/production/base-management',
+        name: 'base-management',
+        component: './production/BaseManagement',
+      },
       {
         path: '/production/pond-management',
         name: 'pond-management',
@@ -155,6 +166,21 @@ export default [
         name: 'input-records',
         component: './production/InputRecords',
       },
+      {
+        path: '/production/certificates',
+        name: 'certificates',
+        component: './production/Certificates',
+      },
+      {
+        path: '/production/plans',
+        name: 'plans',
+        component: './production/Plans',
+      },
+      {
+        path: '/production/warning-settings',
+        name: 'warning-settings',
+        component: './production/WarningSettings',
+      }
     ],
   },
   {
@@ -204,12 +230,23 @@ export default [
         name: 'UserManage',
         component: './admin/userManage',
       },
+      {
+        path: '/admin/farmerManagement',
+        name: 'FarmerManagement',
+        component: './admin/FarmerManagement',
+      },
     ],
   },
 
   {
     path: '/',
-    redirect: '/dashboard',
+    redirect: '/welcome',
+  },
+  {
+    path: '/welcome',
+    name: 'welcome',
+    icon: 'home',
+    component: './Welcome',
   },
   {
     path: '*',

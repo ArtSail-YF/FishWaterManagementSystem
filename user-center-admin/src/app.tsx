@@ -60,9 +60,10 @@ export async function getInitialState(): Promise<{
   // 字典数据加载
  const fetchDictData = async () => {
     try {
-      // 这里替换为你实际的接口路径
-      const response = await getDictData() ; 
-      return response.data; // 返回字典数据
+      // 暂时禁用字典API调用，避免404错误
+      // const response = await getDictData(); 
+      // return response.data;
+      return {}; // 返回空字典数据
     } catch (error) {
       console.error('字典加载失败', error);
       return {}; // 失败返回空对象

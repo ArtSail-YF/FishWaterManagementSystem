@@ -39,35 +39,14 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
     device: true,
     channel: true,
   });
-  // 暗黑模式状态
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   // 卫星图层引用
   const satelliteLayerRef = useRef<any>(null);
   // 地形图层引用
   const terrainLayerRef = useRef<any>(null);
+  // 暗黑模式状态
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
-  // 监听暗黑模式变化的 useEffect
-  useEffect(() => {
-    // 检查本地存储的暗黑模式状态
-    const checkDarkMode = () => {
-      const savedDarkMode = localStorage.getItem('darkMode');
-      const isDark = savedDarkMode === 'true';
-      setIsDarkMode(isDark);
-    };
-
-    // 初始检查
-    checkDarkMode();
-
-    // 监听存储变化，以便在其他组件修改暗黑模式时同步
-    window.addEventListener('storage', checkDarkMode);
-
-    // 清理函数
-    return () => {
-      window.removeEventListener('storage', checkDarkMode);
-    };
-  }, []);
-
-  // 地图初始化和样式更新 useEffect
+  // 地图初始化 useEffect
   useEffect(() => {
     // 解决 AMap 2.0 INVALID_USER_KEY 错误，设置安全密钥
     // 注意：正式环境建议通过环境变量注入
@@ -87,7 +66,7 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
           viewMode: '3D', // 3D 视图模式
           zoom: 11, // 初始缩放级别
           center: [120.153576, 30.287459], // 默认中心点（杭州）
-          mapStyle: isDarkMode ? 'amap://styles/darkblue' : 'amap://styles/normal', // 根据暗黑模式状态选择样式
+          mapStyle: isDarkMode ? 'amap://styles/dark' : 'amap://styles/normal', // 根据暗黑模式状态设置地图样式
         });
 
         // 添加比例尺控件
@@ -102,26 +81,39 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
       })
       .catch((e) => {
         // 捕获地图加载错误
-        console.error('地图加载失败', e);
+        console.error('地图加载 ', e);
         // 即使失败也要设置加载状态为 false
         setLoading(false);
       });
-
     // 清理函数，在组件卸载时销毁地图实例
     return () => {
       if (map) {
         map.destroy();
       }
     };
-  }, []); // 只在组件挂载时初始化一次
+  }, [isDarkMode]); // 依赖暗黑模式状态，当它变化时重新初始化地图
 
-  // 当地图实例和暗黑模式状态变化时更新地图样式
+  // 监听暗黑模式变化的 useEffect
   useEffect(() => {
-    if (map) {
-      // 直接更新地图样式，而不是重新初始化地图
-      map.setMapStyle(isDarkMode ? 'amap://styles/darkblue' : 'amap://styles/normal');
+    // 初始化时检查本地存储的暗黑模式状态
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode === 'true') {
+      setIsDarkMode(true);
     }
-  }, [map, isDarkMode]); // 依赖地图实例和暗黑模式状态
+
+    // 监听自定义事件，响应暗黑模式切换
+    const handleDarkModeChange = (event: CustomEvent) => {
+      setIsDarkMode(event.detail.isDark);
+    };
+
+    // 添加事件监听器
+    window.addEventListener('darkModeChanged', handleDarkModeChange as EventListener);
+
+    // 清理函数，移除事件监听器
+    return () => {
+      window.removeEventListener('darkModeChanged', handleDarkModeChange as EventListener);
+    };
+  }, []);
 
   // 处理底图切换
   const handleMapTypeChange = (e: RadioChangeEvent) => {
@@ -271,17 +263,19 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
     if (!map) return;
 
     // 创建信息窗口
+    const waterQuality = base.waterQuality || { oxygen: '--', temp: '--', ph: '--' };
     const infoWindow = new window.AMap.InfoWindow({
       // 信息窗口内容，使用 HTML 字符串
       content: `
         <div style="padding: 12px; min-width: 200px;">
           <h4 style="margin: 0 0 8px 0; font-size: 16px;">${base.name}</h4>
           <div style="margin-bottom: 4px;">状态: <span style="color: ${base.status === 'warning' ? '#ff4d4f' : '#52c41a'}">${base.status === 'warning' ? '预警' : '正常'}</span></div>
-          <div style="margin-bottom: 4px;">溶氧量: ${base.waterQuality.oxygen} mg/L</div>
-          <div style="margin-bottom: 4px;">水温: ${base.waterQuality.temp} ℃</div>
-          <div style="margin-bottom: 4px;">PH值: ${base.waterQuality.ph}</div>
+          <div style="margin-bottom: 4px;">溶氧量: ${waterQuality.oxygen} mg/L</div>
+          <div style="margin-bottom: 4px;">水温: ${waterQuality.temp} ℃</div>
+          <div style="margin-bottom: 4px;">PH值: ${waterQuality.ph}</div>
           <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-            <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1890ff;">查看详情 &gt;</a>
+            <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1890ff; margin-right: 16px;">查看详情 &gt;</a>
+            <a href="/dashboard/water-quality?baseId=${base.id}" style="color: #1890ff;">水质监控 &gt;</a>
           </div>
         </div>
       `,

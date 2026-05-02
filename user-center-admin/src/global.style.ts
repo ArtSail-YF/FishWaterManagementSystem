@@ -2,6 +2,7 @@ import { createStyles } from 'antd-style';
 
 const useStyles = createStyles(() => {
   return {
+    
     colorWeak: {
       filter: 'invert(80%)',
     },
@@ -38,5 +39,8 @@ const useStyles = createStyles(() => {
     },
   };
 });
+
+
+
 
 export default useStyles;

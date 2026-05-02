@@ -4,8 +4,8 @@ import { Button, Tag, Space, Modal, message, Badge, Tooltip, Row, Col, Card, Sta
 import dayjs from 'dayjs';
 import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
-import { getInputRecords, deleteInputRecord, type InputRecordItem } from '@/services/ant-design-pro/input';
-import { MOCK_INPUT_RECORDS } from '@/services/ant-design-pro/mock';
+import { getInputRecords, deleteInputRecord, type InputRecordItem } from '@/services/api/input';
+import { MOCK_INPUT_RECORDS } from '@/services/api/mock';
 
 const InputRecords: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);

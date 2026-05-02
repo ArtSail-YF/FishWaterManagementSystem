@@ -1,7 +1,7 @@
 package com.artsail.admin.service.impl;
 
-import com.artsail.admin.common.ErrorCode;
-import com.artsail.admin.exception.BusinessException;
+import com.artsail.common.domain.ErrorCode;
+import com.artsail.common.exception.BusinessException;
 import com.artsail.admin.model.domain.Query.UserQuery;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

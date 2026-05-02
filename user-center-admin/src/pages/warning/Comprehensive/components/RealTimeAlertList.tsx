@@ -1,6 +1,6 @@
 import { Button, Card, Space, Table, Tag, Tooltip, Typography } from 'antd';
 import React from 'react';
-import type { AlertItem } from '@/services/ant-design-pro/warning';
+import type { AlertItem } from '@/services/api/warning';
 
 const { Text } = Typography;
 

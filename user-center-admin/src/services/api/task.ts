@@ -1,4 +1,5 @@
 import { request } from '@umijs/max';
+import type { BaseResponse } from '@/types';
 
 
 export type CalendarTask = {
@@ -34,14 +35,14 @@ export type PlanStatsProps ={
 
 // 获取生产计划统计数据
 export async function getPlanStats() {
-  return request<API.BaseResponse<PlanStatsProps>>('tasks/stats', {
+  return request<BaseResponse<PlanStatsProps>>('tasks/stats', {
     method: 'GET',
   });
 }
 
 // 获取日历视图任务（按日期分组）
 export async function getTaskSchedule(params: { start: string; end: string }) {
-  return request<API.BaseResponse< Record<string, CalendarTask[]>>>('tasks/schedule', {
+  return request<BaseResponse<Record<string, CalendarTask[]>>>('tasks/schedule', {
     method: 'GET',
     params,
   });
@@ -50,7 +51,7 @@ export async function getTaskSchedule(params: { start: string; end: string }) {
 
 //获取某一天的任务列表
 export async function getTaskDetails(date: string) {
-  return request<API.BaseResponse<Record<string, TaskItem[]>>>('tasks/detail', {
+  return request<BaseResponse<Record<string, TaskItem[]>>>('tasks/detail', {
     method: 'GET',
     params: { date },
   });
@@ -58,7 +59,7 @@ export async function getTaskDetails(date: string) {
 
 //获取某个塘口生产计划时间轴
 export async function getPondTimeline(pondId: string) {
-  return request<API.BaseResponse<TimelineItem[]>>('tasks/pond', {
+  return request<BaseResponse<TimelineItem[]>>('tasks/pond', {
     method: 'GET',
     params: { pondId },
   });

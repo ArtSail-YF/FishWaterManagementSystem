@@ -1,4 +1,5 @@
 import { request } from '@umijs/max';
+import type { BaseResponse } from '@/types';
 
 /** 历史气象项 */
 export type WeatherHistoryItem = {
@@ -54,7 +55,7 @@ export type DisasterInfo = {
  * GET /api/weather/history
  */
 export async function getWeatherHistory(options?: any) {
-  return request<API.BaseResponse<WeatherHistoryItem[]>>('/api/weather/history', {
+  return request<BaseResponse<WeatherHistoryItem[]>>('/weather/history', {
     method: 'GET',
     ...(options || {}),
   });
@@ -65,7 +66,7 @@ export async function getWeatherHistory(options?: any) {
  * GET /api/weather/summary
  */
 export async function getWeatherSummary(options?: any) {
-  return request<API.BaseResponse<WeatherSummaryItem[]>>('/api/weather/summary', {
+  return request<BaseResponse<WeatherSummaryItem[]>>('/weather/summary', {
     method: 'GET',
     ...(options || {}),
   });
@@ -76,7 +77,7 @@ export async function getWeatherSummary(options?: any) {
  * GET /api/weather/realtime
  */
 export async function getRealTimeWeather(options?: any) {
-  return request<API.BaseResponse<any>>('/api/weather/realtime', {
+  return request<BaseResponse<any>>('/weather/realtime', {
     method: 'GET',
     ...(options || {}),
   });
@@ -87,7 +88,7 @@ export async function getRealTimeWeather(options?: any) {
  * GET /api/weather/advice
  */
 export async function getAquacultureAdvice(options?: any) {
-  return request<API.BaseResponse<AquacultureAdviceItem>>('/api/weather/advice', {
+  return request<BaseResponse<AquacultureAdviceItem>>('/weather/advice', {
     method: 'GET',
     ...(options || {}),
   });
@@ -98,7 +99,7 @@ export async function getAquacultureAdvice(options?: any) {
  * GET /api/weather/disaster
  */
 export async function getDisasterInfo(options?: any) {
-  return request<API.BaseResponse<DisasterInfo>>('/api/weather/disaster', {
+  return request<BaseResponse<DisasterInfo>>('/weather/disaster', {
     method: 'GET',
     ...(options || {}),
   });

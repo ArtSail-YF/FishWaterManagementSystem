@@ -147,8 +147,8 @@ const Register: React.FC = () => {
       const msg = await register({ ...values, type });
 
    
-        const id = msg.id;
-
+        const id = msg.data.id;
+        
           if(id > 0){
               const defaultLoginSuccessMessage = intl.formatMessage({
               id: 'pages.register.success',

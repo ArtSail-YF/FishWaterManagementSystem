@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import AlertSummary from './components/AlertSummary';
 import RealTimeAlertList from './components/RealTimeAlertList';
 import RiskDistribution from './components/RiskDistribution';
-import { getRealTimeAlerts, getWarningSummary, processWarning, type AlertItem, type AlertSummaryData } from '@/services/ant-design-pro/warning';
-import { MOCK_ALERTS, MOCK_ALERT_SUMMARY } from '@/services/ant-design-pro/mock';
+import { getRealTimeAlerts, getWarningSummary, processWarning, type AlertItem, type AlertSummaryData } from '@/services/api/warning';
+import { MOCK_ALERTS, MOCK_ALERT_SUMMARY } from '@/services/api/mock';
 
 const ComprehensiveWarning: React.FC = () => {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);

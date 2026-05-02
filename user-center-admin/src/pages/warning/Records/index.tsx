@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import HistoryTable from './components/HistoryTable';
 import RecordsFilter from './components/RecordsFilter';
 import RecordsStats from './components/RecordsStats';
-import { getWarningHistory, getWarningStats, type WarningHistoryRecord, type WarningStatsData } from '@/services/ant-design-pro/warning';
-import { MOCK_WARNING_HISTORY, MOCK_WARNING_STATS } from '@/services/ant-design-pro/mock';
+import { getWarningHistory, getWarningStats, type WarningHistoryRecord, type WarningStatsData } from '@/services/api/warning';
+import { MOCK_WARNING_HISTORY, MOCK_WARNING_STATS } from '@/services/api/mock';
 
 const WarningRecords: React.FC = () => {
   const [data, setData] = useState<WarningHistoryRecord[]>([]);

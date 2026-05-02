@@ -1,6 +1,7 @@
 import { Badge, Card, Col, Row, Statistic } from 'antd';
 import React from 'react';
 
+
 interface GISStatsProps {
   stats: {
     normal: number;

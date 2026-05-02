@@ -5,7 +5,7 @@ import BaseFilter from './components/BaseFilter';
 import GISStats from './components/GISStats';
 import GisMap from './components/GisMap';
 import { getBaseList } from '@/services/api/base';
-import { MOCK_BASES } from '@/services/ant-design-pro/mock';
+import { MOCK_BASES } from '@/services/api/mock';
 import { message } from 'antd';
 
 const BaseDistribution: React.FC = () => {

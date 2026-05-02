@@ -1,7 +1,7 @@
 import { Badge, Card, Drawer, Table, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import type { WarningHistoryRecord } from '@/services/ant-design-pro/warning';
+import type { WarningHistoryRecord } from '@/services/api/warning';
 
 const { Text } = Typography;
 

@@ -1,4 +1,5 @@
 import { request } from '@umijs/max';
+import type { BaseResponse } from '@/types';
 
 /**
  * 投喂记录类型
@@ -37,7 +38,7 @@ export type MedicineLogItem = {
  * GET /api/logs/feeding
  */
 export async function getFeedingLogs(options?: any) {
-  return request<API.BaseResponse<FeedingLogItem[]>>('/api/logs/feeding', {
+  return request<BaseResponse<FeedingLogItem[]>>('/logs/feeding', {
     method: 'GET',
     ...(options || {}),
   });
@@ -48,7 +49,7 @@ export async function getFeedingLogs(options?: any) {
  * GET /api/production/logs
  */
 export async function getProductionLogs(type: 'feeding' | 'medicine' | 'patrol', options?: any) {
-  return request<API.BaseResponse<Pond.ProductionLogItem[]>>('/api/production/logs', {
+  return request<BaseResponse<any[]>>('/production/logs', {
     method: 'GET',
     params: { type, ...options },
   });
@@ -59,7 +60,7 @@ export async function getProductionLogs(type: 'feeding' | 'medicine' | 'patrol',
  * GET /api/logs/medicine
  */
 export async function getMedicineLogs(options?: any) {
-  return request<API.BaseResponse<MedicineLogItem[]>>('/api/logs/medicine', {
+  return request<BaseResponse<MedicineLogItem[]>>('/logs/medicine', {
     method: 'GET',
     ...(options || {}),
   });

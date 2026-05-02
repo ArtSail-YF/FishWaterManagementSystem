@@ -1,20 +1,25 @@
 import { PlusOutlined, UserAddOutlined, ExportOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, Space, Tag, Typography, Modal, message } from 'antd';
+import { Button, Card, Space, Tag, Typography, Modal, message, Select } from 'antd';
 import React, { useState, useEffect } from 'react';
 import BatchFeedingModal from './BatchFeedingModal';
+import FeedingModal from '../../components/FeedingModal';
 import dayjs from 'dayjs';
 import { getProductionLogs } from '@/services/api/logs';
-import { MOCK_FEEDING_LOGS } from '@/services/ant-design-pro/mock';
+import { MOCK_FEEDING_LOGS } from '@/services/api/mock';
 
 const { Text } = Typography;
+const { Option } = Select;
 
 const FeedingLogTable: React.FC = () => {
   const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [feedingModalVisible, setFeedingModalVisible] = useState(false);
   const [selectedRowsState, setSelectedRows] = useState<Pond.ProductionLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Pond.ProductionLogItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<'pond' | 'cage' | 'workboat'>('pond');
+  const [editingRecord, setEditingRecord] = useState<Pond.ProductionLogItem | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -72,10 +77,26 @@ const FeedingLogTable: React.FC = () => {
       render: (text) => <Text className="fin-number" style={{ fontSize: '13px' }}>{text}</Text>,
     },
     {
-      title: '塘口',
-      dataIndex: 'pondId',
+      title: '分类',
+      dataIndex: 'category',
+      width: 80,
+      valueEnum: {
+        pond: { text: '塘口', status: 'Processing' },
+        cage: { text: '网箱', status: 'Default' },
+        workboat: { text: '工船', status: 'Success' },
+      },
+      filters: [
+        { text: '塘口', value: 'pond' },
+        { text: '网箱', value: 'cage' },
+        { text: '工船', value: 'workboat' },
+      ],
+      onFilter: (value, record) => record.category === value,
+    },
+    {
+      title: '编号',
+      dataIndex: 'categoryName',
       width: 100,
-      render: (text) => <Tag color="blue">{text}</Tag>,
+      render: (text, record) => <Tag color="blue">{text}</Tag>,
     },
     {
       title: '操作内容',
@@ -106,7 +127,46 @@ const FeedingLogTable: React.FC = () => {
       dataIndex: 'operator',
       width: 100,
     },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (_, record) => (
+        <>
+          <Button 
+            type="link" 
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            编辑
+          </Button>
+        </>
+      ),
+    },
   ];
+
+  const handleAdd = () => {
+    setEditingRecord(null);
+    setFeedingModalVisible(true);
+  };
+
+  const handleEdit = (record: Pond.ProductionLogItem) => {
+    setEditingRecord(record);
+    setFeedingModalVisible(true);
+  };
+
+  const handleFeedingSuccess = (values: any) => {
+    // 模拟添加/更新数据
+    if (editingRecord) {
+      // 更新逻辑
+      message.success('更新成功');
+    } else {
+      // 添加逻辑
+      message.success('添加成功');
+    }
+    setFeedingModalVisible(false);
+    fetchData();
+  };
 
   return (
     <Card 
@@ -152,6 +212,16 @@ const FeedingLogTable: React.FC = () => {
         size="small"
         headerTitle={<span style={{ fontSize: '14px', fontWeight: 'bold' }}>投喂明细流水 / FEEDING LOGS</span>}
         toolBarRender={() => [
+          <Select 
+            key="category"
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            style={{ width: 100 }}
+          >
+            <Option value="pond">塘口</Option>
+            <Option value="cage">网箱</Option>
+            <Option value="workboat">工船</Option>
+          </Select>,
           <Button 
             key="export" 
             icon={<ExportOutlined />} 
@@ -171,6 +241,7 @@ const FeedingLogTable: React.FC = () => {
           <Button 
             key="add" 
             icon={<PlusOutlined />}
+            onClick={handleAdd}
             style={{ borderRadius: '2px' }}
           >
             单笔录入
@@ -182,6 +253,14 @@ const FeedingLogTable: React.FC = () => {
         visible={batchModalVisible} 
         onCancel={() => setBatchModalVisible(false)}
         onSuccess={() => setBatchModalVisible(false)}
+      />
+
+      <FeedingModal
+        visible={feedingModalVisible}
+        type={selectedCategory}
+        initialValues={editingRecord}
+        onCancel={() => setFeedingModalVisible(false)}
+        onSuccess={handleFeedingSuccess}
       />
     </Card>
   );

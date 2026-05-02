@@ -1,6 +1,7 @@
 import { Badge, Card, Col, Row, Space, Statistic, Typography, Spin } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getRealTimeWeather } from '@/services/api/weather';
+import { MOCK_REAL_TIME_WEATHER } from '@/services/api/mock';
 
 const { Text } = Typography;
 
@@ -9,10 +10,17 @@ const StatusHeader: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRealTimeWeather().then(res => {
-      setData(res.data || {});
-      setLoading(false);
-    });
+    getRealTimeWeather()
+      .then(res => {
+        setData(res.data || {});
+      })
+      .catch(() => {
+        console.error('获取实时气象数据失败，使用降级数据');
+        setData(MOCK_REAL_TIME_WEATHER);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {

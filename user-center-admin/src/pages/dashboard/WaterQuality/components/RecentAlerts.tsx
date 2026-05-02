@@ -1,13 +1,14 @@
-import { Badge, List, Tag, Typography } from 'antd';
+import { List, Badge, Tag, Typography } from 'antd';
 import React from 'react';
 import{ getWaterAlarmList } from'@/services/api/water';
 import { type WaterAlarmLog } from '@/services/api/water';
 import { useState, useEffect } from 'react';
+import type { PondStatusItem } from '@/models/pond';
 
 const { Text } = Typography;
 
 interface RecentAlertsProps {
-  pond?: API.PondStatus;
+  pond?: PondStatusItem;
 }
 
 const RecentAlerts: React.FC<RecentAlertsProps> = ({ pond }) => {
@@ -47,21 +48,21 @@ const RecentAlerts: React.FC<RecentAlertsProps> = ({ pond }) => {
       renderItem={(item) => (
         <List.Item
           style={{
-            padding: '12px 8px',
+            padding: '16px 12px',
             borderLeft: `4px solid ${item.status === 'error' ? '#ff4d4f' : '#faad14'}`,
-            marginBottom: 8,
-            borderRadius: 4,
+            marginBottom: 12,
+            borderRadius: 6,
             backgroundColor: '#fafafa',
           }}
         >
           <div style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Text strong style={{ fontSize: 13 }}>{item.metric}异常: {item.value} (阈值 {item.threshold})</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text strong style={{ fontSize: 14 }}>{item.metric}异常: {item.value} (阈值 {item.threshold})</Text>
               <Badge status={item.status === 'error' ? 'error' : 'warning'} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text type="secondary" style={{ fontSize: 11 }}>{item.time}</Text>
-              <Tag color={item.handle === '已处理' ? 'success' : 'processing'} style={{ fontSize: 10, margin: 0 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
+              <Tag color={item.handle === '已处理' ? 'success' : 'processing'} style={{ fontSize: 11, margin: 0 }}>
                 {item.handle}
               </Tag>
             </div>

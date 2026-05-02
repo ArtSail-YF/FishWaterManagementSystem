@@ -1,6 +1,7 @@
 import { Badge, Card, Col, List, Rate, Row, Space, Tag, Typography, Spin } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getAquacultureAdvice, type AquacultureAdviceItem } from '@/services/api/weather';
+import { MOCK_AQUACULTURE_ADVICE } from '@/services/api/mock';
 
 const { Text, Title } = Typography;
 
@@ -9,10 +10,17 @@ const AquacultureAdvice: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAquacultureAdvice().then(res => {
-      setData(res.data || null);
-      setLoading(false);
-    });
+    getAquacultureAdvice()
+      .then(res => {
+        setData(res.data || null);
+      })
+      .catch(() => {
+        console.error('获取养殖建议失败，使用降级数据');
+        setData(MOCK_AQUACULTURE_ADVICE);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (loading || !data) {

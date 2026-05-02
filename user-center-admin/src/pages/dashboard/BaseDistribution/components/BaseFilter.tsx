@@ -286,8 +286,8 @@ const BaseFilter: React.FC<BaseFilterProps> = ({
                   {item.location[0].toFixed(4)}, {item.location[1].toFixed(4)}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <Tag color="blue">溶氧: {item.waterQuality.oxygen}mg/L</Tag>
-                  <Tag color="orange">水温: {item.waterQuality.temp}℃</Tag>
+                  <Tag color="blue">溶氧: {(item.waterQuality?.oxygen || '--')}mg/L</Tag>
+                  <Tag color="orange">水温: {(item.waterQuality?.temp || '--')}℃</Tag>
                 </div>
               </div>
             </List.Item>

@@ -1,347 +1,219 @@
-/**
- * 池塘相关API服务
- * 封装 API 调用 + 类型转换
- */
-
+// @ts-ignore
+/* eslint-disable */
 import { request } from '@umijs/max';
-import type {
-  PondListResponse,
-  PondDetailResponse,
-  PondSummaryResponse,
-  BaseListResponse,
-  DeepSeaEquipmentListResponse,
-  DeepSeaOperationLogListResponse,
-  TaiwanEnterpriseListResponse,
-  TaiwanSeedImportListResponse,
-  CrossStraitTechExchangeListResponse,
-  MaterialListResponse,
-  SupplierListResponse,
-  CertificateListResponse,
-  MarketQuoteListResponse,
-} from '@/types/api';
-import type { 
-  Pond, 
-  PondDetail, 
-  PondSummaryStats, 
-  Base, 
-  DeepSeaEquipment, 
-  DeepSeaOperationLog,
-  TaiwanEnterprise,
-  TaiwanSeedImport,
-  CrossStraitTechExchange,
-  Material,
-  Supplier,
-  Certificate,
-  MarketQuote
-} from '@/models';
+import type { PondInfoParams, PondInfoList, PondInfoDetail, BaseResponse, PondInfo } from '@/types';
 
 /**
- * 获取池塘列表
- * GET /api/pond/list
+ * 塘口管理API接口
+ * 遵循阿里Ant Design Pro规范
  */
-export async function getPondList(options?: any) {
-  const response = await request<PondListResponse>('/api/pond/list', {
+
+// ====== 塘口管理 ======
+
+/** 获取塘口列表 GET /api/pond/list */
+export async function getPondList(
+  params: PondInfoParams,
+  options?: { [key: string]: any },
+) {
+  return request<PondInfoList>('/pond/list', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(pond => ({
-      ...pond,
-      pondType: pond.pond_type,
-      ecologicalIndex: pond.ecological_index,
-      carbonFootprint: pond.carbon_footprint,
-    }));
-  }
-  
-  return response;
 }
 
-/**
- * 获取池塘详情
- * GET /api/pond/:id
- */
-export async function getPondDetail(id: string, options?: any) {
-  const response = await request<PondDetailResponse>(`/api/pond/${id}`, {
+/** 获取塘口详情 GET /api/pond/detail */
+export async function getPondDetail(
+  id: string,
+  options?: { [key: string]: any },
+) {
+  return request<PondInfoDetail>('/pond/detail', {
     method: 'GET',
+    params: {
+      id,
+    },
     ...(options || {}),
   });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = {
-      ...response.data,
-      pondType: response.data.pond_type,
-      ecologicalIndex: response.data.ecological_index,
-      carbonFootprint: response.data.carbon_footprint,
+}
+
+/** 创建塘口 POST /api/pond/create */
+export async function createPond(
+  body: Omit<PondInfo, 'id' | 'createTime' | 'updateTime' | 'isDeleted'>,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<string>>('/pond/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 更新塘口 PUT /api/pond/update */
+export async function updatePond(
+  body: Partial<PondInfo> & { id: string },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>('/pond/update', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 删除塘口 DELETE /api/pond/delete */
+export async function deletePond(
+  id: string,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>('/pond/delete', {
+    method: 'DELETE',
+    params: {
+      id,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 启用/禁用塘口 POST /api/pond/toggle */
+export async function togglePond(
+  body: { id: string; status: number },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>('/pond/toggle', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+// ====== 塘口统计 ======
+
+/** 获取塘口统计 GET /api/pond/statistics */
+export async function getPondStatistics(
+  params: { baseId?: string; pondType?: number },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<any>>('/pond/statistics', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 获取塘口分布地图数据 GET /api/pond/map */
+export async function getPondMapData(
+  params: { baseId?: string },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<any>>('/pond/map', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+// ====== 塘口扩展信息 ======
+
+/** 获取塘口扩展信息 GET /api/pond/ext */
+export async function getPondExtInfo(
+  pondId: string,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<any>>('/pond/ext', {
+    method: 'GET',
+    params: {
+      pondId,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 更新塘口扩展信息 PUT /api/pond/ext */
+export async function updatePondExtInfo(
+  body: { pondId: string; extData: any },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>('/pond/ext', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+// ====== 塘口综合查询 (Dashboard专用) ======
+
+/** 获取塘口列表带汇总数据 GET /api/pond/list-with-summary */
+export async function getPondListWithSummary(
+  params: PondInfoParams,
+  options?: { [key: string]: any },
+): Promise<BaseResponse<{
+  list: PondInfo[];
+  summary: {
+    total: number;
+    breeding: number;
+    empty: number;
+    locked: number;
+    totalArea: number;
+    avgDepth: number;
+  };
+}>> {
+  return request<BaseResponse<{
+    list: PondInfo[];
+    summary: {
+      total: number;
+      breeding: number;
+      empty: number;
+      locked: number;
+      totalArea: number;
+      avgDepth: number;
     };
-  }
-  
-  return response;
-}
-
-/**
- * 获取池塘统计
- * GET /api/pond/stats
- */
-export async function getPondStats(options?: any) {
-  const response = await request<PondSummaryResponse>('/api/pond/stats', {
+  }>>('/pond/list-with-summary', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
-  
-  return response;
 }
 
-/**
- * 获取基地列表
- * GET /api/base/list
- */
-export async function getBaseList(options?: any) {
-  const response = await request<BaseListResponse>('/api/base/list', {
+/** 获取塘口完整详情 GET /api/pond/full-detail */
+export async function getPondFullDetail(
+  pondId: string,
+  options?: { [key: string]: any },
+): Promise<BaseResponse<PondInfo & {
+  extInfo?: any;
+  waterQuality?: any;
+  productionStats?: any;
+  warningHistory?: any[];
+}>> {
+  return request<BaseResponse<PondInfo & {
+    extInfo?: any;
+    waterQuality?: any;
+    productionStats?: any;
+    warningHistory?: any[];
+  }>>('/pond/full-detail', {
     method: 'GET',
+    params: {
+      pondId,
+    },
     ...(options || {}),
   });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(base => ({
-      ...base,
-      baseType: base.base_type,
-      deepSeaCertified: base.deep_sea_certified,
-      taiwanCooperation: base.taiwan_cooperation,
-      greenCertification: base.green_certification,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取深远海装备列表
- * GET /api/deep-sea/equipment/list
- */
-export async function getDeepSeaEquipmentList(options?: any) {
-  const response = await request<DeepSeaEquipmentListResponse>('/api/deep-sea/equipment/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(equipment => ({
-      ...equipment,
-      equipmentType: equipment.equipment_type,
-      baseId: equipment.base_id,
-      maxDepth: equipment.max_depth,
-      gpsPosition: equipment.gps_position,
-      subsidyAmount: equipment.subsidy_amount,
-      subsidyStatus: equipment.subsidy_status,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取深远海作业日志列表
- * GET /api/deep-sea/operation/logs
- */
-export async function getDeepSeaOperationLogs(options?: any) {
-  const response = await request<DeepSeaOperationLogListResponse>('/api/deep-sea/operation/logs', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(log => ({
-      ...log,
-      equipmentId: log.equipment_id,
-      operationType: log.operation_type,
-      startTime: log.start_time,
-      endTime: log.end_time,
-      catchQuantity: log.catch_quantity,
-      fuelConsumption: log.fuel_consumption,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取台资企业列表
- * GET /api/taiwan/enterprise/list
- */
-export async function getTaiwanEnterpriseList(options?: any) {
-  const response = await request<TaiwanEnterpriseListResponse>('/api/taiwan/enterprise/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(enterprise => ({
-      ...enterprise,
-      companyName: enterprise.company_name,
-      taiwanBusinessLicense: enterprise.taiwan_business_license,
-      taiwanContact: enterprise.taiwan_contact,
-      crossStraitCooperation: enterprise.cross_strait_cooperation,
-      preferentialPolicy: enterprise.preferential_policy,
-      insuranceDiscount: enterprise.insurance_discount,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取台湾种苗引进列表
- * GET /api/taiwan/seed/import/list
- */
-export async function getTaiwanSeedImportList(options?: any) {
-  const response = await request<TaiwanSeedImportListResponse>('/api/taiwan/seed/import/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(seed => ({
-      ...seed,
-      speciesName: seed.species_name,
-      originTaiwan: seed.origin_taiwan,
-      quarantineCertificate: seed.quarantine_certificate,
-      adaptationAssessment: seed.adaptation_assessment,
-      importCost: seed.import_cost,
-      expectedYield: seed.expected_yield,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取两岸技术交流列表
- * GET /api/taiwan/tech/exchange/list
- */
-export async function getCrossStraitTechExchangeList(options?: any) {
-  const response = await request<CrossStraitTechExchangeListResponse>('/api/taiwan/tech/exchange/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(exchange => ({
-      ...exchange,
-      expertName: exchange.expert_name,
-      consultationType: exchange.consultation_type,
-      consultationContent: exchange.consultation_content,
-      taiwanStandard: exchange.taiwan_standard,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取物资信息列表
- * GET /api/material/list
- */
-export async function getMaterialList(options?: any) {
-  const response = await request<MaterialListResponse>('/api/material/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(material => ({
-      ...material,
-      originRegion: material.origin_region,
-      taiwanBrand: material.taiwan_brand,
-      crossStraitStandard: material.cross_strait_standard,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取供应商列表
- * GET /api/supplier/list
- */
-export async function getSupplierList(options?: any) {
-  const response = await request<SupplierListResponse>('/api/supplier/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(supplier => ({
-      ...supplier,
-      supplierOrigin: supplier.supplier_origin,
-      taiwanQualification: supplier.taiwan_qualification,
-      crossStraitCooperation: supplier.cross_strait_cooperation,
-      insuranceDiscount: supplier.insurance_discount,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取产品合格证列表
- * GET /api/certificate/list
- */
-export async function getCertificateList(options?: any) {
-  const response = await request<CertificateListResponse>('/api/certificate/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(certificate => ({
-      ...certificate,
-      productName: certificate.product_name,
-      batchNumber: certificate.batch_number,
-      productionDate: certificate.production_date,
-      expirationDate: certificate.expiration_date,
-      greenCertification: certificate.green_certification,
-      crossStraitRecognition: certificate.cross_strait_recognition,
-      exportTaiwan: certificate.export_taiwan,
-      premiumPrice: certificate.premium_price,
-    }));
-  }
-  
-  return response;
-}
-
-/**
- * 获取市场行情列表
- * GET /api/market/quote/list
- */
-export async function getMarketQuoteList(options?: any) {
-  const response = await request<MarketQuoteListResponse>('/api/market/quote/list', {
-    method: 'GET',
-    ...(options || {}),
-  });
-  
-  // 类型转换：后端DTO -> 前端模型
-  if (response.data) {
-    response.data = response.data.map(quote => ({
-      ...quote,
-      productName: quote.product_name,
-      marketPrice: quote.market_price,
-      taiwanMarketPrice: quote.taiwan_market_price,
-      exportDemand: quote.export_demand,
-      crossStraitTrend: quote.cross_strait_trend,
-    }));
-  }
-  
-  return response;
 }

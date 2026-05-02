@@ -1,17 +1,13 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Card, Col, Row, Space, Typography, Input, Select, Button } from 'antd';
 import { SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import React, { use, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from '@umijs/max';
 import PondCardGrid from './components/PondCardGrid';
 import QualityTrendChart from './components/QualityTrendChart';
 import RecentAlerts from './components/RecentAlerts';
 import WaterQualityStats from './components/WaterQualityStats';
-import { useEffect } from 'react';
 import  {getWaterDataList } from '@/services/api/water';
-
-
-import { userInfo } from 'os';
-import { TrackOpTypes } from 'vue';
 
 const { Title } = Typography;
 
@@ -19,8 +15,8 @@ const { Title } = Typography;
 const MOCK_PONDS: API.PondStatus[] = [
   {
     id: '1',
-    name: '萧山 1 号塘',
-    baseName: '萧山基地',
+    name: '海宁1号塘',
+    baseName: '海宁1号基地',
     status: 'normal',
     indicators: {
       oxygen: { value: 6.8, trend: 'stable' },
@@ -30,8 +26,8 @@ const MOCK_PONDS: API.PondStatus[] = [
   },
   {
     id: '2',
-    name: '余杭 2 号塘',
-    baseName: '余杭基地',
+    name: '海宁2号塘',
+    baseName: '海宁1号基地',
     status: 'warning',
     indicators: {
       oxygen: { value: 4.8, trend: 'down' },
@@ -41,8 +37,8 @@ const MOCK_PONDS: API.PondStatus[] = [
   },
   {
     id: '3',
-    name: '富阳 3 号塘',
-    baseName: '富阳基地',
+    name: '嘉兴南湖1号塘',
+    baseName: '嘉兴南湖基地',
     status: 'error',
     indicators: {
       oxygen: { value: 3.5, trend: 'down' },
@@ -52,8 +48,8 @@ const MOCK_PONDS: API.PondStatus[] = [
   },
   {
     id: '4',
-    name: '桐庐 4 号塘',
-    baseName: '桐庐基地',
+    name: '嘉兴南湖2号塘',
+    baseName: '嘉兴南湖基地',
     status: 'normal',
     indicators: {
       oxygen: { value: 6.5, trend: 'up' },
@@ -61,15 +57,26 @@ const MOCK_PONDS: API.PondStatus[] = [
       ph: { value: 7.6, trend: 'stable' },
     },
   },
-    {
+  {
     id: '5',
-    name: '桐庐 4 号塘',
-    baseName: '桐庐基地',
+    name: '舟山定海1号塘',
+    baseName: '舟山定海基地',
     status: 'normal',
     indicators: {
       oxygen: { value: 6.5, trend: 'up' },
       temp: { value: 25.2, trend: 'stable' },
       ph: { value: 7.6, trend: 'stable' },
+    },
+  },
+  {
+    id: '6',
+    name: '温州苍南1号塘',
+    baseName: '温州苍南基地',
+    status: 'warning',
+    indicators: {
+      oxygen: { value: 4.2, trend: 'down' },
+      temp: { value: 26.5, trend: 'up' },
+      ph: { value: 8.0, trend: 'stable' },
     },
   },
 ];
@@ -79,18 +86,36 @@ const MOCK_PONDS: API.PondStatus[] = [
 
 
 const WaterQuality: React.FC = () => {
-  const [pondList, setPondList] = useState<API.PondStatus[]>([]);
+  const [pondList, setPondList] = useState<Pond.PondStatus[]>([]);
   const [filteredPondList, setFilteredPondList] = useState<API.PondStatus[]>([]);
   const [selectedPond, setSelectedPond] = useState<API.PondStatus >();
   const [loading, setLoading] = useState(false);
   
+  // 路由参数处理
+  const [searchParams] = useSearchParams();
+  const initialBaseId = searchParams.get('baseId');
+
   // 筛选状态
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [baseFilter, setBaseFilter] = useState<string>('all');
+  const [baseFilter, setBaseFilter] = useState<string>(initialBaseId || 'all');
 
+  // 基地选项配置
+  const baseOptions = [
+    { label: '全部基地', value: 'all' },
+    { label: '海宁1号基地', value: 'B001' },
+    { label: '嘉兴南湖基地', value: 'B002' },
+    { label: '舟山定海基地', value: 'B003' },
+    { label: '温州苍南基地', value: 'B004' },
+  ];
 
-
+  // 基地id到基地名称的映射
+  const baseIdToNameMap: { [key: string]: string } = {
+    'B001': '海宁1号基地',
+    'B002': '嘉兴南湖基地',
+    'B003': '舟山定海基地',
+    'B004': '温州苍南基地'
+  };
 
   const fecthPondData = async () => {
      try{
@@ -110,8 +135,14 @@ const WaterQuality: React.FC = () => {
 
   };
 
+  // 监听URL参数变化
+  useEffect(() => {
+    const baseId = searchParams.get('baseId');
+    if (baseId) {
+      setBaseFilter(baseId);
+    }
+  }, [searchParams]);
 
-  
   useEffect(() => {
    
       fecthPondData();
@@ -137,7 +168,8 @@ const WaterQuality: React.FC = () => {
     
     // 基地过滤
     if (baseFilter !== 'all') {
-      result = result.filter((p) => p.baseName === baseFilter);
+      const baseName = baseIdToNameMap[baseFilter] || baseFilter;
+      result = result.filter((p) => p.baseName === baseName);
     }
     
     setFilteredPondList(result);
@@ -151,12 +183,6 @@ const WaterQuality: React.FC = () => {
     error: filteredPondList.filter(p => p.status === 'error').length,
   };
 
-  // 获取唯一的基地列表
-  const baseOptions = Array.from(new Set(pondList.map(p => p.baseName))).map(name => ({
-    value: name,
-    label: name,
-  }));
-
   // 重置筛选
   const handleReset = () => {
     setSearchText('');
@@ -169,7 +195,7 @@ const WaterQuality: React.FC = () => {
   };
 
   return (
-    <PageContainer header={{ title: '水质监控' }}>
+    <PageContainer  title={false} >
       <WaterQualityStats stats={stats} />
       
       {/* 筛选栏 */}
@@ -200,10 +226,7 @@ const WaterQuality: React.FC = () => {
             value={baseFilter}
             onChange={setBaseFilter}
             style={{ width: 160 }}
-            options={[
-              { value: 'all', label: '全部基地' },
-              ...baseOptions,
-            ]}
+            options={baseOptions}
           />
           <Button icon={<ReloadOutlined />} onClick={handleReset}>
             重置

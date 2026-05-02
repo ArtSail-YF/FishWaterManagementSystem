@@ -3,7 +3,7 @@
  * 这些类型定义应该与后端API文档保持一致
  */
 
-import { BaseResponse } from './common';
+import { BaseResponse } from '../common';
 
 /** 预警级别 */
 export type AlertLevel = 'P0' | 'P1' | 'P2';

@@ -10,11 +10,12 @@ interface PondGridProps {
    ponds: Pond.PondItem[];
    loading: boolean;
   onPondClick: (pond: Pond.PondItem) => void;
+  onPondHover?: (pond: Pond.PondItem) => void;
   viewMode: 'production' | 'device';
   filterValues: any;
 }
 
-const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, viewMode, filterValues }) => {
+const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPondHover, viewMode, filterValues }) => {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -78,6 +79,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, viewMo
             className="fin-card"
             styles={{ body: { padding: viewMode === 'device' ? '0' : '12px' } }}
             onClick={() => onPondClick(pond)}
+            onMouseEnter={() => onPondHover && onPondHover(pond)}
             style={{ borderTop: `3px solid ${getStatusColor(pond.status)}` }}
           >
             {viewMode === 'production' ? (

@@ -4,53 +4,98 @@
  */
 
 import { request } from '@umijs/max';
-import type {
-  InputRecordListResponse,
-  InputRecordOperationResponse,
-} from '@/types/api';
-import type { InputRecord } from '@/models/input';
+import type { BaseResponse, InputRecordItem } from '@/types';
 
 /**
  * 获取投入记录列表
- * GET /api/input/records
+ * GET /input/records
  */
-export async function getInputRecords(options?: any) {
-  const response = await request<InputRecordListResponse>('/api/input/records', {
+export async function getInputRecords(
+  options?: { [key: string]: any },
+): Promise<BaseResponse<InputRecordItem[]>> {
+  return request<BaseResponse<InputRecordItem[]>>('/input/records', {
     method: 'GET',
     ...(options || {}),
   });
-  
-  return response;
 }
 
 /**
  * 删除投入记录
- * DELETE /api/input/records/:id
+ * DELETE /input/record/delete
  */
-export async function deleteInputRecord(id: string) {
-  return request<InputRecordOperationResponse>(`/api/input/records/${id}`, {
+export async function deleteInputRecord(
+  params: { id: string },
+  options?: { [key: string]: any },
+): Promise<BaseResponse<boolean>> {
+  return request<BaseResponse<boolean>>('/input/record/delete', {
     method: 'DELETE',
+    params: { ...params },
+    ...(options || {}),
   });
 }
 
 /**
  * 创建投入记录
- * POST /api/input/records
+ * POST /input/record/create
  */
-export async function createInputRecord(data: Partial<InputRecord>) {
-  return request<InputRecordOperationResponse>('/api/input/records', {
+export async function createInputRecord(
+  body: Omit<InputRecordItem, 'id' | 'createTime' | 'updateTime'>,
+  options?: { [key: string]: any },
+): Promise<BaseResponse<string>> {
+  return request<BaseResponse<string>>('/input/record/create', {
     method: 'POST',
-    data,
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
   });
 }
 
 /**
  * 更新投入记录
- * PUT /api/input/records/:id
+ * PUT /input/record/update
  */
-export async function updateInputRecord(id: string, data: Partial<InputRecord>) {
-  return request<InputRecordOperationResponse>(`/api/input/records/${id}`, {
+export async function updateInputRecord(
+  body: Partial<InputRecordItem> & { id: string },
+  options?: { [key: string]: any },
+): Promise<BaseResponse<boolean>> {
+  return request<BaseResponse<boolean>>('/input/record/update', {
     method: 'PUT',
-    data,
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
   });
 }
+
+/**
+ * 批量删除投入记录
+ * POST /input/record/batch-delete
+ */
+export async function batchDeleteInputRecords(
+  body: { ids: string[] },
+  options?: { [key: string]: any },
+): Promise<BaseResponse<boolean>> {
+  return request<BaseResponse<boolean>>('/input/record/batch-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/**
+ * 审核投入记录
+ * POST /input/record/approve
+ */
+export async function approveInputRecord(
+  body: { id: string; status: 'approved' | 'rejected'; approver: string; notes?: string },
+  options?: { [key: string]: any },
+): Promise<BaseResponse<boolean>> {
+  return request<BaseResponse<boolean>>('/input/record/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export type { InputRecordItem };

@@ -1,4 +1,4 @@
-﻿import type { RequestOptions } from '@@/plugin-request/request';
+import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { message as antMessage, notification } from 'antd';
 import { history } from '@umijs/max';
@@ -48,7 +48,7 @@ export const errorConfig: RequestConfig = {
 
   requestInterceptors: [
     (config: RequestOptions) => {
-      const url = config?.url?.concat('?token=123');
+      const url = config?.url?.concat('');
       return { ...config, url };
     },
   ],

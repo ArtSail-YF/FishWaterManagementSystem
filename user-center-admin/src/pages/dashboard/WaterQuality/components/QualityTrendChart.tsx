@@ -4,12 +4,13 @@ import React, { useMemo, useState } from 'react';
 import {type PondWaterLog}from '@/services/api/water';
 import { getPondDetailTrend } from '@/services/api/water';
 import { useEffect } from 'react';
+import type { PondStatusItem } from '@/models/pond';
 
 
 const { Title } = Typography;
 
 interface QualityTrendChartProps {
-  pond?:API.PondStatus;
+  pond?: PondStatusItem;
   loading?: boolean;
 }
 

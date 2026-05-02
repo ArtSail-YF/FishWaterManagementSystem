@@ -60,24 +60,24 @@ const PondCardGrid: React.FC<PondCardGridProps> = ({ ponds, selectedPondId, onSe
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>溶氧 (DO)</Text>
                 <Space size={4}>
-                  <Text strong style={{ color: pond.indicators.oxygen.value < 5 ? '#ff4d4f' : 'inherit' }}>
-                    {pond.indicators.oxygen.value.toFixed(1)} mg/L
+                  <Text strong style={{ color: (pond.indicators?.oxygen?.value || 0) < 5 ? '#ff4d4f' : 'inherit' }}>
+                    {(pond.indicators?.oxygen?.value || '--')} mg/L
                   </Text>
-                  <TrendIcon trend={pond.indicators.oxygen.trend} />
+                  <TrendIcon trend={pond.indicators?.oxygen?.trend || 'stable'} />
                 </Space>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>水温 (Temp)</Text>
                 <Space size={4}>
-                  <Text strong>{pond.indicators.temp.value.toFixed(1)} ℃</Text>
-                  <TrendIcon trend={pond.indicators.temp.trend} />
+                  <Text strong>{(pond.indicators?.temp?.value || '--')} ℃</Text>
+                  <TrendIcon trend={pond.indicators?.temp?.trend || 'stable'} />
                 </Space>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>PH 值</Text>
                 <Space size={4}>
-                  <Text strong>{pond.indicators.ph.value.toFixed(1)}</Text>
-                  <TrendIcon trend={pond.indicators.ph.trend} />
+                  <Text strong>{(pond.indicators?.ph?.value || '--')}</Text>
+                  <TrendIcon trend={pond.indicators?.ph?.trend || 'stable'} />
                 </Space>
               </div>
             </Space>

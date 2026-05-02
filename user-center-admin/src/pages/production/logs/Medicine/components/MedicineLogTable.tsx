@@ -1,20 +1,25 @@
 import { PlusOutlined, UserAddOutlined, ExportOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, Progress, Space, Tag, Typography, Modal, message } from 'antd';
+import { Button, Card, Progress, Space, Tag, Typography, Modal, message, Select } from 'antd';
 import React, { useState, useEffect } from 'react';
 import BatchMedicineModal from './BatchMedicineModal';
+import MedicineModal from '../../components/MedicineModal';
 import dayjs from 'dayjs';
 import { getProductionLogs } from '@/services/api/logs';
-import { MOCK_MEDICINE_LOGS } from '@/services/ant-design-pro/mock';
+import { MOCK_MEDICINE_LOGS } from '@/services/api/mock';
 
 const { Text } = Typography;
+const { Option } = Select;
 
 const MedicineLogTable: React.FC = () => {
   const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [medicineModalVisible, setMedicineModalVisible] = useState(false);
   const [selectedRowsState, setSelectedRows] = useState<Pond.ProductionLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Pond.ProductionLogItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<'pond' | 'cage' | 'workboat'>('pond');
+  const [editingRecord, setEditingRecord] = useState<Pond.ProductionLogItem | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -72,8 +77,24 @@ const MedicineLogTable: React.FC = () => {
       render: (text) => <Text className="fin-number" style={{ fontSize: '13px' }}>{text}</Text>,
     },
     {
-      title: '池塘编号',
-      dataIndex: 'pondId',
+      title: '分类',
+      dataIndex: 'category',
+      width: 80,
+      valueEnum: {
+        pond: { text: '塘口', status: 'Processing' },
+        cage: { text: '网箱', status: 'Default' },
+        workboat: { text: '工船', status: 'Success' },
+      },
+      filters: [
+        { text: '塘口', value: 'pond' },
+        { text: '网箱', value: 'cage' },
+        { text: '工船', value: 'workboat' },
+      ],
+      onFilter: (value, record) => record.category === value,
+    },
+    {
+      title: '编号',
+      dataIndex: 'categoryName',
       width: 100,
       render: (text) => <Tag color="blue" style={{ borderRadius: '2px', fontSize: '11px', margin: 0 }}>{text}</Tag>,
     },
@@ -156,7 +177,46 @@ const MedicineLogTable: React.FC = () => {
       dataIndex: ['details', 'remarks'],
       ellipsis: true,
     },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (_, record) => (
+        <>
+          <Button 
+            type="link" 
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            编辑
+          </Button>
+        </>
+      ),
+    },
   ];
+
+  const handleAdd = () => {
+    setEditingRecord(null);
+    setMedicineModalVisible(true);
+  };
+
+  const handleEdit = (record: Pond.ProductionLogItem) => {
+    setEditingRecord(record);
+    setMedicineModalVisible(true);
+  };
+
+  const handleMedicineSuccess = (values: any) => {
+    // 模拟添加/更新数据
+    if (editingRecord) {
+      // 更新逻辑
+      message.success('更新成功');
+    } else {
+      // 添加逻辑
+      message.success('添加成功');
+    }
+    setMedicineModalVisible(false);
+    fetchData();
+  };
 
   return (
     <Card 
@@ -202,6 +262,16 @@ const MedicineLogTable: React.FC = () => {
         size="small"
         headerTitle={<span style={{ fontSize: '14px', fontWeight: 'bold' }}>用药明细流水 / MEDICINE LOGS</span>}
         toolBarRender={() => [
+          <Select 
+            key="category"
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            style={{ width: 100 }}
+          >
+            <Option value="pond">塘口</Option>
+            <Option value="cage">网箱</Option>
+            <Option value="workboat">工船</Option>
+          </Select>,
           <Button 
             key="export" 
             icon={<ExportOutlined />} 
@@ -221,6 +291,7 @@ const MedicineLogTable: React.FC = () => {
           <Button 
             key="add" 
             icon={<PlusOutlined />}
+            onClick={handleAdd}
             style={{ borderRadius: '2px' }}
           >
             单笔录入
@@ -232,6 +303,14 @@ const MedicineLogTable: React.FC = () => {
         visible={batchModalVisible} 
         onCancel={() => setBatchModalVisible(false)}
         onSuccess={() => setBatchModalVisible(false)}
+      />
+
+      <MedicineModal
+        visible={medicineModalVisible}
+        type={selectedCategory}
+        initialValues={editingRecord}
+        onCancel={() => setMedicineModalVisible(false)}
+        onSuccess={handleMedicineSuccess}
       />
     </Card>
   );

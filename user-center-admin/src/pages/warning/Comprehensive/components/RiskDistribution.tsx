@@ -1,8 +1,8 @@
 import { Card, Col, Row, Spin, message } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import React, { useMemo, useState, useEffect } from 'react';
-import { getRiskDistribution, type RiskDistributionData } from '@/services/ant-design-pro/warning';
-import { MOCK_RISK_DISTRIBUTION } from '@/services/ant-design-pro/mock';
+import { getRiskDistribution, type RiskDistributionData } from '@/services/api/warning';
+import { MOCK_RISK_DISTRIBUTION } from '@/services/api/mock';
 
 const RiskDistribution: React.FC = () => {
   const [data, setData] = useState<RiskDistributionData | null>(null);

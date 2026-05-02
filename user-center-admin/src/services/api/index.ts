@@ -1,6 +1,7 @@
 /**
  * API 服务统一导出
  * 封装 API 调用 + 类型转换
+ * 遵循阿里Ant Design Pro规范
  */
 
 import * as pond from './pond';
@@ -11,9 +12,9 @@ import * as task from './task';
 import * as water from './water';
 import * as weather from './weather';
 import * as warning from './warning';
+import * as production from './production';
 
 export default {
-
   pond,
   logs,
   base,
@@ -22,4 +23,5 @@ export default {
   water,
   weather,
   warning,
+  production,
 };

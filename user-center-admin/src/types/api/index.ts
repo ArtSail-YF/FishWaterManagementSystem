@@ -3,7 +3,7 @@
  * 后端返回的原始数据结构（契约）
  */
 
-export * from './common';
+export * from '../common';
 export * from './user';
 export * from './warning';
 export * from './input';

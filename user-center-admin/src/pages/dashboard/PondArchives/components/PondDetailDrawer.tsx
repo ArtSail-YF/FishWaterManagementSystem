@@ -1,8 +1,8 @@
 import { EditOutlined, SaveOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Descriptions, Divider, Drawer, Empty, Form, Input, InputNumber, Row, Select, Space, Statistic, Tabs, Tag, Timeline, Typography, message, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { getPondFullDetail, updatePond } from '@/services/ant-design-pro/pond';
-import { MOCK_POND_DETAIL_FALLBACK } from '@/services/ant-design-pro/mock';
+import { getPondFullDetail, updatePond } from '@/services/api/pond';
+import { MOCK_POND_DETAIL_FALLBACK } from '@/services/api/mock';
 
 const { Text, Title } = Typography;
 const { confirm } = Modal;
@@ -132,7 +132,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
       }
       width={650}
       onClose={onClose}
-      
+      placement="left"
       open={visible}
       styles={{ body: { padding: '0 24px 24px' } }}
       extra={null}

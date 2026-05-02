@@ -1,6 +1,7 @@
 import { Badge, Card, Col, Row, Space, Statistic, Typography, Spin } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getDisasterInfo, type DisasterInfo } from '@/services/api/weather';
+import { MOCK_DISASTER_INFO } from '@/services/api/mock';
 
 const { Text } = Typography;
 
@@ -9,10 +10,17 @@ const DisasterHeader: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDisasterInfo().then(res => {
-      setData(res.data || null);
-      setLoading(false);
-    });
+    getDisasterInfo()
+      .then(res => {
+        setData(res.data || null);
+      })
+      .catch(() => {
+        console.error('获取灾害信息失败，使用降级数据');
+        setData(MOCK_DISASTER_INFO);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (loading || !data) {

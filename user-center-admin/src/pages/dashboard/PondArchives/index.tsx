@@ -12,8 +12,8 @@ import PondSummaryStats, { type PondSummaryStatsProps } from './components/PondS
 import PondFilterBar from './components/PondFilterBar';
 
 // 服务引用 
-import { getPondListWithSummary, deletePond } from '@/services/ant-design-pro/pond';
-import { MOCK_PONDS, MOCK_POND_STATS } from '@/services/ant-design-pro/mock';
+import { getPondListWithSummary, deletePond } from '@/services/api/pond';
+import { MOCK_PONDS, MOCK_POND_STATS } from '@/services/api/mock';
 
 const PondArchives: React.FC = () => {
    // 1. 路由参数处理

@@ -1,6 +1,6 @@
 import { Badge, Card, Col, Row, Space, Typography } from 'antd';
 import React from 'react';
-import type { AlertSummaryData } from '@/services/ant-design-pro/warning';
+import type { AlertSummaryData } from '@/services/api/warning';
 
 const { Text } = Typography;
 

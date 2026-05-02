@@ -3,7 +3,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Card, Space, Tag, Typography, message } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getWeatherHistory, type WeatherHistoryItem } from '@/services/api/weather';
-import { MOCK_WEATHER_HISTORY } from '@/services/ant-design-pro/mock';
+import { MOCK_WEATHER_HISTORY } from '@/services/api/mock';
 
 const { Text } = Typography;
 
