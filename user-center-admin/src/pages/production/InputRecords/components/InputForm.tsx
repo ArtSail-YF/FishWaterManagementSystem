@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import type { InputRecordItem } from '../index';
 import dayjs from 'dayjs';
 
+const { Option } = Select;
+
 interface InputFormProps {
   visible: boolean;
   onClose: () => void;
@@ -13,11 +15,13 @@ interface InputFormProps {
 const InputForm: React.FC<InputFormProps> = ({ visible, onClose, initialValues }) => {
   const [form] = Form.useForm();
   const [recordType, setRecordType] = useState<'in' | 'out'>('in');
+  const [facilityCategory, setFacilityCategory] = useState<'pond' | 'cage' | 'workboat' | 'none'>('none');
 
   useEffect(() => {
     if (visible) {
       if (initialValues) {
         setRecordType(initialValues.type);
+        setFacilityCategory(initialValues.facilityCategory || 'none');
         form.setFieldsValue({
           ...initialValues,
           date: dayjs(initialValues.date),
@@ -25,10 +29,12 @@ const InputForm: React.FC<InputFormProps> = ({ visible, onClose, initialValues }
       } else {
         form.resetFields();
         setRecordType('in');
+        setFacilityCategory('none');
         form.setFieldsValue({
           date: dayjs(),
           type: 'in',
           operator: '张三', // 默认当前用户
+          facilityCategory: 'none',
         });
       }
     }
@@ -51,6 +57,14 @@ const InputForm: React.FC<InputFormProps> = ({ visible, onClose, initialValues }
       const quantity = allValues.quantity || 0;
       const price = allValues.price || 0;
       form.setFieldsValue({ totalPrice: quantity * price });
+    }
+    
+    if (changedValues.type) {
+      setRecordType(changedValues.type);
+    }
+    
+    if (changedValues.facilityCategory) {
+      setFacilityCategory(changedValues.facilityCategory);
     }
   };
 
@@ -84,12 +98,12 @@ const InputForm: React.FC<InputFormProps> = ({ visible, onClose, initialValues }
         </div>
 
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={8}>
             <Form.Item name="date" label="操作日期" rules={[{ required: true }]}>
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col span={8}>
             <Form.Item name="category" label="物资分类" rules={[{ required: true }]}>
               <Select options={[
                 { label: '饲料', value: 'feed' },
@@ -98,6 +112,16 @@ const InputForm: React.FC<InputFormProps> = ({ visible, onClose, initialValues }
                 { label: '设备 (增氧机等)', value: 'equipment' },
                 { label: '其他', value: 'other' },
               ]} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="facilityCategory" label="设施分类">
+              <Select>
+                <Option value="none">未关联</Option>
+                <Option value="pond">塘口</Option>
+                <Option value="cage">网箱</Option>
+                <Option value="workboat">工船</Option>
+              </Select>
             </Form.Item>
           </Col>
         </Row>

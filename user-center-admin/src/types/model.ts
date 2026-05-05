@@ -21,30 +21,122 @@ import type {
 
 // ====== 生产管理模型 ======
 
+/** 生产计划 (prod_plan) */
 export interface ProductionPlan extends BaseEntity {
-  planType: PlanTypeEnum;      // 计划类型
-  planName: string;            // 计划名称
-  pondIds: string[];           // 塘口ID列表
-  content?: any;               // 计划内容(JSON格式)
-  startTime: string;           // 计划开始时间
-  endTime: string;             // 计划结束时间
-  status: PlanStatusEnum;      // 状态
-  creatorId: string;           // 创建人ID
-  approverId?: string;         // 审批人ID
-  approvalStatus: number;      // 审批状态
-  approvalTime?: string;       // 审批时间
+  baseId?: number;                    // 所属基地ID
+  parentPlanId?: number;              // 父计划ID
+  targetType?: 'pond' | 'cage' | 'vsl'; // 目标类型
+  targetId?: number;                  // 目标实体ID
+  planType?: 'feeding' | 'medication' | 'harvest' | 'maintenance' | 'seeding' | 'water_change'; // 计划类型
+  title?: string;                     // 计划标题
+  contentDesc?: string;               // 详细描述/操作指南
+  startTime?: string;                 // 计划开始时间
+  endTime?: string;                   // 计划结束时间
+  cycleRule?: string;                 // 循环规则
+  status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled'; // 状态
+  ownerId?: number;                   // 制定人/管理员ID
+  assigneeGroupId?: number;           // 指派班组/角色ID
+  // 计划详情字段 (prod_plan_detail)
+  feedAmount?: number;                // 计划投喂量(kg)
+  feedVariety?: string;               // 饲料品种
+  drugName?: string;                  // 药品名称
+  dosage?: string;                    // 用量
+  withdrawalDays?: number;            // 休药期天数
+  longitude?: number;                 // 作业海域经度
+  latitude?: number;                  // 作业海域纬度
+  weatherReq?: string;                // 气象要求
+  estYield?: number;                  // 预计产量
+  // 系统字段
+  createTime?: string;                // 创建时间
+  updateTime?: string;                // 更新时间
+  isDelete?: number;                  // 是否删除: 0-正常, 1-已删除
+  deleteTime?: string;                // 删除时间
 }
 
+/** 生产任务 (prod_task) */
 export interface ProductionTask extends BaseEntity {
-  planId: string;              // 关联计划ID
-  taskName: string;            // 任务名称
-  taskType: PlanTypeEnum;       // 任务类型
-  pondId: string;              // 塘口ID
-  executionTime: string;       // 预计执行时间
-  actualTime?: string;         // 实际执行时间
-  executorId?: string;         // 执行人ID
-  status: TaskStatusEnum;      // 执行状态
-  notes?: string;              // 备注
+  planId?: number;                    // 来源计划ID
+  baseId?: number;                    // 所属基地ID
+  taskTitle?: string;                 // 任务标题
+  targetType?: 'pond' | 'cage' | 'vsl'; // 目标类型
+  targetId?: number;                  // 目标ID
+  actionTime?: string;                // 要求执行的具体时间
+  deadlineTime?: string;              // 最晚完成时间
+  status?: 'pending' | 'assigned' | 'doing' | 'done' | 'skipped' | 'expired'; // 状态
+  assigneeId?: number;                // 具体执行工人ID
+  cancelReason?: string;              // 取消/跳过原因
+  // 系统字段
+  createTime?: string;                // 创建时间
+  updateTime?: string;                // 更新时间
+  isDelete?: number;                  // 是否删除: 0-正常, 1-已删除
+  deleteTime?: string;                // 删除时间
+}
+
+/** 生产日志 (prod_log) */
+export interface ProductionLog extends BaseEntity {
+  taskId?: number;                    // 关联的任务ID
+  planId?: number;                    // 关联的计划ID
+  baseId?: number;                    // 所属基地ID
+  targetType?: 'pond' | 'cage' | 'vsl'; // 目标类型
+  targetId?: number;                  // 目标ID
+  logType?: string;                   // 作业类型
+  actionTime?: string;                // 实际发生时间
+  quantity?: number;                  // 实际数量/用量
+  photoUrls?: string;                 // 照片URL列表 (逗号分隔)
+  gpsLat?: number;                    // 打卡纬度
+  gpsLng?: number;                    // 打卡经度
+  source?: 'app' | 'admin' | 'system'; // 来源
+  createdBy?: number;                 // 录入账号ID
+  actualWorkerId?: number;            // 实际干活的人ID
+  isBackfilled?: boolean;             // 是否事后补录
+  backfillReason?: string;            // 补录原因
+  verifyStatus?: 'auto' | 'pending' | 'rejected'; // 审核状态
+  // 用药特有字段（从med_record表关联）
+  medicineName?: string;              // 药物名称
+  drugName?: string;                  // 药品名称（别名）
+  reason?: string;                    // 用药原因
+  withdrawalRemaining?: number;       // 剩余休药期天数
+  withdrawalDays?: number;            // 休药期总天数
+  withdrawalStatus?: string;          // 休药期状态
+  unit?: string;                      // 单位
+  remark?: string;                    // 备注
+  // 前端扩展字段
+  details?: {                         // 详情对象（前端使用）
+    medicineName?: string;            // 药物名称
+    dose?: number;                    // 剂量
+    reason?: string;                  // 用药原因
+    withdrawalRemaining?: number;     // 剩余休药期天数
+    withdrawalDays?: number;          // 休药期总天数
+    status?: string;                  // 休药期状态
+    remarks?: string;                 // 备注
+    amount?: number;                  // 数量（投喂用）
+    method?: string;                  // 方法
+  };
+  // 兼容旧字段
+  time?: string;                      // 操作时间（兼容）
+  pondId?: string;                    // 塘口ID（兼容）
+  content?: string;                   // 内容摘要（兼容）
+  operator?: string;                  // 操作人（兼容）
+  status?: string;                    // 状态（兼容）
+  // 系统字段
+  createTime?: string;                // 创建时间
+  updateTime?: string;                // 更新时间
+}
+
+/** 物资库存 (stk_inventory) */
+export interface StockInventory extends BaseEntity {
+  baseId: number;                     // 基地ID
+  matId: number;                      // 物资ID
+  batchNo?: string;                   // 批次号
+  currentQty?: number;                // 当前结存数量
+  lockQty?: number;                   // 锁定数量
+  lastUpdateTime?: string;            // 最后更新时间
+}
+
+/** 物资分类 (mat_category) */
+export interface MaterialCategory extends BaseEntity {
+  catCode: string;                    // 分类编码
+  catName: string;                    // 分类名称
 }
 
 // ====== 预警中心模型 ======
@@ -80,8 +172,21 @@ export interface WarningRecord extends BaseEntity {
   handleNotes?: string;       // 处理备注
 }
 
-// ====== 塘口管理模型 ======
+// ====== 资源管理模型 ======
 
+// ====== 基地管理模型 ======
+export interface BaseInfo extends BaseEntity {
+  name: string;               // 基地名称
+  code: string;               // 基地编码
+  location: string;           // 地理位置
+  area: number;               // 总面积(亩)
+  contact: string;            // 联系人
+  phone: string;              // 联系电话
+  status: number;             // 状态：1-启用，0-停用
+  description?: string;       // 描述
+}
+
+// ====== 塘口管理模型 ======
 export interface PondInfo extends BaseEntity {
   baseId: string;             // 所属基地ID
   name: string;               // 塘口名称
@@ -91,6 +196,41 @@ export interface PondInfo extends BaseEntity {
   ecologicalIndex?: number;   // 生态健康指数
   carbonFootprint?: number;   // 碳足迹（吨/年）
   status: PondStatusEnum;     // 状态
+}
+
+// ====== 物资档案模型 ======
+export interface MaterialArchive extends BaseEntity {
+  code: string;               // 物资编码
+  name: string;               // 物资名称
+  type: 'feed' | 'medicine' | 'seed' | 'equipment' | 'other'; // 物资类型
+  category: string;           // 分类
+  specification: string;      // 规格
+  unit: string;               // 单位
+  supplier: string;           // 供应商
+  brand: string;              // 品牌
+  shelfLife: number;          // 保质期(天)
+  storageCondition: string;   // 存储条件
+  status: 'active' | 'inactive'; // 状态：active-启用，inactive-停用
+  description?: string;       // 描述
+}
+
+// ====== 字典管理模型 ======
+
+// ====== 字典类型模型 ======
+export interface SysDictType extends BaseEntity {
+  dictType: string;           // 字典类型
+  dictName: string;           // 字典名称
+  description?: string;       // 描述
+  status: number;             // 状态：1-启用，0-停用
+}
+
+// ====== 字典数据模型 ======
+export interface SysDictData extends BaseEntity {
+  dictType: string;           // 字典类型
+  dictLabel: string;          // 字典标签
+  dictValue: string;          // 字典值
+  sortOrder: number;          // 排序
+  status: number;             // 状态：1-启用，0-停用
 }
 
 // ====== 水质监测模型 ======
@@ -323,3 +463,4 @@ export interface RiskDistributionData {
     percentage: number;
   }>;
 }
+

@@ -1,219 +1,142 @@
-// @ts-ignore
-/* eslint-disable */
-import { request } from '@umijs/max';
-import type { PondInfoParams, PondInfoList, PondInfoDetail, BaseResponse, PondInfo } from '@/types';
-
 /**
  * 塘口管理API接口
- * 遵循阿里Ant Design Pro规范
+ * 统一管理塘口信息的增删查改接口
+ * 遵循后端RESTful API规范
  */
 
-// ====== 塘口管理 ======
+import { request } from '@umijs/max';
+import { convertToProTable } from '@/services/api/utils/convert';
+import type { BaseResponse, PageResult, PaginationResponse } from '@/types/common';
 
-/** 获取塘口列表 GET /api/pond/list */
+// ====== 参数类型定义 ======
+
+type PondQueryParams = { 
+  current: number; 
+  pageSize: number; 
+  keyword?: string; 
+  pondName?: string; 
+  baseId?: string;
+  area?: number;
+  depth?: number;
+  waterQuality?: string;
+  status?: number; 
+  remark?: string;
+  category?: string;
+  categoryName?: string;
+  type?: string;
+  capacity?: number;
+  tonnage?: number;
+  material?: string;
+  compartment?: string;
+  videoStatus?: string;
+  sensorCount?: number;
+  [key: string]: any 
+} & Record<string, any>;
+
+// ====== 塘口管理API ======
+
+/** 分页及条件查询 GET /api/pond/search */
+export async function searchPonds(
+  params: PondQueryParams,
+  options?: { [key: string]: any },
+) {
+  const response = await request<BaseResponse<PageResult<any>>>('/pond/search', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+  return convertToProTable(response);
+}
+
+/** 获取塘口列表 GET /api/pond/list (兼容旧版本) */
 export async function getPondList(
-  params: PondInfoParams,
+  params: PondQueryParams,
   options?: { [key: string]: any },
 ) {
-  return request<PondInfoList>('/pond/list', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
+  return searchPonds(params, options);
 }
 
-/** 获取塘口详情 GET /api/pond/detail */
-export async function getPondDetail(
-  id: string,
-  options?: { [key: string]: any },
-) {
-  return request<PondInfoDetail>('/pond/detail', {
-    method: 'GET',
-    params: {
-      id,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 创建塘口 POST /api/pond/create */
-export async function createPond(
-  body: Omit<PondInfo, 'id' | 'createTime' | 'updateTime' | 'isDeleted'>,
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<string>>('/pond/create', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 更新塘口 PUT /api/pond/update */
-export async function updatePond(
-  body: Partial<PondInfo> & { id: string },
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<boolean>>('/pond/update', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 删除塘口 DELETE /api/pond/delete */
-export async function deletePond(
-  id: string,
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<boolean>>('/pond/delete', {
-    method: 'DELETE',
-    params: {
-      id,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 启用/禁用塘口 POST /api/pond/toggle */
-export async function togglePond(
-  body: { id: string; status: number },
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<boolean>>('/pond/toggle', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-// ====== 塘口统计 ======
-
-/** 获取塘口统计 GET /api/pond/statistics */
-export async function getPondStatistics(
-  params: { baseId?: string; pondType?: number },
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<any>>('/pond/statistics', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 获取塘口分布地图数据 GET /api/pond/map */
-export async function getPondMapData(
-  params: { baseId?: string },
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<any>>('/pond/map', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-// ====== 塘口扩展信息 ======
-
-/** 获取塘口扩展信息 GET /api/pond/ext */
-export async function getPondExtInfo(
-  pondId: string,
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<any>>('/pond/ext', {
-    method: 'GET',
-    params: {
-      pondId,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 更新塘口扩展信息 PUT /api/pond/ext */
-export async function updatePondExtInfo(
-  body: { pondId: string; extData: any },
-  options?: { [key: string]: any },
-) {
-  return request<BaseResponse<boolean>>('/pond/ext', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-// ====== 塘口综合查询 (Dashboard专用) ======
-
-/** 获取塘口列表带汇总数据 GET /api/pond/list-with-summary */
+/** 获取塘口列表带汇总信息 (兼容旧版本) */
 export async function getPondListWithSummary(
-  params: PondInfoParams,
+  params: PondQueryParams,
   options?: { [key: string]: any },
-): Promise<BaseResponse<{
-  list: PondInfo[];
-  summary: {
-    total: number;
-    breeding: number;
-    empty: number;
-    locked: number;
-    totalArea: number;
-    avgDepth: number;
-  };
-}>> {
-  return request<BaseResponse<{
-    list: PondInfo[];
-    summary: {
-      total: number;
-      breeding: number;
-      empty: number;
-      locked: number;
-      totalArea: number;
-      avgDepth: number;
-    };
-  }>>('/pond/list-with-summary', {
+) {
+  return searchPonds(params, options);
+}
+
+/** 获取塘口列表（原始格式，用于仪表板等需要完整数据的场景） */
+export async function getPondListRaw(
+  params: PondQueryParams,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<PageResult<any>>>('/pond/search', {
     method: 'GET',
-    params: {
-      ...params,
-    },
+    params,
     ...(options || {}),
   });
 }
 
-/** 获取塘口完整详情 GET /api/pond/full-detail */
-export async function getPondFullDetail(
-  pondId: string,
+/** 根据ID查询单个实体 GET /api/pond/{id} */
+export async function getPondById(
+  id: string | number,
   options?: { [key: string]: any },
-): Promise<BaseResponse<PondInfo & {
-  extInfo?: any;
-  waterQuality?: any;
-  productionStats?: any;
-  warningHistory?: any[];
-}>> {
-  return request<BaseResponse<PondInfo & {
-    extInfo?: any;
-    waterQuality?: any;
-    productionStats?: any;
-    warningHistory?: any[];
-  }>>('/pond/full-detail', {
+) {
+  return request<BaseResponse<any>>(`/pond/${id}`, {
     method: 'GET',
-    params: {
-      pondId,
-    },
+    ...(options || {}),
+  });
+}
+
+/** 获取塘口详情 GET /api/pond/detail (兼容旧版本) */
+export async function getPondDetail(
+  id: string | number,
+  options?: { [key: string]: any },
+) {
+  return getPondById(id, options);
+}
+
+/** 获取塘口完整详情 (兼容旧版本) */
+export async function getPondFullDetail(
+  id: string | number,
+  options?: { [key: string]: any },
+) {
+  return getPondById(id, options);
+}
+
+/** 新增实体 POST /api/pond */
+export async function createPond(
+  body: { pondName: string; baseId: string; area?: number; depth?: number; waterQuality?: string; status?: number; remark?: string },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>('/pond', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 根据ID更新实体 PUT /api/pond/{id} */
+export async function updatePond(
+  id: string | number,
+  body: { pondName?: string; baseId?: string; area?: number; depth?: number; waterQuality?: string; status?: number; remark?: string },
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>(`/pond/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 根据ID删除实体 DELETE /api/pond/{id} */
+export async function deletePond(
+  id: string | number,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<boolean>>(`/pond/${id}`, {
+    method: 'DELETE',
     ...(options || {}),
   });
 }

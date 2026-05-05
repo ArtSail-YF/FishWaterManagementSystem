@@ -14,7 +14,7 @@ import QualityTrendChart from '../WaterQuality/components/QualityTrendChart';
 import RecentAlerts from '../WaterQuality/components/RecentAlerts';
 
 // 服务引用
-import { getPondListWithSummary, deletePond } from '@/services/api/pond';
+import { getPondListRaw, deletePond } from '@/services/api/pond';
 import { getWaterDataList } from '@/services/api/water';
 import { MOCK_PONDS, MOCK_POND_STATS } from '@/services/api/mock';
 
@@ -65,13 +65,45 @@ const IntegratedDashboard: React.FC = () => {
   const fetchPondData = async () => {
     setLoading(true);
     try {
-      const response = await getPondListWithSummary(filterValues);
-      if (response.data) {
-        setPondData(response.data.list || []);
-        setSummaryData(response.data.summary || {});
-      }
+      // 构造符合后端对齐的参数
+      const apiParams = {
+        current: filterValues.pageNum,
+        pageSize: filterValues.pageSize,
+        pondName: filterValues.searchText,
+        baseId: filterValues.baseId,
+        status: filterValues.status === 'breeding' ? 'ENABLED' : filterValues.status === 'empty' ? 'DISABLED' : undefined,
+        currentSpecies: filterValues.species,
+      };
+      
+      const response = await getPondListRaw(apiParams);
+      
+      // 后端返回格式: {code: 200, message: "success", data: {records: [...], total, size, current, pages}}
+      const pondData = response.data?.data?.records || response.data?.records || [];
+      const total = response.data?.data?.total || response.data?.total || 0;
+      const summary = response.data?.data?.summary || response.data?.summary || {};
+      
+      setPondData(pondData.map((item: any) => ({
+        ...item,
+        id: item.id,
+        name: item.pondName || item.name,
+        status: item.status === 'ENABLED' ? 'breeding' : item.status === 'DISABLED' ? 'empty' : 'locked',
+        species: item.currentSpecies || item.species,
+      })));
+      
+      // 解析汇总数据
+      setSummaryData({
+        totalPonds: total,
+        breedingCount: summary.breedingCount || pondData.filter((i: any) => i.status === 'ENABLED').length,
+        emptyCount: summary.emptyCount || pondData.filter((i: any) => i.status === 'DISABLED').length,
+        lockedCount: summary.lockedCount || pondData.filter((i: any) => i.status === 'MAINTENANCE').length,
+        totalArea: summary.totalArea || 0,
+        avgDepth: summary.avgDepth || 0,
+        totalBiomass: summary.totalBiomass || 0,
+        species: summary.species || [],
+      });
     } catch (error) {
-      console.error('获取塘口数据失败，使用降级数据:', error);
+      console.error('获取塘口数据失败:', error);
+      // 使用Mock数据降级
       setPondData(MOCK_PONDS);
       setSummaryData(MOCK_POND_STATS);
     } finally {
@@ -178,97 +210,16 @@ const IntegratedDashboard: React.FC = () => {
       >
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
           {/* 顶部状态卡 */}
-          <Row gutter={[16, 16]}>
-            {/* 1. 总塘口数 */}
-            <Col xs={24} sm={12} lg={6}>
-              <Card variant="borderless" className="fin-card">
-                <Statistic
-                  title={
-                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>
-                      总塘口数 / TOTAL PONDS
-                    </Text>
-                  }
-                  value={18}
-                  valueStyle={{ fontSize: '24px', fontWeight: 'bold' }}
-                  className="fin-number"
-                  suffix={<span style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'normal' }}>个</span>}
-                />
-                <div style={{ marginTop: '12px' }}>
-                  <Space size={12} wrap>
-                    <Badge status="processing" text={<span style={{ fontSize: '12px' }}>养殖中 12</span>} />
-                    <Badge status="success" text={<span style={{ fontSize: '12px' }}>空塘 3</span>} />
-                    <Badge status="error" text={<span style={{ fontSize: '12px' }}>锁定 1</span>} />
-                  </Space>
-                </div>
-              </Card>
-            </Col>
-
-            {/* 2. 监测塘口总数 */}
-            <Col xs={24} sm={12} lg={6}>
-              <Card variant="borderless" className="fin-card">
-                <Statistic
-                  title={
-                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>
-                      监测塘口总数
-                    </Text>
-                  }
-                  value={18}
-                  valueStyle={{ fontSize: '24px', fontWeight: 'bold' }}
-                  className="fin-number"
-                  suffix={<span style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'normal' }}>个</span>}
-                />
-                <div style={{ marginTop: '12px' }}>
-                  <Space size={12} wrap>
-                    <Badge status="success" text={<span style={{ fontSize: '12px' }}>水质正常 13</span>} />
-                    <Badge status="warning" text={<span style={{ fontSize: '12px' }}>低溶氧预警 4</span>} />
-                    <Badge status="error" text={<span style={{ fontSize: '12px' }}>水质异常 1</span>} />
-                  </Space>
-                </div>
-              </Card>
-            </Col>
-
-            {/* 3. 水质指标 */}
-            <Col xs={24} sm={12} lg={6}>
-              <Card variant="borderless" className="fin-card">
-                <Statistic
-                  title={
-                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>
-                      水质指标
-                    </Text>
-                  }
-                  value={13}
-                  valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}
-                  className="fin-number"
-                  suffix={<span style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'normal' }}>个正常</span>}
-                />
-                <div style={{ marginTop: '12px', fontSize: '12px' }}>
-                  <Space size={8} wrap>
-                    <span>💧 7.2 mg/L</span>
-                    <span>🧪 7.8 pH</span>
-                    <span>🌡 26.3 °C</span>
-                    <span>👁 32 cm</span>
-                  </Space>
-                </div>
-              </Card>
-            </Col>
-
-            {/* 4. 今日报警 */}
-            <Col xs={24} sm={12} lg={6}>
-              <Card variant="borderless" className="fin-card">
-                <Statistic
-                  title={
-                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>
-                      今日报警
-                    </Text>
-                  }
-                  value={3}
-                  valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}
-                  className="fin-number"
-                  suffix={<span style={{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'normal' }}>个</span>}
-                />
-              </Card>
-            </Col>
-          </Row>
+          <PondSummaryStats 
+            totalPonds={summaryData?.totalPonds || 18}
+            breedingCount={summaryData?.breedingCount || 12}
+            emptyCount={summaryData?.emptyCount || 3}
+            lockedCount={summaryData?.lockedCount || 1}
+            totalArea={summaryData?.totalArea || 12500}
+            avgDepth={summaryData?.avgDepth || 1.8}
+            totalBiomass={summaryData?.totalBiomass || 45.8}
+            species={summaryData?.species || ['南美白对虾', '大黄鱼']}
+          />
 
           {/* 中部区域：左右分栏 */}
           <Row gutter={16} style={{ marginTop: 16 }}>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.aquaculture.mapper.MatInfoMapper">
+
+    <!-- 物资信息结果映射 -->
+    <resultMap id="MatInfoVOMap" type="com.artsail.aquaculture.model.domain.VO.MatInfoVO">
+        <id property="id" column="id"/>
+        <result property="matCode" column="mat_code"/>
+        <result property="matName" column="mat_name"/>
+        <result property="catId" column="cat_id"/>
+        <result property="catName" column="cat_name"/>
+        <result property="spec" column="spec"/>
+        <result property="unit" column="unit"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="minStock" column="min_stock"/>
+        <result property="maxStock" column="max_stock"/>
+        <result property="status" column="status"/>
+        <result property="withdrawalDays" column="withdrawal_days"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="approvalCode" column="approval_code"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 多表关联查询物资信息 -->
+    <select id="searchWithCategory" resultMap="MatInfoVOMap">
+        SELECT
+            mi.id,
+            mi.mat_code,
+            mi.mat_name,
+            mi.cat_id,
+            mc.cat_name,
+            mi.spec,
+            mi.unit,
+            mi.supplier_id,
+            ms.supplier_name,
+            mi.min_stock,
+            mi.max_stock,
+            mi.status,
+            mi.withdrawal_days,
+            mi.unit_price,
+            mi.approval_code,
+            mi.manufacturer,
+            mi.create_time,
+            mi.update_time
+        FROM mat_info mi
+        LEFT JOIN mat_category mc ON mi.cat_id = mc.id
+        LEFT JOIN mat_supplier ms ON mi.supplier_id = ms.id
+        WHERE mi.is_delete = 0
+        <if test="query.matCode != null and query.matCode != ''">
+            AND mi.mat_code = #{query.matCode}
+        </if>
+        <if test="query.matName != null and query.matName != ''">
+            AND mi.mat_name LIKE CONCAT('%', #{query.matName}, '%')
+        </if>
+        <if test="query.catId != null">
+            AND mi.cat_id = #{query.catId}
+        </if>
+        <if test="query.supplierId != null">
+            AND mi.supplier_id = #{query.supplierId}
+        </if>
+        <if test="query.status != null">
+            AND mi.status = #{query.status}
+        </if>
+        ORDER BY mi.create_time DESC
+    </select>
+
+</mapper>

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BizBreederServiceImpl extends ServiceImpl<BizBreederMapper, BizBreeder> implements BizBreederService {
 
     @Override
@@ -32,4 +31,3 @@ public class BizBreederServiceImpl extends ServiceImpl<BizBreederMapper, BizBree
         return this.page(page, wrapper);
     }
 }
-

@@ -42,23 +42,6 @@ declare namespace API {
 
 
 
-// ====== 通用下拉结构 ======
-  type SelectOption = {
-  label: string; 
-  value: string; 
-};
-  //下拉
-
-
-type DictData ={
-  baseList?: SelectOption [];
-  speciesList?: SelectOption [];
-  pondList?: SelectOption [];
-  pondStatusList?:SelectOption [];
-}
-
-
-
 
 // 用户数据接口
 interface CurrentUser {
@@ -116,17 +99,6 @@ type CurrentUserListResult = BaseResponse<CurrentUser[]>;
 
 
 
-  //* 登录接口 POST /api/user/login/account
-  type LoginParams = NewType;
-
-
-  //* 注册接口 POST /api/user/register/account
-  type RegisterParams = NewType & { checkPassword: string };
-
-
-
-
-
 
 
   // ====== 列表分页 ======
@@ -165,6 +137,34 @@ type CurrentUserListResult = BaseResponse<CurrentUser[]>;
 
 
 
+
+
+    //* 登录接口 POST /api/user/login/account
+    type LoginParams = NewType;
+
+
+    //* 注册接口 POST /api/user/register/account
+    type RegisterParams = NewType & { checkPassword: string };
+
+
+
+
+
+
+  // ====== 通用下拉结构 ======
+    type SelectOption = {
+    label: string; 
+    value: string; 
+  };
+    //下拉
+
+
+  type DictData ={
+    baseList?: SelectOption [];
+    speciesList?: SelectOption [];
+    pondList?: SelectOption [];
+    pondStatusList?:SelectOption [];
+  }
 
 
 }

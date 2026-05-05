@@ -5,7 +5,6 @@ import dayjs from 'dayjs';
 import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
 import { getInputRecords, deleteInputRecord, type InputRecordItem } from '@/services/api/input';
-import { MOCK_INPUT_RECORDS } from '@/services/api/mock';
 
 const InputRecords: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -20,9 +19,7 @@ const InputRecords: React.FC = () => {
       const res = await getInputRecords();
       setData(res.data || []);
     } catch (error) {
-      console.error('获取投入记录失败，使用降级数据:', error);
-      setData(MOCK_INPUT_RECORDS as any);
-      message.warning('投入记录已降级为离线模式');
+      console.error('获取投入记录失败:', error);
     } finally {
       setLoading(false);
     }
@@ -122,11 +119,11 @@ const InputRecords: React.FC = () => {
       width: 100,
       valueType: 'select',
       valueEnum: {
-        feed: { text: '饲料' },
-        medicine: { text: '药品' },
-        seed: { text: '苗种' },
-        equipment: { text: '设备' },
-        other: { text: '其他' },
+        feed: { text: '饲料', color: 'blue' },
+        medicine: { text: '药品', color: 'purple' },
+        seed: { text: '苗种', color: 'green' },
+        equipment: { text: '设备', color: 'cyan' },
+        other: { text: '其他', color: 'default' },
       },
       render: (_, record) => {
         const categoryMap = {
@@ -136,7 +133,7 @@ const InputRecords: React.FC = () => {
           equipment: { color: 'cyan', text: '设备' },
           other: { color: 'default', text: '其他' },
         };
-        const config = categoryMap[record.category];
+        const config = categoryMap[record.category] || categoryMap.other;
         return <Tag color={config.color} variant="filled" style={{ borderRadius: '2px' }}>{config.text}</Tag>;
       },
     },
@@ -144,27 +141,27 @@ const InputRecords: React.FC = () => {
       title: '规格',
       dataIndex: 'specification',
       width: 100,
-      hideInSearch: true,
+      search: false,
     },
     {
       title: '数量',
       dataIndex: 'quantity',
       width: 100,
-      hideInSearch: true,
+      search: false,
       render: (dom, record) => <span className="fin-number">{dom} {record.unit}</span>,
     },
     {
       title: '单价',
       dataIndex: 'price',
       width: 100,
-      hideInSearch: true,
+      search: false,
       render: (dom) => <span className="fin-number">¥{dom}</span>,
     },
     {
       title: '总价',
       dataIndex: 'totalPrice',
       width: 120,
-      hideInSearch: true,
+      search: false,
       render: (dom) => <span className="fin-number" style={{ fontWeight: 600 }}>¥{dom}</span>,
     },
     {

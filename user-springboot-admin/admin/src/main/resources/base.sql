@@ -89,6 +89,7 @@ CREATE TABLE `sys_dict_type` (
                                  `dict_desc` varchar(200) COMMENT '描述',
                                  `status` tinyint DEFAULT 1,
                                  `create_time` datetime,
+                                 `update_time` datetime,
                                  `is_delete` tinyint DEFAULT 0 NOT NULL COMMENT '是否删除: 0-正常, 1-已删除',
                                  `delete_time` datetime NULL COMMENT '删除时间'
 );
@@ -350,6 +351,17 @@ CREATE TABLE `prod_plan_detail` (
                                     `est_yield` decimal(10,2) COMMENT '预计产量'
 );
 
+CREATE TABLE `stk_inventory` (
+                                 `id` bigint PRIMARY KEY AUTO_INCREMENT,
+                                 `base_id` bigint NOT NULL COMMENT '基地ID',
+                                 `mat_id` bigint NOT NULL COMMENT '物资ID',
+                                 `batch_no` varchar(50) COMMENT '批次号 (如果分批次管理)',
+                                 `current_qty` decimal(12,4) DEFAULT 0 COMMENT '当前结存数量',
+                                 `lock_qty` decimal(12,4) DEFAULT 0 COMMENT '锁定数量 (已分配给任务但未领用)',
+                                 `last_update_time` datetime DEFAULT (now()),
+                                 UNIQUE KEY `uk_mat` (`base_id`, `mat_id`, `batch_no`) -- 联合唯一索引
+) COMMENT='物资实时库存表';
+
 CREATE TABLE `mat_category` (
                                 `id` bigint PRIMARY KEY AUTO_INCREMENT,
                                 `cat_code` varchar(50) UNIQUE NOT NULL COMMENT '分类编码',
@@ -357,6 +369,8 @@ CREATE TABLE `mat_category` (
                                 `parent_id` bigint DEFAULT 0 COMMENT '父级ID (用于多级分类)',
                                 `sort_order` int DEFAULT 0 COMMENT '排序',
                                 `status` tinyint DEFAULT 1 COMMENT '状态',
+                                `create_time` datetime,
+                                `update_time` datetime,
                                 `is_delete` tinyint DEFAULT 0 NOT NULL COMMENT '是否删除: 0-正常, 1-已删除',
                                 `delete_time` datetime NULL COMMENT '删除时间'
 );
@@ -372,6 +386,12 @@ CREATE TABLE `mat_info` (
                             `min_stock` decimal(10,2) COMMENT '最低库存预警',
                             `max_stock` decimal(10,2) COMMENT '最高库存预警',
                             `status` tinyint DEFAULT 1 COMMENT '状态',
+                            `withdrawal_days` int DEFAULT 0 COMMENT '休药期 (天)',
+                            `unit_price` decimal(10,2) DEFAULT 0.00 COMMENT '参考单价 (元)',
+                            `approval_code` varchar(100) COMMENT '批准文号/生产许可证号',
+                            `manufacturer` varchar(100) COMMENT '生产厂家',
+                            `create_time` datetime,
+                            `update_time` datetime,
                             `is_delete` tinyint DEFAULT 0 NOT NULL COMMENT '是否删除: 0-正常, 1-已删除',
                             `delete_time` datetime NULL COMMENT '删除时间'
 );
@@ -385,6 +405,8 @@ CREATE TABLE `mat_supplier` (
                                 `address` varchar(255),
                                 `license_img` varchar(255) COMMENT '营业执照',
                                 `status` tinyint DEFAULT 1,
+                                `create_time` datetime,
+                                `update_time` datetime,
                                 `is_delete` tinyint DEFAULT 0 NOT NULL COMMENT '是否删除: 0-正常, 1-已删除',
                                 `delete_time` datetime NULL COMMENT '删除时间'
 );
@@ -896,3 +918,15 @@ ALTER TABLE `biz_purchase_suggest` ADD FOREIGN KEY (`base_id`) REFERENCES `base_
 ALTER TABLE `biz_purchase_suggest_item` ADD FOREIGN KEY (`suggest_id`) REFERENCES `biz_purchase_suggest` (`id`);
 
 ALTER TABLE `biz_purchase_suggest_item` ADD FOREIGN KEY (`mat_id`) REFERENCES `mat_info` (`id`);
+
+-- 初始化字典数据
+-- 基地类型字典
+INSERT INTO `sys_dict_type` (`dict_type`, `dict_name`, `dict_desc`, `status`, `create_time`) 
+VALUES ('base_type', '基地类型', '养殖基地的分类类型', 1, NOW());
+
+INSERT INTO `sys_dict_data` (`dict_type`, `dict_label`, `dict_value`, `sort_order`, `status`, `create_time`) 
+VALUES 
+('base_type', '淡水养殖基地', 'freshwater', 1, 1, NOW()),
+('base_type', '海水养殖基地', 'seawater', 2, 1, NOW()),
+('base_type', '综合养殖基地', 'comprehensive', 3, 1, NOW()),
+('base_type', '工厂化养殖基地', 'industrial', 4, 1, NOW());

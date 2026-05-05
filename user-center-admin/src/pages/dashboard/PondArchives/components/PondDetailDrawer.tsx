@@ -2,7 +2,6 @@ import { EditOutlined, SaveOutlined, DeleteOutlined, ExclamationCircleOutlined }
 import { Button, Card, Col, Descriptions, Divider, Drawer, Empty, Form, Input, InputNumber, Row, Select, Space, Statistic, Tabs, Tag, Timeline, Typography, message, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { getPondFullDetail, updatePond } from '@/services/api/pond';
-import { MOCK_POND_DETAIL_FALLBACK } from '@/services/api/mock';
 
 const { Text, Title } = Typography;
 const { confirm } = Modal;
@@ -38,13 +37,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
           setPond(res.data);
           form.setFieldsValue(res.data);
         })
-        .catch(() => {
-          console.error('获取详情失败，使用降级数据');
-          const fallbackData = MOCK_POND_DETAIL_FALLBACK(pondId);
-          setPond(fallbackData as any);
-          form.setFieldsValue(fallbackData);
-          message.warning('详情加载已降级');
-        })
+        .catch(() => message.error('加载失败'))
         .finally(() => setLoading(false));
     }
   }, [pondId, visible]);
@@ -66,11 +59,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
       form.setFieldsValue(res.data);
     } catch (error) {
       console.error('保存失败:', error);
-      // 如果是模拟环境，更新本地状态
-      const values = form.getFieldsValue();
-      setPond(prev => ({ ...prev, ...values } as any));
-      message.success('已更新本地模拟数据');
-      setIsEditing(false);
+      message.error('保存失败，请检查输入或网络连接');
     } finally {
       setLoading(false);
     }
@@ -132,7 +121,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
       }
       width={650}
       onClose={onClose}
-      placement="left"
+      
       open={visible}
       styles={{ body: { padding: '0 24px 24px' } }}
       extra={null}

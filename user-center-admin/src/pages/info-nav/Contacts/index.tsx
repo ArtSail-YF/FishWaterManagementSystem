@@ -43,7 +43,7 @@ const Contacts: React.FC = () => {
           field: { color: 'green', label: '生产一线' },
           external: { color: 'orange', label: '外部专家' },
         };
-        const config = deptMap[record.department];
+        const config = deptMap[record.department] || { color: 'default', label: record.department };
         return (
           <Space direction="vertical" size={0}>
             <Text style={{ fontSize: '13px' }}>{text}</Text>

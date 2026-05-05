@@ -1,7 +1,6 @@
-import { Typography, Spin, message } from 'antd';
+import { Typography, Spin } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { getWeatherSummary, type WeatherSummaryItem } from '@/services/api/weather';
-import { MOCK_WEATHER_SUMMARY } from '@/services/api/mock';
 
 const { Text } = Typography;
 
@@ -10,17 +9,10 @@ const WeatherSummary: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getWeatherSummary()
-      .then(res => {
-        setData(res.data || []);
-      })
-      .catch(() => {
-        console.error('获取气象摘要失败，使用降级数据');
-        setData(MOCK_WEATHER_SUMMARY);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    getWeatherSummary().then(res => {
+      setData(res.data || []);
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {

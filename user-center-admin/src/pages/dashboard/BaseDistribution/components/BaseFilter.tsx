@@ -1,7 +1,8 @@
 import { EnvironmentOutlined, SearchOutlined, FilterOutlined, DownOutlined, UpOutlined, GlobalOutlined, AppstoreOutlined, CheckCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import { Badge, Card, Input, List, Tag, Typography, Collapse, Select, Checkbox, Divider, Space, Row, Col } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { Base } from '@/models/base';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -35,9 +36,9 @@ const useStyles = createStyles(({ token }) => ({
 
 
 interface BaseFilterProps {
-  bases: Pond.BaseItem[];
+  bases: Base[];
   selectedBaseId?: string;
-  onSelect: (base: Pond.BaseItem) => void;
+  onSelect: (base: Base) => void;
   onSearch: (value: string) => void;
   onAdvancedFilterChange?: (filters: {
     region: string[];
@@ -283,11 +284,11 @@ const BaseFilter: React.FC<BaseFilterProps> = ({
                 </div>
                 <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>
                   <EnvironmentOutlined style={{ marginRight: 4 }} />
-                  {item.location[0].toFixed(4)}, {item.location[1].toFixed(4)}
+                  {item.location?.[0]?.toFixed(4) ?? '--'}, {item.location?.[1]?.toFixed(4) ?? '--'}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Tag color="blue">溶氧: {(item.waterQuality?.oxygen || '--')}mg/L</Tag>
-                  <Tag color="orange">水温: {(item.waterQuality?.temp || '--')}℃</Tag>
+                  <Tag color="orange">水温: {(item.waterQuality?.temperature || '--')}℃</Tag>
                 </div>
               </div>
             </List.Item>

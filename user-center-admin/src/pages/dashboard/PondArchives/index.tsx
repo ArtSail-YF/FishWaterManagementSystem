@@ -13,7 +13,6 @@ import PondFilterBar from './components/PondFilterBar';
 
 // 服务引用 
 import { getPondListWithSummary, deletePond } from '@/services/api/pond';
-import { MOCK_PONDS, MOCK_POND_STATS } from '@/services/api/mock';
 
 const PondArchives: React.FC = () => {
    // 1. 路由参数处理
@@ -47,11 +46,7 @@ const PondArchives: React.FC = () => {
         setSummaryData(response.data.summary || {});
       }
     } catch (error) {
-      console.error('获取聚合数据失败，使用降级数据:', error);
-      // 组件层降级
-      setPondData(MOCK_PONDS);
-      setSummaryData(MOCK_POND_STATS);
-      antdmsg.warning('当前处于离线/降级模式，加载的是模拟数据');
+      console.error('获取聚合数据失败:', error);
     } finally {
       setLoading(false);
     }

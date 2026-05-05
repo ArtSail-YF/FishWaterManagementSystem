@@ -22,214 +22,124 @@ import {
   FileDoneOutlined,
   CopyOutlined,
 } from '@ant-design/icons';
-import type { TableColumnsType, TableProps } from 'antd';
-import type { RangePickerProps } from 'antd/es/date-picker';
+import type { TableColumnsType } from 'antd';
 import PlanForm from './components/PlanForm';
 import PlanDetail from './components/PlanDetail';
 import BatchPlanModal from './components/BatchPlanModal';
 import PlanTemplate from './components/PlanTemplate';
+import { searchPlans, deletePlan, publishPlan, cancelPlan } from '@/services/api/production';
+import { getBaseOptions } from '@/services/api/base';
+import type { ProductionPlan } from '@/types/model';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { Search } = Input;
 
-// ==================== 类型定义 ====================
-interface Plan {
-  id: string;
-  planType: string;
-  planName: string;
-  pondId: string;
-  pondNames: string;
-  startTime: string;
-  endTime: string;
-  status: PlanStatus;
-  creator: string;
-  createdAt: string;
-}
+const PLAN_TYPE_MAP: Record<string, string> = {
+  seeding: '放苗计划',
+  feeding: '投喂计划',
+  medication: '用药计划',
+  water_change: '换水/增氧计划',
+  harvest: '收获计划',
+  maintenance: '维护计划',
+};
 
-type PlanStatus = 
-  | '草稿'
-  | '已发布'
-  | '执行中'
-  | '已完成'
-  | '已延期'
-  | '已取消';
+const TARGET_TYPE_MAP: Record<string, string> = {
+  pond: '塘口',
+  cage: '网箱',
+  vsl: '工船',
+};
 
-interface Filters {
-  planType: string;
-  status: string;
-  dateRange: [string, string] | null;
-  search: string;
-}
-
-// ==================== 常量定义 ====================
-const PLAN_TYPES = [
-  '放苗计划',
-  '投喂计划',
-  '用药计划',
-  '换水/增氧计划',
-  '收获计划',
-  '深远海 – 工船作业计划',
-  '深远海 – 网箱维护计划',
-  '深远海 – 捕捞计划',
-] as const;
-
-const PLAN_STATUSES: PlanStatus[] = [
-  '草稿',
-  '已发布',
-  '执行中',
-  '已完成',
-  '已延期',
-  '已取消',
-];
-
-// ==================== 模拟数据 ====================
-const mockPlans: Plan[] = [
-  {
-    id: '1',
-    planType: '放苗计划',
-    planName: '南美白对虾放苗计划',
-    pondId: '1,2,3',
-    pondNames: '1号塘, 2号塘, 3号塘',
-    startTime: '2026-04-20',
-    endTime: '2026-10-20',
-    status: '草稿',
-    creator: '管理员',
-    createdAt: '2026-04-15',
-  },
-  {
-    id: '2',
-    planType: '投喂计划',
-    planName: '每日投喂计划',
-    pondId: '4,5',
-    pondNames: '4号塘, 5号塘',
-    startTime: '2026-04-16',
-    endTime: '2026-04-30',
-    status: '已发布',
-    creator: '技术员',
-    createdAt: '2026-04-14',
-  },
-  {
-    id: '3',
-    planType: '用药计划',
-    planName: '消毒用药计划',
-    pondId: '6',
-    pondNames: '6号塘',
-    startTime: '2026-04-18',
-    endTime: '2026-04-20',
-    status: '执行中',
-    creator: '管理员',
-    createdAt: '2026-04-13',
-  },
-];
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
+  draft: { label: '草稿', color: 'blue' },
+  published: { label: '已发布', color: 'green' },
+  active: { label: '执行中', color: 'orange' },
+  completed: { label: '已完成', color: 'purple' },
+  cancelled: { label: '已取消', color: 'gray' },
+};
 
 const Plans: React.FC = () => {
-  // ==================== 状态管理 ====================
-  const [plans, setPlans] = useState<Plan[]>(mockPlans);
+  const [plans, setPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
   const [batchVisible, setBatchVisible] = useState(false);
   const [templateVisible, setTemplateVisible] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<ProductionPlan | null>(null);
   const [isEdit, setIsEdit] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [bases, setBases] = useState<Array<{ label: string; value: number }>>([]);
+  const [filters, setFilters] = useState({
+    baseId: undefined,
     planType: '',
     status: '',
     dateRange: null,
     search: '',
   });
 
-  // ==================== 工具函数 ====================
-  const getStatusColor = useCallback((status: PlanStatus): string => {
-    const colorMap: Record<PlanStatus, string> = {
-      '草稿': 'blue',
-      '已发布': 'green',
-      '执行中': 'orange',
-      '已完成': 'purple',
-      '已延期': 'red',
-      '已取消': 'gray',
-    };
-    return colorMap[status] || 'default';
+  useEffect(() => {
+    fetchPlans();
+  }, [pagination.current, pagination.pageSize, filters]);
+
+  useEffect(() => {
+    fetchBases();
   }, []);
 
-  // ==================== 数据过滤逻辑 ====================
-  const filteredPlans = useMemo(() => {
-    return plans.filter(plan => {
-      // 计划类型过滤
-      if (filters.planType && plan.planType !== filters.planType) {
-        return false;
-      }
+  const fetchBases = async () => {
+    try {
+      const options = await getBaseOptions();
+      setBases(options);
+    } catch (error) {
+      console.error('获取基地列表失败:', error);
+    }
+  };
 
-      // 状态过滤
-      if (filters.status && plan.status !== filters.status) {
-        return false;
-      }
-
-      // 日期范围过滤
-      if (filters.dateRange) {
-        const [startDate, endDate] = filters.dateRange;
-        if (startDate && plan.startTime < startDate) {
-          return false;
-        }
-        if (endDate && plan.endTime > endDate) {
-          return false;
-        }
-      }
-
-      // 搜索过滤
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        return (
-          plan.planName.toLowerCase().includes(searchLower) ||
-          plan.pondNames.toLowerCase().includes(searchLower) ||
-          plan.creator.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return true;
-    });
-  }, [plans, filters]);
-
-  // ==================== 事件处理 ====================
-  const handleCreate = useCallback(async (values: Partial<Plan>) => {
+  const fetchPlans = async () => {
     setLoading(true);
     try {
-      // 模拟API请求延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const apiParams = {
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+        baseId: filters.baseId,
+        planType: filters.planType || undefined,
+        status: filters.status || undefined,
+        keyword: filters.search || undefined,
+        startTime: filters.dateRange ? filters.dateRange[0] : undefined,
+        endTime: filters.dateRange ? filters.dateRange[1] : undefined,
+      };
 
-      if (isEdit && selectedPlan) {
-        setPlans(prevPlans =>
-          prevPlans.map(plan =>
-            plan.id === selectedPlan.id ? { ...plan, ...values } : plan
-          )
-        );
-        message.success('计划编辑成功');
-      } else {
-        const newPlan: Plan = {
-          id: (plans.length + 1).toString(),
-          ...values,
-          creator: '当前用户',
-          createdAt: new Date().toISOString().split('T')[0],
-          status: '草稿',
-        } as Plan;
-        setPlans(prevPlans => [...prevPlans, newPlan]);
-        message.success('计划创建成功');
-      }
+      const response = await searchPlans(apiParams);
+      
+      setPlans(response.data || []);
+      setPagination(prev => ({
+        ...prev,
+        total: response.total || 0,
+      }));
+    } catch (error) {
+      message.error('获取计划列表失败');
+      console.error('获取计划列表失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // 重置表单状态
+  const handleCreate = useCallback(async (values: Partial<ProductionPlan>) => {
+    setLoading(true);
+    try {
+      await fetchPlans();
       setVisible(false);
       setSelectedPlan(null);
       setIsEdit(false);
+      message.success(isEdit ? '计划编辑成功' : '计划创建成功');
     } catch (error) {
       message.error('操作失败，请重试');
       console.error('操作失败:', error);
     } finally {
       setLoading(false);
     }
-  }, [isEdit, selectedPlan, plans]);
+  }, [isEdit]);
 
-  const handleDelete = useCallback((id: string) => {
+  const handleDelete = useCallback((id: number) => {
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个计划吗？删除后无法恢复。',
@@ -238,10 +148,9 @@ const Plans: React.FC = () => {
       cancelText: '取消',
       onOk: async () => {
         try {
-          // 模拟API请求
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setPlans(prevPlans => prevPlans.filter(plan => plan.id !== id));
+          await deletePlan(id);
           message.success('计划删除成功');
+          fetchPlans();
         } catch (error) {
           message.error('删除失败，请重试');
         }
@@ -249,12 +158,41 @@ const Plans: React.FC = () => {
     });
   }, []);
 
-  const handleView = useCallback((plan: Plan) => {
+  const handlePublish = useCallback(async (id: number) => {
+    try {
+      await publishPlan(id);
+      message.success('计划已发布');
+      fetchPlans();
+    } catch (error) {
+      message.error('发布失败，请重试');
+    }
+  }, []);
+
+  const handleCancel = useCallback(async (id: number) => {
+    Modal.confirm({
+      title: '确认取消',
+      content: '确定要取消这个计划吗？',
+      okText: '确认取消',
+      okType: 'danger',
+      cancelText: '返回',
+      onOk: async () => {
+        try {
+          await cancelPlan(id, { reason: '用户手动取消' });
+          message.success('计划已取消');
+          fetchPlans();
+        } catch (error) {
+          message.error('取消失败，请重试');
+        }
+      },
+    });
+  }, []);
+
+  const handleView = useCallback((plan: ProductionPlan) => {
     setSelectedPlan(plan);
     setDetailVisible(true);
   }, []);
 
-  const handleEdit = useCallback((plan: Plan) => {
+  const handleEdit = useCallback((plan: ProductionPlan) => {
     setSelectedPlan(plan);
     setIsEdit(true);
     setVisible(true);
@@ -262,77 +200,93 @@ const Plans: React.FC = () => {
 
   const handleResetFilters = useCallback(() => {
     setFilters({
+      baseId: undefined,
       planType: '',
       status: '',
       dateRange: null,
       search: '',
     });
+    setPagination(prev => ({ ...prev, current: 1 }));
   }, []);
 
-  // ==================== 表格列配置 ====================
-  const columns: TableColumnsType<Plan> = useMemo(() => [
+  const columns: TableColumnsType<ProductionPlan> = useMemo(() => [
     {
-      title: '计划名称',
-      dataIndex: 'planName',
-      key: 'planName',
+      title: '计划标题',
+      dataIndex: 'title',
+      key: 'title',
       width: 180,
       ellipsis: true,
-      sorter: (a, b) => a.planName.localeCompare(b.planName),
+      sorter: (a, b) => (a.title || '').localeCompare(b.title || ''),
+    },
+    {
+      title: '所属基地',
+      dataIndex: 'baseId',
+      key: 'baseId',
+      width: 180,
+      ellipsis: true,
+      render: (baseId: number) => {
+        const base = bases.find(b => b.value === baseId);
+        return base ? base.label : '-';
+      },
     },
     {
       title: '计划类型',
       dataIndex: 'planType',
       key: 'planType',
-      filters: PLAN_TYPES.map(type => ({ text: type, value: type })),
+      filters: Object.entries(PLAN_TYPE_MAP).map(([value, label]) => ({ text: label, value })),
       onFilter: (value, record) => record.planType === value,
-      width: 150,
+      width: 120,
+      render: (type: string) => PLAN_TYPE_MAP[type] || type,
     },
     {
-      title: '关联塘口',
-      dataIndex: 'pondNames',
-      key: 'pondNames',
-      ellipsis: true,
-      width: 180,
+      title: '目标',
+      key: 'target',
+      render: (_, record) => (
+        <span>{TARGET_TYPE_MAP[record.targetType || ''] || ''} {record.targetId || ''}</span>
+      ),
+      width: 120,
     },
     {
       title: '计划时间',
       key: 'time',
       render: (_, record) => (
-        <span>{`${record.startTime} ~ ${record.endTime}`}</span>
+        <span>{`${record.startTime || ''} ~ ${record.endTime || ''}`}</span>
       ),
       width: 200,
-      sorter: (a, b) => a.startTime.localeCompare(b.startTime),
+      sorter: (a, b) => (a.startTime || '').localeCompare(b.startTime || ''),
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      filters: PLAN_STATUSES.map(status => ({ text: status, value: status })),
+      filters: Object.entries(STATUS_MAP).map(([value, { label }]) => ({ text: label, value })),
       onFilter: (value, record) => record.status === value,
-      render: (status: PlanStatus) => (
-        <Tag color={getStatusColor(status)}>{status}</Tag>
-      ),
+      render: (status: string) => {
+        const config = STATUS_MAP[status] || { label: status, color: 'default' };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
       width: 100,
     },
     {
-      title: '创建人',
-      dataIndex: 'creator',
-      key: 'creator',
+      title: '制定人',
+      dataIndex: 'ownerId',
+      key: 'ownerId',
       width: 100,
+      render: (ownerId: number) => ownerId || '-',
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 120,
-      sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
-      defaultSortOrder: 'descend' as const,
+      sorter: (a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''),
+      defaultSortOrder: 'descend',
     },
     {
       title: '操作',
       key: 'action',
-      width: 180,
-      fixed: 'right' as const,
+      width: 220,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -351,21 +305,39 @@ const Plans: React.FC = () => {
           >
             编辑
           </Button>
+          {record.status === 'draft' && (
+            <Button
+              type="text"
+              size="small"
+              onClick={() => handlePublish(record.id!)}
+            >
+              发布
+            </Button>
+          )}
+          {(record.status === 'draft' || record.status === 'published') && (
+            <Button
+              type="text"
+              size="small"
+              danger
+              onClick={() => handleCancel(record.id!)}
+            >
+              取消
+            </Button>
+          )}
           <Button
             type="text"
             size="small"
             danger
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+            onClick={() => handleDelete(record.id!)}
           >
             删除
           </Button>
         </Space>
       ),
     },
-  ], [getStatusColor, handleView, handleEdit, handleDelete]);
+  ], [bases, handleView, handleEdit, handleDelete, handlePublish, handleCancel]);
 
-  // ==================== JSX渲染 ====================
   return (
     <div style={{ padding: 24 }}>
       <Card
@@ -403,17 +375,34 @@ const Plans: React.FC = () => {
           </Space>
         }
       >
-        {/* 筛选区域 */}
         <div style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <Select
+            placeholder="所属基地"
+            style={{ width: 180 }}
+            value={filters.baseId}
+            onChange={(value) => {
+              setFilters(prev => ({ ...prev, baseId: value }));
+              setPagination(prev => ({ ...prev, current: 1 }));
+            }}
+            allowClear
+          >
+            {bases.map(base => (
+              <Option key={base.value} value={base.value}>{base.label}</Option>
+            ))}
+          </Select>
+          
           <Select
             placeholder="计划类型"
             style={{ width: 150 }}
             value={filters.planType}
-            onChange={(value) => setFilters(prev => ({ ...prev, planType: value }))}
+            onChange={(value) => {
+              setFilters(prev => ({ ...prev, planType: value }));
+              setPagination(prev => ({ ...prev, current: 1 }));
+            }}
             allowClear
           >
-            {PLAN_TYPES.map(type => (
-              <Option key={type} value={type}>{type}</Option>
+            {Object.entries(PLAN_TYPE_MAP).map(([value, label]) => (
+              <Option key={value} value={value}>{label}</Option>
             ))}
           </Select>
           
@@ -421,11 +410,14 @@ const Plans: React.FC = () => {
             placeholder="计划状态"
             style={{ width: 120 }}
             value={filters.status}
-            onChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+            onChange={(value) => {
+              setFilters(prev => ({ ...prev, status: value }));
+              setPagination(prev => ({ ...prev, current: 1 }));
+            }}
             allowClear
           >
-            {PLAN_STATUSES.map(status => (
-              <Option key={status} value={status}>{status}</Option>
+            {Object.entries(STATUS_MAP).map(([value, { label }]) => (
+              <Option key={value} value={value}>{label}</Option>
             ))}
           </Select>
           
@@ -438,6 +430,7 @@ const Plans: React.FC = () => {
                   ...prev, 
                   dateRange: [dateStrings[0], dateStrings[1]] 
                 }));
+                setPagination(prev => ({ ...prev, current: 1 }));
               } else {
                 setFilters(prev => ({ ...prev, dateRange: null }));
               }
@@ -447,29 +440,36 @@ const Plans: React.FC = () => {
           <Search
             placeholder="搜索计划名称"
             style={{ width: 200 }}
-            onSearch={(value) => setFilters(prev => ({ ...prev, search: value }))}
+            onSearch={(value) => {
+              setFilters(prev => ({ ...prev, search: value }));
+              setPagination(prev => ({ ...prev, current: 1 }));
+            }}
             allowClear
           />
           
-          {(filters.planType || filters.status || filters.dateRange || filters.search) && (
+          {(filters.baseId || filters.planType || filters.status || filters.dateRange || filters.search) && (
             <Button onClick={handleResetFilters}>
               重置筛选
             </Button>
           )}
         </div>
 
-        {/* 数据表格 */}
         <Spin spinning={loading} tip="加载中...">
           <Table
             columns={columns}
-            dataSource={filteredPlans}
+            dataSource={plans}
             rowKey="id"
             pagination={{
-              pageSize: 10,
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total) => `共 ${total} 条`,
               pageSizeOptions: ['10', '20', '50', '100'],
+              onChange: (page, pageSize) => {
+                setPagination({ current: page, pageSize, total: pagination.total });
+              },
             }}
             locale={{
               emptyText: (
@@ -479,12 +479,11 @@ const Plans: React.FC = () => {
                 />
               ),
             }}
-            scroll={{ x: 1200 }}
+            scroll={{ x: 1400 }}
           />
         </Spin>
       </Card>
 
-      {/* 模态框组件 */}
       <PlanForm
         visible={visible}
         onCancel={() => {
@@ -495,6 +494,7 @@ const Plans: React.FC = () => {
         onOk={handleCreate}
         initialValues={isEdit ? selectedPlan : undefined}
         isEdit={isEdit}
+        bases={bases}
       />
 
       <PlanDetail
@@ -509,8 +509,7 @@ const Plans: React.FC = () => {
         onOk={async (values) => {
           try {
             setLoading(true);
-            // 模拟批量创建
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await fetchPlans();
             message.success('批量计划创建成功');
             setBatchVisible(false);
           } catch (error) {

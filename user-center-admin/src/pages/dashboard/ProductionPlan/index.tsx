@@ -6,7 +6,7 @@ import PlanCalendar from './components/PlanCalendar';
 import PlanDetailTimeline from './components/PlanDetailTimeline';
 import PlanStats from './components/PlanStats';
 import TaskCenter, { TaskItem } from './components/TaskCenter';
-import { getPlanStats   }from '@/services/api/task';
+import { getPlanStats   }from '@/services/api/production/task';
 import { useEffect } from 'react';  
 import { userInfo } from 'os';
 

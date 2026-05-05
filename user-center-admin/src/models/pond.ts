@@ -31,6 +31,7 @@ export interface Pond {
   id: string;
   name: string;
   baseId: string;
+  baseName?: string;
   type: string;
   area: number;
   depth: number;

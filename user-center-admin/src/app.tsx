@@ -13,7 +13,8 @@ import {
   SelectLang,
   DarkModeToggle,
 } from '@/components';
-import { currentUser as queryCurrentUser , getDictData } from '@/services/ant-design-pro/api';
+import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { getDictDropdownOptions } from '@/services/api/dict';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
@@ -60,10 +61,12 @@ export async function getInitialState(): Promise<{
   // 字典数据加载
  const fetchDictData = async () => {
     try {
-      // 暂时禁用字典API调用，避免404错误
-      // const response = await getDictData(); 
-      // return response.data;
-      return {}; // 返回空字典数据
+      const response = await getDictDropdownOptions();
+      if (response.code === 200) {
+        return response.data; // 返回字典下拉选项数据
+      }
+      console.warn('字典加载失败，返回空数据');
+      return {}; // 失败返回空对象
     } catch (error) {
       console.error('字典加载失败', error);
       return {}; // 失败返回空对象

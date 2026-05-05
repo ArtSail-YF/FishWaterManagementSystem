@@ -1,75 +1,90 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Row, message, Spin } from 'antd';
-import React, { useState, useEffect } from 'react';
+import { Card, Col, Row, message } from 'antd';
+import React, { useState } from 'react';
 import AlertSummary from './components/AlertSummary';
-import RealTimeAlertList from './components/RealTimeAlertList';
+import RealTimeAlertList, { AlertItem } from './components/RealTimeAlertList';
 import RiskDistribution from './components/RiskDistribution';
-import { getRealTimeAlerts, getWarningSummary, processWarning, type AlertItem, type AlertSummaryData } from '@/services/api/warning';
-import { MOCK_ALERTS, MOCK_ALERT_SUMMARY } from '@/services/api/mock';
+
+// 模拟预警流水数据
+const MOCK_ALERTS: AlertItem[] = [
+  {
+    key: '1',
+    level: 'P0',
+    time: '2026-03-27 10:45:12',
+    source: '萧山基地 / 1号塘',
+    description: '溶氧量 (DO) 骤降: 2.1 mg/L ↓ (阈值 5.0)',
+    duration: '15m',
+    status: 'pending',
+  },
+  {
+    key: '2',
+    level: 'P1',
+    time: '2026-03-27 10:30:45',
+    source: '余杭基地 / 2号塘',
+    description: '水温异常上升: 28.5 ℃ ↑ (阈值 26.0)',
+    duration: '30m',
+    status: 'pending',
+  },
+  {
+    key: '3',
+    level: 'P0',
+    time: '2026-03-27 10:15:00',
+    source: '富阳基地 / 3号塘',
+    description: '投喂设备离线 [ID: FD-003]',
+    duration: '45m',
+    status: 'pending',
+  },
+  {
+    key: '4',
+    level: 'P2',
+    time: '2026-03-27 09:50:22',
+    source: '桐庐基地 / 4号塘',
+    description: 'PH 值轻微偏移: 8.6 ↑ (阈值 8.5)',
+    duration: '1h 10m',
+    status: 'pending',
+  },
+  {
+    key: '5',
+    level: 'P1',
+    time: '2026-03-27 09:30:11',
+    source: '萧山基地 / 5号塘',
+    description: '水位偏低报警: 1.2m ↓ (阈值 1.5)',
+    duration: '1h 30m',
+    status: 'pending',
+  },
+  {
+    key: '6',
+    level: 'P0',
+    time: '2026-03-27 09:15:00',
+    source: '余杭基地 / 1号塘',
+    description: '氨氮超标预警: 0.8 mg/L ↑ (阈值 0.5)',
+    duration: '1h 45m',
+    status: 'pending',
+  },
+];
 
 const ComprehensiveWarning: React.FC = () => {
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [summaryData, setSummaryData] = useState<AlertSummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<AlertItem[]>(MOCK_ALERTS);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [alertsRes, summaryRes] = await Promise.all([
-        getRealTimeAlerts(),
-        getWarningSummary()
-      ]);
-      setAlerts(alertsRes.data || []);
-      setSummaryData(summaryRes.data || null);
-    } catch (error) {
-      console.error('获取预警数据失败，使用降级数据:', error);
-      setAlerts(MOCK_ALERTS as any);
-      setSummaryData(MOCK_ALERT_SUMMARY);
-      message.warning('预警指挥中心已降级为模拟模式');
-    } finally {
-      setLoading(false);
-    }
+  const summaryData = {
+    unprocessed: 12,
+    newInHour: 4,
+    processedToday: 45,
+    avgResponseTime: '4m 30s',
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleProcessAlert = async (item: AlertItem) => {
-    const hide = message.loading(`正在处理预警 [${item.key}]...`);
-    try {
-      await processWarning(item.key, { status: 'resolved' });
-      message.success(`预警 [${item.key}] 已转交现场处理。`);
-      fetchData(); // 重新加载数据
-    } catch (error) {
-      console.warn('处理请求失败 (模拟环境直接更新状态)');
-      setAlerts(prev => prev.map(a => a.key === item.key ? { ...a, status: 'resolved' } : a));
-      message.success(`[模拟] 预警 ${item.key} 已处理`);
-    } finally {
-      hide();
-    }
+  const handleProcessAlert = (item: AlertItem) => {
+    message.success(`正在为您跳转至 [${item.source}] 的实时处理页面...`);
+    // 实际业务中这里会跳转到详情页或弹出处理弹窗
   };
 
-  const handleIgnoreAlert = async (item: AlertItem) => {
-    try {
-      await processWarning(item.key, { status: 'ignored' });
-      message.warning(`预警 [${item.key}] 已标记为误报。`);
-      setAlerts(prev => prev.filter(a => a.key !== item.key));
-    } catch (error) {
-      message.error('操作失败');
-    }
+  const handleIgnoreAlert = (item: AlertItem) => {
+    message.warning(`预警 [${item.key}] 已被标记为误报。`);
+    setAlerts(prev => prev.filter(a => a.key !== item.key));
   };
-
-  if (loading && !summaryData) {
-    return (
-      <div style={{ padding: '100px', textAlign: 'center' }}>
-        <Spin size="large" tip="加载指挥中心数据..." />
-      </div>
-    );
-  }
 
   return (
-    <PageContainer header={undefined} title={false}>
+    <PageContainer header={{ title: '综合预警 COMMAND CENTER' }}>
       <AlertSummary data={summaryData} />
       
       <Row gutter={8}>

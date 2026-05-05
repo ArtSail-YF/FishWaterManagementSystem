@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.aquaculture.mapper.PondMapper">
+
+    <!-- 塘口信息结果映射 -->
+    <resultMap id="PondVOMap" type="com.artsail.aquaculture.model.domain.VO.PondVO">
+        <id property="id" column="id"/>
+        <result property="pondCode" column="pond_code"/>
+        <result property="pondName" column="pond_name"/>
+        <result property="baseId" column="base_id"/>
+        <result property="baseName" column="base_name"/>
+        <result property="area" column="area"/>
+        <result property="depthAvg" column="depth_avg"/>
+        <result property="depthMax" column="depth_max"/>
+        <result property="shapeType" column="shape_type"/>
+        <result property="bottomType" column="bottom_type"/>
+        <result property="bottomSiltDepth" column="bottom_silt_depth"/>
+        <result property="inletCount" column="inlet_count"/>
+        <result property="inletDiameter" column="inlet_diameter"/>
+        <result property="outletCount" column="outlet_count"/>
+        <result property="outletType" column="outlet_type"/>
+        <result property="aerationType" column="aeration_type"/>
+        <result property="aerationCount" column="aeration_count"/>
+        <result property="aerationPower" column="aeration_power"/>
+        <result property="hasCirculating" column="has_circulating"/>
+        <result property="hasMonitoring" column="has_monitoring"/>
+        <result property="currentSpecies" column="current_species"/>
+        <result property="stockingDate" column="stocking_date"/>
+        <result property="estimatedOutput" column="estimated_output"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 多表关联查询塘口信息 -->
+    <select id="searchWithBase" resultMap="PondVOMap">
+        SELECT
+            p.id,
+            p.pond_code,
+            p.pond_name,
+            p.base_id,
+            b.base_name,
+            p.area,
+            p.depth_avg,
+            p.depth_max,
+            p.shape_type,
+            p.bottom_type,
+            p.bottom_silt_depth,
+            p.inlet_count,
+            p.inlet_diameter,
+            p.outlet_count,
+            p.outlet_type,
+            p.aeration_type,
+            p.aeration_count,
+            p.aeration_power,
+            p.has_circulating,
+            p.has_monitoring,
+            p.current_species,
+            p.stocking_date,
+            p.estimated_output,
+            p.status,
+            p.create_time,
+            p.update_time
+        FROM pond_info p
+        LEFT JOIN base_info b ON p.base_id = b.id
+        WHERE p.is_delete = 0
+        <if test="query.pondCode != null and query.pondCode != ''">
+            AND p.pond_code LIKE CONCAT('%', #{query.pondCode}, '%')
+        </if>
+        <if test="query.pondName != null and query.pondName != ''">
+            AND p.pond_name LIKE CONCAT('%', #{query.pondName}, '%')
+        </if>
+        <if test="query.baseId != null">
+            AND p.base_id = #{query.baseId}
+        </if>
+        <if test="query.status != null">
+            AND p.status = #{query.status}
+        </if>
+        <if test="query.currentSpecies != null and query.currentSpecies != ''">
+            AND p.current_species LIKE CONCAT('%', #{query.currentSpecies}, '%')
+        </if>
+        <if test="query.minArea != null">
+            AND p.area &gt;= #{query.minArea}
+        </if>
+        <if test="query.maxArea != null">
+            AND p.area &lt;= #{query.maxArea}
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+</mapper>

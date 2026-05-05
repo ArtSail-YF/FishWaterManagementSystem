@@ -127,59 +127,116 @@ export default [
     routes: [
       {
         path: '/production',
-        redirect: '/production/logs',
+        redirect: '/production/work',
         // component: './production/Logs',
       },
       {
-        path: '/production/logs',
-        name: 'logs',
+        path: '/production/work',
+        name: 'work',
+        icon: 'experiment',
         routes: [
           {
-            path: '/production/logs',
-            redirect: '/production/logs/feeding',
+            path: '/production/work',
+            redirect: '/production/work/plans',
           },
           {
-            path: '/production/logs/feeding',
+            path: '/production/work/plans',
+            name: 'plans',
+            component: './production/Plans',
+          },
+          {
+            path: '/production/work/feeding',
             name: 'feeding',
             component: './production/logs/Feeding',
           },
           {
-            path: '/production/logs/medicine',
+            path: '/production/work/medicine',
             name: 'medicine',
             component: './production/logs/Medicine',
           },
+          {
+            path: '/production/work/fishing-records',
+            name: 'fishing-records',
+            component: './production/FishingRecords',
+          },
+          {
+            path: '/production/work/input-records',
+            name: 'input-records',
+            component: './production/InputRecords',
+          },
+          {
+            path: '/production/work/certificates',
+            name: 'certificates',
+            component: './production/Certificates',
+          },
         ],
       },
-      
       {
-        path: '/production/base-management',
-        name: 'base-management',
-        component: './production/BaseManagement',
+        path: '/production/operation',
+        name: 'operation',
+        icon: 'tool',
+        routes: [
+          {
+            path: '/production/operation',
+            redirect: '/production/operation/iot-devices',
+          },
+          {
+            path: '/production/operation/iot-devices',
+            name: 'iot-devices',
+            component: './production/IoTDevices',
+          },
+          {
+            path: '/production/operation/warning-settings',
+            name: 'warning-settings',
+            component: './production/WarningSettings',
+          },
+        ],
       },
       {
-        path: '/production/pond-management',
-        name: 'pond-management',
-        component: './production/PondManagement',
+        path: '/production/resource',
+        name: 'resource',
+        icon: 'database',
+        routes: [
+          {
+            path: '/production/resource',
+            redirect: '/production/resource/base-management',
+          },
+          {
+            path: '/production/resource/base-management',
+            name: 'base-management',
+            component: './production/BaseManagement',
+          },
+          {
+            path: '/production/resource/pond-management',
+            name: 'pond-management',
+            component: './production/PondManagement',
+          },
+          {
+            path: '/production/resource/material-info',
+            redirect: '/production/resource/material-archive',
+          },
+        ],
       },
       {
-        path: '/production/input-records',
-        name: 'input-records',
-        component: './production/InputRecords',
-      },
-      {
-        path: '/production/certificates',
-        name: 'certificates',
-        component: './production/Certificates',
-      },
-      {
-        path: '/production/plans',
-        name: 'plans',
-        component: './production/Plans',
-      },
-      {
-        path: '/production/warning-settings',
-        name: 'warning-settings',
-        component: './production/WarningSettings',
+        path: '/production/material',
+        name: 'material',
+        icon: 'inbox',
+        routes: [
+          {
+            path: '/production/material',
+            redirect: '/production/material/material-archive',
+          },
+          {
+            path: '/production/material/material-archive',
+            name: 'material-archive',
+            component: './production/MaterialArchive',
+          },
+          {
+            path: '/production/material/material-category',
+            name: 'material-category',
+            component: './production/MaterialCategory',
+          },
+        ],
       }
     ],
   },
@@ -234,6 +291,27 @@ export default [
         path: '/admin/farmerManagement',
         name: 'FarmerManagement',
         component: './admin/FarmerManagement',
+      },
+      {
+        path: '/admin/dict',
+        name: 'dict-management',
+        icon: 'book',
+        routes: [
+          {
+            path: '/admin/dict',
+            redirect: '/admin/dict/type',
+          },
+          {
+            path: '/admin/dict/type',
+            name: 'dict-type',
+            component: './admin/DictTypeManagement',
+          },
+          {
+            path: '/admin/dict/data',
+            name: 'dict-data',
+            component: './admin/DictDataManagement',
+          },
+        ],
       },
     ],
   },

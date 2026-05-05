@@ -4,6 +4,7 @@ import AMapLoader from '@amap/amap-jsapi-loader';
 import { Card, Spin, Radio, RadioChangeEvent, Checkbox, CheckboxChangeEvent } from 'antd';
 // 导入 React 及相关钩子
 import React, { useEffect, useRef, useState } from 'react';
+import type { Base } from '@/models/base';
 
 // 全局类型声明，扩展 Window 接口以支持高德地图相关属性
 declare global {
@@ -15,9 +16,9 @@ declare global {
 
 // 组件属性接口定义
 interface GisMapProps {
-  bases: Pond.BaseItem[]; // 基地数据数组
-  selectedBase?: Pond.BaseItem; // 选中的基地（可选）
-  onMarkerClick: (base: Pond.BaseItem) => void; // 标记点点击回调函数
+  bases: Base[]; // 基地数据数组
+  selectedBase?: Base; // 选中的基地（可选）
+  onMarkerClick: (base: Base) => void; // 标记点点击回调函数
 }
 
 // GisMap 组件定义，使用 React.FC 类型并接收 GisMapProps 属性
@@ -190,7 +191,10 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
     // 遍历基地数据，为每个基地创建标记点
     bases.forEach((base) => {
       // 数据校验，避免 NaN 错误
-      if (!base.location || isNaN(base.location[0]) || isNaN(base.location[1])) {
+      if (!base.location || !Array.isArray(base.location) || base.location.length < 2 || 
+          isNaN(base.location[0]) || isNaN(base.location[1]) ||
+          base.location[0] < -180 || base.location[0] > 180 ||
+          base.location[1] < -90 || base.location[1] > 90) {
         console.warn(`基地 ${base.name} 的坐标无效:`, base.location);
         return;
       }
@@ -246,7 +250,7 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
     if (map && selectedBase && markersRef.current[selectedBase.id]) {
       const marker = markersRef.current[selectedBase.id];
       // 再次校验坐标
-      if (selectedBase.location && !isNaN(selectedBase.location[0]) && !isNaN(selectedBase.location[1])) {
+      if (selectedBase.location && Array.isArray(selectedBase.location) && selectedBase.location.length >= 2 && !isNaN(selectedBase.location[0]) && !isNaN(selectedBase.location[1])) {
         // 将地图中心设置为选中基地的位置
         map.setCenter(selectedBase.location);
         // 放大地图
@@ -258,9 +262,15 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
   }, [selectedBase, map]); // 依赖选中基地和地图实例，当它们变化时执行
 
   // 打开信息窗口函数
-  const openInfoWindow = (base: Pond.BaseItem, marker: any) => {
+  const openInfoWindow = (base: Base, marker: any) => {
     // 地图未加载完成时直接返回
     if (!map) return;
+
+    // 校验坐标数据
+    if (!base.location || !Array.isArray(base.location) || base.location.length < 2) {
+      console.warn(`无法打开信息窗口：基地 ${base.name} 的坐标无效:`, base.location);
+      return;
+    }
 
     // 创建信息窗口
     const waterQuality = base.waterQuality || { oxygen: '--', temp: '--', ph: '--' };
@@ -271,7 +281,7 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
           <h4 style="margin: 0 0 8px 0; font-size: 16px;">${base.name}</h4>
           <div style="margin-bottom: 4px;">状态: <span style="color: ${base.status === 'warning' ? '#ff4d4f' : '#52c41a'}">${base.status === 'warning' ? '预警' : '正常'}</span></div>
           <div style="margin-bottom: 4px;">溶氧量: ${waterQuality.oxygen} mg/L</div>
-          <div style="margin-bottom: 4px;">水温: ${waterQuality.temp} ℃</div>
+          <div style="margin-bottom: 4px;">水温: ${waterQuality.temperature} ℃</div>
           <div style="margin-bottom: 4px;">PH值: ${waterQuality.ph}</div>
           <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
             <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1890ff; margin-right: 16px;">查看详情 &gt;</a>

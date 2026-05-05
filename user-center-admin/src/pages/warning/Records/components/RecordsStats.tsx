@@ -1,9 +1,13 @@
 import { Card, Col, Row, Space, Statistic } from 'antd';
 import React from 'react';
-import type { WarningStatsData } from '@/services/api/warning';
 
 interface RecordsStatsProps {
-  data: WarningStatsData;
+  data: {
+    total: number;
+    solveRate: number;
+    avgHandleTime: string;
+    trend: { value: number; isUp: boolean };
+  };
 }
 
 const RecordsStats: React.FC<RecordsStatsProps> = ({ data }) => {
@@ -14,11 +18,9 @@ const RecordsStats: React.FC<RecordsStatsProps> = ({ data }) => {
           <div className="fin-ticker-label">总预警数 / TOTAL ALERTS</div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <div className="fin-ticker-value fin-number" style={{ color: '#595959' }}>{data.total}</div>
-            {data.trend && (
-              <div className={data.trend.isUp ? 'fin-trend-up' : 'fin-trend-down'} style={{ fontSize: '12px' }}>
-                {data.trend.isUp ? '↑' : '↓'} {data.trend.value}% VS LAST MONTH
-              </div>
-            )}
+            <div className={data.trend.isUp ? 'fin-trend-up' : 'fin-trend-down'} style={{ fontSize: '12px' }}>
+              {data.trend.isUp ? '↑' : '↓'} {data.trend.value}% VS LAST MONTH
+            </div>
           </div>
         </Card>
       </Col>

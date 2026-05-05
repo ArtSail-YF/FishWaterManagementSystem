@@ -13,6 +13,7 @@ import * as water from './water';
 import * as weather from './weather';
 import * as warning from './warning';
 import * as production from './production';
+import * as dict from './dict';
 
 export default {
   pond,
@@ -24,4 +25,5 @@ export default {
   weather,
   warning,
   production,
+  dict,
 };

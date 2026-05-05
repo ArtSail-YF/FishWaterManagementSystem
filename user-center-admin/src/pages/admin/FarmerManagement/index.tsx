@@ -123,6 +123,10 @@ const FarmerManagement: React.FC = () => {
       dataIndex: 'gender',
       key: 'gender',
       width: 80,
+      valueEnum: {
+        male: { text: '男' },
+        female: { text: '女' },
+      },
       render: (gender: string) => gender === 'male' ? '男' : '女',
     },
     {
@@ -130,6 +134,7 @@ const FarmerManagement: React.FC = () => {
       dataIndex: 'age',
       key: 'age',
       width: 80,
+      search: false,
       sorter: (a, b) => a.age - b.age,
     },
     {
@@ -143,6 +148,7 @@ const FarmerManagement: React.FC = () => {
       dataIndex: 'pondCount',
       key: 'pondCount',
       width: 100,
+      search: false,
       sorter: (a, b) => a.pondCount - b.pondCount,
     },
     {
@@ -150,6 +156,7 @@ const FarmerManagement: React.FC = () => {
       dataIndex: 'experience',
       key: 'experience',
       width: 120,
+      search: false,
       sorter: (a, b) => a.experience - b.experience,
     },
     {
@@ -157,13 +164,18 @@ const FarmerManagement: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 100,
+      valueEnum: {
+        active: { text: '正常', status: 'Success' },
+        inactive: { text: '停用', status: 'Error' },
+        pending: { text: '待审核', status: 'Warning' },
+      },
       render: (status: string) => {
         const statusMap = {
           active: { color: 'green', text: '正常' },
           inactive: { color: 'red', text: '停用' },
           pending: { color: 'orange', text: '待审核' },
         };
-        const statusInfo = statusMap[status as keyof typeof statusMap];
+        const statusInfo = statusMap[status as keyof typeof statusMap] || { color: 'default', text: status || '未知' };
         return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
       },
     },

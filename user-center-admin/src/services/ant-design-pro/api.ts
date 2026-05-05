@@ -13,13 +13,7 @@ export async function currentUser(options?: { [key: string]: any }) {
   });;
 }
 
-//- 获取数据字典
-export async function  getDictData(options?: { [key: string]: any }) {
-  return request<API.BaseResponse<API.DictData>>('dropdown/options', {
-    method: 'GET',
-    ...(options || {}),
-  });
-}
+
 
 
 

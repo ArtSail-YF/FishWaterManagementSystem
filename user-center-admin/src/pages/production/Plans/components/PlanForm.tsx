@@ -1,41 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   Form,
   Input,
   Select,
   DatePicker,
-  Checkbox,
   Space,
-  message,
+  InputNumber,
+  Row,
+  Col,
+  Divider,
 } from 'antd';
+import { getBaseOptions } from '@/services/api/base';
 
 const { TextArea } = Input;
-import type { FormInstance } from 'antd';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-// 计划类型选项
-const planTypes = [
-  '放苗计划',
-  '投喂计划',
-  '用药计划',
-  '换水/增氧计划',
-  '收获计划',
-  '深远海 – 工船作业计划',
-  '深远海 – 网箱维护计划',
-  '深远海 – 捕捞计划',
+const PLAN_TYPES = [
+  { value: 'seeding', label: '放苗计划' },
+  { value: 'feeding', label: '投喂计划' },
+  { value: 'medication', label: '用药计划' },
+  { value: 'water_change', label: '换水/增氧计划' },
+  { value: 'harvest', label: '收获计划' },
+  { value: 'maintenance', label: '维护计划' },
 ];
 
-// 模拟塘口数据
-const ponds = [
-  { id: '1', name: '1号塘' },
-  { id: '2', name: '2号塘' },
-  { id: '3', name: '3号塘' },
-  { id: '4', name: '4号塘' },
-  { id: '5', name: '5号塘' },
-  { id: '6', name: '6号塘' },
+const TARGET_TYPES = [
+  { value: 'pond', label: '塘口' },
+  { value: 'cage', label: '网箱' },
+  { value: 'vsl', label: '工船' },
 ];
 
 interface PlanFormProps {
@@ -44,6 +39,7 @@ interface PlanFormProps {
   onOk: (values: any) => void;
   initialValues?: any;
   isEdit?: boolean;
+  bases?: Array<{ label: string; value: number }>;
 }
 
 const PlanForm: React.FC<PlanFormProps> = ({
@@ -52,42 +48,36 @@ const PlanForm: React.FC<PlanFormProps> = ({
   onOk,
   initialValues,
   isEdit = false,
+  bases = [],
 }) => {
   const [form] = Form.useForm();
+  const [planType, setPlanType] = useState<string>('');
 
-  // 处理表单提交
+  useEffect(() => {
+    if (visible && initialValues) {
+      form.setFieldsValue(initialValues);
+      setPlanType(initialValues.planType);
+    } else if (visible) {
+      form.resetFields();
+      setPlanType('');
+    }
+  }, [visible, initialValues, form]);
+
   const handleSubmit = () => {
     form.validateFields().then(values => {
-      // 处理塘口数据
-      const selectedPonds = values.ponds || [];
-      const pondIds = selectedPonds.map((p: any) => p.id).join(',');
-      const pondNames = selectedPonds.map((p: any) => p.name).join(', ');
-
-      // 处理时间范围
       const [startTime, endTime] = values.timeRange || [];
-
-      // 构建提交数据
+      
       const submitData = {
         ...values,
-        pondId: pondIds,
-        pondNames: pondNames,
-        startTime: startTime ? startTime.format('YYYY-MM-DD') : '',
-        endTime: endTime ? endTime.format('YYYY-MM-DD') : '',
+        startTime: startTime ? startTime.format('YYYY-MM-DD HH:mm:ss') : undefined,
+        endTime: endTime ? endTime.format('YYYY-MM-DD HH:mm:ss') : undefined,
       };
-
-      // 移除不需要的字段
-      delete submitData.ponds;
+      
       delete submitData.timeRange;
-
       onOk(submitData);
     }).catch(error => {
       console.error('表单验证失败:', error);
     });
-  };
-
-  // 处理计划类型变化
-  const handlePlanTypeChange = (value: string) => {
-    form.setFieldsValue({ content: '' });
   };
 
   return (
@@ -96,91 +86,224 @@ const PlanForm: React.FC<PlanFormProps> = ({
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
-      width={800}
+      width={900}
+      destroyOnClose
     >
       <Form
         form={form}
         layout="vertical"
-        initialValues={initialValues}
       >
-        <Form.Item
-          name="planType"
-          label="计划类型"
-          rules={[{ required: true, message: '请选择计划类型' }]}
-        >
-          <Select
-            placeholder="请选择计划类型"
-            onChange={handlePlanTypeChange}
-            style={{ width: '100%' }}
-          >
-            {planTypes.map(type => (
-              <Option key={type} value={type}>{type}</Option>
-            ))}
-          </Select>
-        </Form.Item>
+        <Divider orientation="left">基本信息</Divider>
+        
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="baseId"
+              label="所属基地"
+              rules={[{ required: true, message: '请选择所属基地' }]}
+            >
+              <Select placeholder="请选择基地">
+                {bases.map(base => (
+                  <Option key={base.value} value={base.value}>
+                    {base.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          
+          <Col span={12}>
+            <Form.Item
+              name="planType"
+              label="计划类型"
+              rules={[{ required: true, message: '请选择计划类型' }]}
+            >
+              <Select
+                placeholder="请选择计划类型"
+                onChange={(value) => setPlanType(value)}
+              >
+                {PLAN_TYPES.map(type => (
+                  <Option key={type.value} value={type.value}>{type.label}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Form.Item
-          name="planName"
-          label="计划名称"
-          rules={[{ required: true, message: '请输入计划名称' }]}
+          name="title"
+          label="计划标题"
+          rules={[{ required: true, message: '请输入计划标题' }]}
         >
-          <Input placeholder="请输入计划名称" />
+          <Input placeholder="请输入计划标题" />
         </Form.Item>
 
-        <Form.Item
-          name="ponds"
-          label="关联塘口"
-          rules={[{ required: true, message: '请选择关联塘口' }]}
-        >
-          <Select
-            mode="multiple"
-            placeholder="请选择关联塘口"
-            style={{ width: '100%' }}
-            optionLabelProp="label"
-          >
-            {ponds.map(pond => (
-              <Option key={pond.id} value={pond} label={pond.name}>
-                {pond.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item
+              name="targetType"
+              label="目标类型"
+              rules={[{ required: true, message: '请选择目标类型' }]}
+            >
+              <Select placeholder="请选择">
+                {TARGET_TYPES.map(type => (
+                  <Option key={type.value} value={type.value}>{type.label}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          
+          <Col span={8}>
+            <Form.Item
+              name="targetId"
+              label="目标实体ID"
+              rules={[{ required: true, message: '请输入目标实体ID' }]}
+            >
+              <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          
+          <Col span={8}>
+            <Form.Item
+              name="cycleRule"
+              label="循环规则"
+            >
+              <Input placeholder="如: Every Monday，为空则为一次性计划" />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Form.Item
           name="timeRange"
           label="计划时间"
           rules={[{ required: true, message: '请选择计划时间' }]}
         >
-          <RangePicker style={{ width: '100%' }} />
+          <RangePicker showTime style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item
-          name="content"
-          label="计划内容"
-          rules={[{ required: true, message: '请输入计划内容' }]}
+          name="contentDesc"
+          label="详细描述/操作指南"
         >
-          <TextArea
-            rows={4}
-            placeholder="请输入计划详细内容"
-          />
+          <TextArea rows={3} placeholder="请输入计划详细描述和操作指南" />
         </Form.Item>
 
-        <Form.Item
-          name="notes"
-          label="备注"
-        >
-          <TextArea
-            rows={2}
-            placeholder="请输入备注信息"
-          />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="ownerId"
+              label="制定人ID"
+            >
+              <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          
+          <Col span={12}>
+            <Form.Item
+              name="assigneeGroupId"
+              label="指派班组/角色ID"
+            >
+              <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <Form.Item
-          name="needApproval"
-          valuePropName="checked"
-        >
-          <Checkbox>需要审批</Checkbox>
-        </Form.Item>
+        <Divider orientation="left">计划详情</Divider>
+
+        {(planType === 'feeding' || planType === 'seeding') && (
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="feedAmount"
+                label="计划投喂量(kg)"
+              >
+                <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            
+            <Col span={8}>
+              <Form.Item
+                name="feedVariety"
+                label="饲料品种"
+              >
+                <Input placeholder="请输入饲料品种" />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
+
+        {planType === 'medication' && (
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="drugName"
+                label="药品名称"
+              >
+                <Input placeholder="请输入药品名称" />
+              </Form.Item>
+            </Col>
+            
+            <Col span={8}>
+              <Form.Item
+                name="dosage"
+                label="用量"
+              >
+                <Input placeholder="请输入用量" />
+              </Form.Item>
+            </Col>
+            
+            <Col span={8}>
+              <Form.Item
+                name="withdrawalDays"
+                label="休药期天数"
+              >
+                <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
+
+        {planType === 'harvest' && (
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="estYield"
+                label="预计产量"
+              >
+                <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item
+              name="longitude"
+              label="作业海域经度"
+            >
+              <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          
+          <Col span={8}>
+            <Form.Item
+              name="latitude"
+              label="作业海域纬度"
+            >
+              <InputNumber placeholder="请输入" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          
+          <Col span={8}>
+            <Form.Item
+              name="weatherReq"
+              label="气象要求"
+            >
+              <Input placeholder="如: 风力<5级" />
+            </Form.Item>
+          </Col>
+        </Row>
       </Form>
     </Modal>
   );

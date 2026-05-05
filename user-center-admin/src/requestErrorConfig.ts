@@ -49,6 +49,33 @@ export const errorConfig: RequestConfig = {
   requestInterceptors: [
     (config: RequestOptions) => {
       const url = config?.url?.concat('');
+      
+      // 过滤掉空的查询参数（undefined、null、空字符串、包含undefined的数组）
+      if (config.params) {
+        const filteredParams: Record<string, any> = {};
+        Object.keys(config.params).forEach(key => {
+          const value = config.params[key];
+          
+          // 处理数组类型的参数
+          if (Array.isArray(value)) {
+            // 过滤掉数组中的undefined、null、空字符串
+            const filteredArray = value.filter(item => 
+              item !== undefined && item !== null && item !== ''
+            );
+            // 只有当数组不为空时才保留
+            if (filteredArray.length > 0) {
+              filteredParams[key] = filteredArray;
+            }
+          } else {
+            // 过滤掉 undefined、null、空字符串
+            if (value !== undefined && value !== null && value !== '') {
+              filteredParams[key] = value;
+            }
+          }
+        });
+        config.params = filteredParams;
+      }
+      
       return { ...config, url };
     },
   ],

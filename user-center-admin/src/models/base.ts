@@ -11,7 +11,7 @@ export type BaseStatus = 'normal' | 'warning' | 'todo';
 /** 基地类型 */
 export type BaseType = '近海' | '深远海' | '陆基工厂化';
 
-/** 基地基础模型 */
+/** 基地基础模型 - 与后端API返回格式对齐 */
 export interface Base {
   id: string;
   name: string;
