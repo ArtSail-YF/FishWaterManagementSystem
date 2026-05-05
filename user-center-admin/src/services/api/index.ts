@@ -14,6 +14,7 @@ import * as weather from './weather';
 import * as warning from './warning';
 import * as production from './production';
 import * as dict from './dict';
+import * as ai from './ai';
 
 export default {
   pond,
@@ -26,4 +27,5 @@ export default {
   warning,
   production,
   dict,
+  ai,
 };

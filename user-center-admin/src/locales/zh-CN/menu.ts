@@ -49,6 +49,7 @@ export default {
   'menu.info-nav.suppliers': '供应商名',
   'menu.info-nav.contacts': '通讯名录',
   'menu.info-nav.knowledge': '知识水产',
+  'menu.info-nav.ai-disease': 'AI 拍照识病',
   'menu.exception.403': '403',
   'menu.exception.404': '404',
   'menu.exception.500': '500',

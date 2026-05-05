@@ -35,6 +35,7 @@ export default {
   'menu.info-nav.suppliers': 'Suppliers',
   'menu.info-nav.contacts': 'Contacts',
   'menu.info-nav.knowledge': 'Aquaculture Knowledge',
+  'menu.info-nav.ai-disease': 'AI Disease Detection',
   'menu.exception.403': '403',
   'menu.exception.404': '404',
   'menu.exception.500': '500',

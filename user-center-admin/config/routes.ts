@@ -270,6 +270,11 @@ export default [
         name: 'knowledge',
         component: './info-nav/Knowledge',
       },
+      {
+        path: '/info-nav/ai-disease',
+        name: 'ai-disease',
+        component: './info-nav/AiDisease',
+      },
     ],
   },
   {
