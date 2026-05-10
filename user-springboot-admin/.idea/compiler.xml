@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="D:/JAVA/MAvan/repository/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="D:/JAVA/MAvan/repository/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="admin" />
       </profile>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.StkUsageMapper">
+
+    <resultMap id="StkUsageResultMap" type="com.artsail.production.model.domain.StkUsage">
+        <id column="id" property="id"/>
+        <result column="usage_no" property="usageNo"/>
+        <result column="base_id" property="baseId"/>
+        <result column="pond_id" property="pondId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="mat_id" property="matId"/>
+        <result column="use_qty" property="useQty"/>
+        <result column="unit_price" property="unitPrice"/>
+        <result column="total_price" property="totalPrice"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="use_time" property="useTime"/>
+        <result column="remark" property="remark"/>
+        
+        <!-- 关联物资信息 -->
+        <result column="mat_name" property="matName"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="spec" property="spec"/>
+        <result column="unit" property="unit"/>
+        
+        <!-- 关联塘口信息 -->
+        <result column="pond_name" property="pondName"/>
+        <result column="pond_code" property="pondCode"/>
+        
+        <!-- 关联操作人信息 -->
+        <result column="operator_name" property="operatorName"/>
+    </resultMap>
+
+    <select id="selectStkUsagePage" resultMap="StkUsageResultMap">
+        SELECT
+            su.*,
+            mi.mat_name,
+            mi.spec,
+            mi.unit,
+            mc.cat_name AS category_name,
+            pi.pond_name,
+            pi.pond_code,
+            u.user_name AS operator_name
+        FROM stk_usage su
+        LEFT JOIN mat_info mi ON su.mat_id = mi.id
+        LEFT JOIN mat_category mc ON mi.cat_id = mc.id
+        LEFT JOIN pond_info pi ON su.pond_id = pi.id
+        LEFT JOIN user u ON su.operator_id = u.id
+        <where>
+            <if test="query.baseId != null">
+                AND su.base_id = #{query.baseId}
+            </if>
+            <if test="query.pondId != null">
+                AND su.pond_id = #{query.pondId}
+            </if>
+            <if test="query.matId != null">
+                AND su.mat_id = #{query.matId}
+            </if>
+            <if test="query.matName != null and query.matName != ''">
+                AND mi.mat_name LIKE CONCAT('%', #{query.matName}, '%')
+            </if>
+            <if test="query.categoryId != null">
+                AND mi.cat_id = #{query.categoryId}
+            </if>
+            <if test="query.startTime != null">
+                AND su.use_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND su.use_time &lt;= #{query.endTime}
+            </if>
+            <if test="query.taskId != null">
+                AND su.task_id = #{query.taskId}
+            </if>
+            <if test="query.operatorId != null">
+                AND su.operator_id = #{query.operatorId}
+            </if>
+        </where>
+        ORDER BY su.use_time DESC, su.id DESC
+    </select>
+
+</mapper>

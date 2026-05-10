@@ -19,7 +19,7 @@ const MedicineLogTable: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getProductionLogs({ logType: 'medicine' });
+      const res = await getProductionLogs({ logType: 'medication' });
       console.log('用药日志原始响应:', res);
       // API返回结构: { code, message, data: { records: [], total, ... } }
       const pageResult = res.data as any;
@@ -36,7 +36,7 @@ const MedicineLogTable: React.FC = () => {
         baseId: item.baseId,
         targetType: item.targetType,     // pond/cage/vsl
         targetId: item.targetId,
-        logType: item.logType,           // medicine
+        logType: item.logType,           // medication
         quantity: item.quantity,         // 用药量
         photoUrls: item.photoUrls,       // 照片URL列表
         gpsLat: item.gpsLat,            // GPS纬度

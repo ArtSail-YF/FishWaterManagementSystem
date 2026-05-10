@@ -8,18 +8,53 @@ import { request } from '@umijs/max';
 import { convertToProTable } from '@/services/api/utils/convert';
 import type { BaseResponse, PageResult, PaginationResponse } from '@/types/common';
 
+/** 获取塘口下拉选项 - 根据基地ID筛选 */
+export async function getPondOptions(
+  baseId?: number,
+  options?: { [key: string]: any },
+) {
+  try {
+    const queryParams: any = {
+      current: 1,
+      pageSize: 1000,
+    };
+
+    if (baseId) {
+      queryParams.baseId = baseId;
+    }
+
+    const response = await request<BaseResponse<PageResult<any>>>('/pond/search', {
+      method: 'GET',
+      params: queryParams,
+      ...(options || {}),
+    });
+
+    const records = response.data?.records || [];
+
+    return records.map((pond: any) => ({
+      label: pond.pondName || pond.name || `塘口${pond.id}`,
+      value: pond.id,
+      key: pond.id,
+      data: pond,
+    }));
+  } catch (error) {
+    console.error('获取塘口选项失败:', error);
+    return [];
+  }
+}
+
 // ====== 参数类型定义 ======
 
-type PondQueryParams = { 
-  current: number; 
-  pageSize: number; 
-  keyword?: string; 
-  pondName?: string; 
+type PondQueryParams = {
+  current: number;
+  pageSize: number;
+  keyword?: string;
+  pondName?: string;
   baseId?: string;
   area?: number;
   depth?: number;
   waterQuality?: string;
-  status?: number; 
+  status?: number;
   remark?: string;
   category?: string;
   categoryName?: string;
@@ -30,7 +65,7 @@ type PondQueryParams = {
   compartment?: string;
   videoStatus?: string;
   sensorCount?: number;
-  [key: string]: any 
+  [key: string]: any
 } & Record<string, any>;
 
 // ====== 塘口管理API ======

@@ -139,10 +139,16 @@ export default [
             path: '/production/work',
             redirect: '/production/work/plans',
           },
+          
           {
             path: '/production/work/plans',
             name: 'plans',
             component: './production/Plans',
+          },
+          {
+            path: '/production/work/tasks',
+            name: 'tasks',
+            component: './production/Tasks',
           },
           {
             path: '/production/work/feeding',
@@ -160,9 +166,14 @@ export default [
             component: './production/FishingRecords',
           },
           {
-            path: '/production/work/input-records',
-            name: 'input-records',
-            component: './production/InputRecords',
+            path: '/production/work/stock-records',
+            name: 'stock-records',
+            component: './production/StockRecords',
+          },
+          {
+            path: '/production/work/usage-records',
+            name: 'usage-records',
+            component: './production/UsageRecords',
           },
           {
             path: '/production/work/certificates',

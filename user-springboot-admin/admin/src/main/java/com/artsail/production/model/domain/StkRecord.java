@@ -1,9 +1,7 @@
 package com.artsail.production.model.domain;
 
-import com.artsail.aquaculture.model.domain.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,9 +11,9 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("stk_record")
-@EqualsAndHashCode(callSuper = true)
-public class StkRecord extends BaseEntity {
+public class StkRecord {
 
+    private Long id;
     private String recordNo;
     private Long baseId;
     private Long matId;

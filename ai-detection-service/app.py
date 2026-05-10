@@ -1,7 +1,7 @@
 import base64
 import io
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,7 +46,7 @@ app.add_middleware(
 model = YOLO(str(MODEL_PATH))
 
 
-def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+def load_font(size: int) -> Union[ImageFont.FreeTypeFont, ImageFont.ImageFont]:
     candidates = [
         "C:/Windows/Fonts/msyh.ttc",
         "C:/Windows/Fonts/simhei.ttf",

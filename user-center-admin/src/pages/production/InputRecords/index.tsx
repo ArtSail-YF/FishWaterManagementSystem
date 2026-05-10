@@ -4,22 +4,39 @@ import { Button, Tag, Space, Modal, message, Badge, Tooltip, Row, Col, Card, Sta
 import dayjs from 'dayjs';
 import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
-import { getInputRecords, deleteInputRecord, type InputRecordItem } from '@/services/api/input';
+import {
+  searchStockRecords,
+  deleteStockRecord,
+  type StkRecordDTO
+} from '@/services/api/production/stock';
 
 const InputRecords: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentRow, setCurrentRow] = useState<InputRecordItem | null>(null);
-  const [selectedRowsState, setSelectedRows] = useState<InputRecordItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<StkRecordDTO | null>(null);
+  const [selectedRowsState, setSelectedRows] = useState<StkRecordDTO[]>([]);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<InputRecordItem[]>([]);
+  const [data, setData] = useState<StkRecordDTO[]>([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
-  const fetchData = async () => {
+  const fetchData = async (params = {}) => {
     setLoading(true);
     try {
-      const res = await getInputRecords();
-      setData(res.data || []);
+      const res = await searchStockRecords({
+        ...params,
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+      });
+      if (res.success) {
+        setData(res.data || []);
+        setPagination({
+          current: res.current || 1,
+          pageSize: res.pageSize || 10,
+          total: res.total || 0,
+        });
+      }
     } catch (error) {
-      console.error('获取投入记录失败:', error);
+      console.error('获取库存记录失败:', error);
+      message.error('获取库存记录失败');
     } finally {
       setLoading(false);
     }
@@ -29,7 +46,7 @@ const InputRecords: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleBatchApprove = (selectedRows: InputRecordItem[]) => {
+  const handleBatchApprove = (selectedRows: StkRecordDTO[]) => {
     Modal.confirm({
       title: '批量审核确认',
       content: `确定要审核通过选中的 ${selectedRows.length} 条记录吗？`,
@@ -40,32 +57,35 @@ const InputRecords: React.FC = () => {
     });
   };
 
-  const handleBatchDelete = (selectedRows: InputRecordItem[]) => {
+  const handleBatchDelete = (selectedRows: StkRecordDTO[]) => {
     Modal.confirm({
       title: '批量删除确认',
       content: `确定要删除选中的 ${selectedRows.length} 条记录吗？此操作不可撤销。`,
       okType: 'danger',
-      onOk: () => {
-        message.success(`已成功删除 ${selectedRows.length} 条记录`);
-        setSelectedRows([]);
+      onOk: async () => {
+        try {
+          for (const row of selectedRows) {
+            await deleteStockRecord(row.id);
+          }
+          message.success(`已成功删除 ${selectedRows.length} 条记录`);
+          setSelectedRows([]);
+          fetchData();
+        } catch (error) {
+          console.error('删除失败:', error);
+          message.error('删除失败');
+        }
       },
     });
   };
 
-  /**
-   * 模拟数据导出逻辑
-   * @param data 要导出的数据
-   * @param fileName 导出的文件名
-   */
-  const handleExport = (data: InputRecordItem[], fileName: string = '投入记录报表') => {
+  const handleExport = (data: StkRecordDTO[], fileName: string = '投入记录报表') => {
     if (data.length === 0) {
       message.warning('暂无数据可导出');
       return;
     }
-    
+
     const hide = message.loading(`正在准备 ${fileName}...`, 0);
-    
-    // 模拟导出过程
+
     setTimeout(() => {
       hide();
       Modal.success({
@@ -74,9 +94,6 @@ const InputRecords: React.FC = () => {
           <div>
             <p>已成功生成 <b>{fileName}.xlsx</b></p>
             <p>包含记录: <span className="fin-number">{data.length}</span> 条</p>
-            <p>涉及总金额: <span className="fin-number" style={{ color: '#cf1322', fontWeight: 600 }}>
-              ¥{data.reduce((sum, item) => sum + item.totalPrice, 0).toLocaleString()}
-            </span></p>
           </div>
         ),
         okText: '好的',
@@ -84,7 +101,7 @@ const InputRecords: React.FC = () => {
     }, 1500);
   };
 
-  const columns: ProColumns<InputRecordItem>[] = [
+  const columns: ProColumns<StkRecordDTO>[] = [
     {
       title: '类型',
       dataIndex: 'type',
@@ -95,108 +112,47 @@ const InputRecords: React.FC = () => {
         in: { text: '采购入库', status: 'Success' },
         out: { text: '领用出库', status: 'Warning' },
       },
-      render: (dom, record) => (
-        <Tag color={record.type === 'in' ? 'green' : 'orange'} style={{ borderRadius: '2px' }}>
-          {record.type === 'in' ? '入库' : '出库'}
+      render: (type: string) => (
+        <Tag color={type === 'in' ? 'green' : 'orange'} style={{ borderRadius: '2px' }}>
+          {type === 'in' ? '入库' : '出库'}
         </Tag>
       ),
     },
     {
       title: '日期',
-      dataIndex: 'date',
-      valueType: 'date',
-      width: 100,
+      dataIndex: 'createTime',
+      valueType: 'dateTime',
+      width: 160,
     },
     {
-      title: '物资名称',
-      dataIndex: 'name',
-      width: 180,
+      title: '记录编号',
+      dataIndex: 'recordNo',
+      width: 140,
       ellipsis: true,
     },
     {
-      title: '分类',
-      dataIndex: 'category',
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        feed: { text: '饲料', color: 'blue' },
-        medicine: { text: '药品', color: 'purple' },
-        seed: { text: '苗种', color: 'green' },
-        equipment: { text: '设备', color: 'cyan' },
-        other: { text: '其他', color: 'default' },
-      },
-      render: (_, record) => {
-        const categoryMap = {
-          feed: { color: 'blue', text: '饲料' },
-          medicine: { color: 'purple', text: '药品' },
-          seed: { color: 'green', text: '苗种' },
-          equipment: { color: 'cyan', text: '设备' },
-          other: { color: 'default', text: '其他' },
-        };
-        const config = categoryMap[record.category] || categoryMap.other;
-        return <Tag color={config.color} variant="filled" style={{ borderRadius: '2px' }}>{config.text}</Tag>;
-      },
-    },
-    {
-      title: '规格',
-      dataIndex: 'specification',
-      width: 100,
-      search: false,
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 100,
-      search: false,
-      render: (dom, record) => <span className="fin-number">{dom} {record.unit}</span>,
-    },
-    {
-      title: '单价',
-      dataIndex: 'price',
-      width: 100,
-      search: false,
-      render: (dom) => <span className="fin-number">¥{dom}</span>,
-    },
-    {
-      title: '总价',
-      dataIndex: 'totalPrice',
+      title: '批次号',
+      dataIndex: 'batchNo',
       width: 120,
       search: false,
-      render: (dom) => <span className="fin-number" style={{ fontWeight: 600 }}>¥{dom}</span>,
     },
     {
-      title: '关联项',
-      dataIndex: 'pondName',
-      width: 150,
-      render: (_, record) => (
-        record.type === 'out' ? (
-          <Space>
-            <Badge status="processing" />
-            <span>{record.pondName}</span>
-          </Space>
-        ) : (
-          <Space>
-            <Badge status="default" />
-            <span style={{ color: '#999' }}>{record.supplier || '仓库入库'}</span>
-          </Space>
-        )
+      title: '变动数量',
+      dataIndex: 'changeQty',
+      width: 120,
+      search: false,
+      render: (qty: number, record: StkRecordDTO) => (
+        <span className="fin-number" style={{ color: record.type === 'in' ? '#3f8600' : '#cf1322' }}>
+          {record.type === 'in' ? '+' : '-'}{qty}
+        </span>
       ),
     },
     {
-      title: '审核状态',
-      dataIndex: 'status',
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        pending: { text: '待审核', status: 'Processing' },
-        approved: { text: '已审核', status: 'Success' },
-        rejected: { text: '已驳回', status: 'Error' },
-      },
-    },
-    {
-      title: '经办人',
-      dataIndex: 'operator',
-      width: 100,
+      title: '备注',
+      dataIndex: 'remark',
+      width: 200,
+      search: false,
+      ellipsis: true,
     },
     {
       title: '操作',
@@ -205,7 +161,22 @@ const InputRecords: React.FC = () => {
       width: 120,
       render: (_, record) => [
         <a key="edit" onClick={() => { setCurrentRow(record); setModalVisible(true); }}>编辑</a>,
-        <a key="delete" style={{ color: '#ff4d4f' }} onClick={() => message.info('执行删除')}>删除</a>,
+        <a
+          key="delete"
+          style={{ color: '#ff4d4f' }}
+          onClick={async () => {
+            try {
+              await deleteStockRecord(record.id);
+              message.success('删除成功');
+              fetchData();
+            } catch (error) {
+              console.error('删除失败:', error);
+              message.error('删除失败');
+            }
+          }}
+        >
+          删除
+        </a>,
       ],
     },
   ];
@@ -270,14 +241,22 @@ const InputRecords: React.FC = () => {
         </Col>
       </Row>
 
-      <ProTable<InputRecordItem>
+      <ProTable<StkRecordDTO>
         headerTitle="投入记录清单"
         columns={columns}
         dataSource={data}
         loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => {
+            setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
+            fetchData({ current: page, pageSize: pageSize || 10 });
+          },
+        }}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
         }}
@@ -289,24 +268,24 @@ const InputRecords: React.FC = () => {
         )}
         tableAlertOptionRender={() => (
           <Space size={16}>
-            <Button 
-              type="link" 
-              icon={<CheckCircleOutlined />} 
+            <Button
+              type="link"
+              icon={<CheckCircleOutlined />}
               onClick={() => handleBatchApprove(selectedRowsState)}
             >
               批量审核
             </Button>
-            <Button 
-              type="link" 
-              icon={<ExportOutlined />} 
+            <Button
+              type="link"
+              icon={<ExportOutlined />}
               onClick={() => handleExport(selectedRowsState, `批量导出_${dayjs().format('YYYYMMDD')}`)}
             >
               导出报表
             </Button>
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />} 
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
               onClick={() => handleBatchDelete(selectedRowsState)}
             >
               批量删除
@@ -314,17 +293,17 @@ const InputRecords: React.FC = () => {
           </Space>
         )}
         toolBarRender={() => [
-          <Button 
-            key="export" 
-            icon={<ExportOutlined />} 
+          <Button
+            key="export"
+            icon={<ExportOutlined />}
             onClick={() => handleExport(data, `全量投入记录_${dayjs().format('YYYYMMDD')}`)}
           >
             导出全部
           </Button>,
-          <Button 
-            key="add" 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            key="add"
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={() => { setCurrentRow(null); setModalVisible(true); }}
           >
             新增记录

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.MedicationRecordMapper">
+
+    <resultMap id="MedicationRecordResultMap" type="com.artsail.production.model.domain.MedicationRecord">
+        <id column="id" property="id"/>
+        <result column="base_id" property="baseId"/>
+        <result column="pond_id" property="pondId"/>
+        <result column="drug_mat_id" property="drugMatId"/>
+        <result column="usage_qty" property="usageQty"/>
+        <result column="admin_date" property="adminDate"/>
+        <result column="withdrawal_days" property="withdrawalDays"/>
+        <result column="ban_harvest_until" property="banHarvestUntil"/>
+        <result column="log_id" property="logId"/>
+        <result column="create_time" property="createTime"/>
+        
+        <!-- 关联药品信息 -->
+        <result column="medicine_name" property="medicineName"/>
+        <result column="medicine_type" property="medicineType"/>
+        <result column="manufacturer" property="manufacturer"/>
+        <result column="approval_number" property="approvalNumber"/>
+        
+        <!-- 关联塘口信息 -->
+        <result column="pond_name" property="pondName"/>
+        <result column="pond_code" property="pondCode"/>
+    </resultMap>
+
+    <select id="selectMedicationRecordPage" resultMap="MedicationRecordResultMap">
+        SELECT
+            mr.*,
+            mi.mat_name AS medicine_name,
+            mi.spec AS medicine_type,
+            mi.manufacturer,
+            mi.approval_number,
+            pi.pond_name,
+            pi.pond_code
+        FROM med_record mr
+        LEFT JOIN mat_info mi ON mr.drug_mat_id = mi.id
+        LEFT JOIN pond_info pi ON mr.pond_id = pi.id
+        <where>
+            mr.is_delete = 0
+            <if test="query.baseId != null">
+                AND mr.base_id = #{query.baseId}
+            </if>
+            <if test="query.pondId != null">
+                AND mr.pond_id = #{query.pondId}
+            </if>
+            <if test="query.drugMatId != null">
+                AND mr.drug_mat_id = #{query.drugMatId}
+            </if>
+            <if test="query.medicineName != null and query.medicineName != ''">
+                AND mi.mat_name LIKE CONCAT('%', #{query.medicineName}, '%')
+            </if>
+            <if test="query.startTime != null">
+                AND mr.admin_date &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND mr.admin_date &lt;= #{query.endTime}
+            </if>
+            <if test="query.logId != null">
+                AND mr.log_id = #{query.logId}
+            </if>
+        </where>
+        ORDER BY mr.admin_date DESC, mr.id DESC
+    </select>
+
+</mapper>

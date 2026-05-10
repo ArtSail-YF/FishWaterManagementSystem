@@ -1,18 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Input,
-  Select,
-  DatePicker,
-  Tag,
-  Modal,
-  message,
-  Spin,
-  Empty,
-} from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Badge } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -21,27 +8,33 @@ import {
   CalendarOutlined,
   FileDoneOutlined,
   CopyOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons';
-import type { TableColumnsType } from 'antd';
+import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
 import PlanForm from './components/PlanForm';
 import PlanDetail from './components/PlanDetail';
 import BatchPlanModal from './components/BatchPlanModal';
 import PlanTemplate from './components/PlanTemplate';
-import { searchPlans, deletePlan, publishPlan, cancelPlan } from '@/services/api/production';
+import {
+  searchPlans,
+  deletePlan,
+  publishPlan,
+  cancelPlan,
+  completePlan,
+  getPlanById,
+} from '@/services/api/production/plan';
 import { getBaseOptions } from '@/services/api/base';
+import { getPondOptions } from '@/services/api/pond';
 import type { ProductionPlan } from '@/types/model';
 
-const { Option } = Select;
-const { RangePicker } = DatePicker;
-const { Search } = Input;
-
 const PLAN_TYPE_MAP: Record<string, string> = {
-  seeding: '放苗计划',
   feeding: '投喂计划',
   medication: '用药计划',
-  water_change: '换水/增氧计划',
   harvest: '收获计划',
   maintenance: '维护计划',
+  seeding: '放苗计划',
+  water_change: '换水/增氧计划',
 };
 
 const TARGET_TYPE_MAP: Record<string, string> = {
@@ -50,12 +43,12 @@ const TARGET_TYPE_MAP: Record<string, string> = {
   vsl: '工船',
 };
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  draft: { label: '草稿', color: 'blue' },
-  published: { label: '已发布', color: 'green' },
-  active: { label: '执行中', color: 'orange' },
-  completed: { label: '已完成', color: 'purple' },
-  cancelled: { label: '已取消', color: 'gray' },
+const STATUS_MAP: Record<string, { label: string; color: string; status: 'success' | 'processing' | 'default' | 'error' | 'warning' }> = {
+  draft: { label: '草稿', color: 'blue', status: 'default' },
+  published: { label: '已发布', color: 'cyan', status: 'processing' },
+  active: { label: '执行中', color: 'orange', status: 'processing' },
+  completed: { label: '已完成', color: 'green', status: 'success' },
+  cancelled: { label: '已取消', color: 'gray', status: 'default' },
 };
 
 const Plans: React.FC = () => {
@@ -69,21 +62,15 @@ const Plans: React.FC = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [bases, setBases] = useState<Array<{ label: string; value: number }>>([]);
-  const [filters, setFilters] = useState({
-    baseId: undefined,
-    planType: '',
-    status: '',
-    dateRange: null,
-    search: '',
-  });
-
-  useEffect(() => {
-    fetchPlans();
-  }, [pagination.current, pagination.pageSize, filters]);
+  const [ponds, setPonds] = useState<Array<{ label: string; value: number }>>([]);
 
   useEffect(() => {
     fetchBases();
   }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [pagination.current, pagination.pageSize]);
 
   const fetchBases = async () => {
     try {
@@ -94,23 +81,33 @@ const Plans: React.FC = () => {
     }
   };
 
-  const fetchPlans = async () => {
+  const fetchPonds = async (baseId: number) => {
+    try {
+      const options = await getPondOptions(baseId);
+      setPonds(options);
+    } catch (error) {
+      console.error('获取塘口列表失败:', error);
+    }
+  };
+
+  const fetchPlans = async (params: any = {}) => {
     setLoading(true);
     try {
       const apiParams = {
         current: pagination.current,
         pageSize: pagination.pageSize,
-        baseId: filters.baseId,
-        planType: filters.planType || undefined,
-        status: filters.status || undefined,
-        keyword: filters.search || undefined,
-        startTime: filters.dateRange ? filters.dateRange[0] : undefined,
-        endTime: filters.dateRange ? filters.dateRange[1] : undefined,
+        ...params,
       };
 
       const response = await searchPlans(apiParams);
-      
-      setPlans(response.data || []);
+
+      const planList = (response.data || []).map((item: ProductionPlan) => ({
+        ...item,
+        baseName: bases.find(b => b.value === item.baseId)?.label || item.baseId,
+        targetName: ponds.find(p => p.value === item.targetId)?.label || item.targetId,
+      }));
+
+      setPlans(planList);
       setPagination(prev => ({
         ...prev,
         total: response.total || 0,
@@ -123,29 +120,23 @@ const Plans: React.FC = () => {
     }
   };
 
-  const handleCreate = useCallback(async (values: Partial<ProductionPlan>) => {
-    setLoading(true);
+  const handleCreate = async () => {
     try {
-      await fetchPlans();
+      fetchPlans();
       setVisible(false);
       setSelectedPlan(null);
       setIsEdit(false);
-      message.success(isEdit ? '计划编辑成功' : '计划创建成功');
+      message.success('计划创建成功');
     } catch (error) {
       message.error('操作失败，请重试');
-      console.error('操作失败:', error);
-    } finally {
-      setLoading(false);
     }
-  }, [isEdit]);
+  };
 
-  const handleDelete = useCallback((id: number) => {
+  const handleDelete = (id: number) => {
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个计划吗？删除后无法恢复。',
-      okText: '确认删除',
       okType: 'danger',
-      cancelText: '取消',
       onOk: async () => {
         try {
           await deletePlan(id);
@@ -156,25 +147,30 @@ const Plans: React.FC = () => {
         }
       },
     });
-  }, []);
+  };
 
-  const handlePublish = useCallback(async (id: number) => {
-    try {
-      await publishPlan(id);
-      message.success('计划已发布');
-      fetchPlans();
-    } catch (error) {
-      message.error('发布失败，请重试');
-    }
-  }, []);
+  const handlePublish = async (id: number) => {
+    Modal.confirm({
+      title: '确认发布',
+      content: '确定要发布这个计划吗？发布后将生成对应的执行任务。',
+      okType: 'primary',
+      onOk: async () => {
+        try {
+          await publishPlan(id);
+          message.success('计划已发布');
+          fetchPlans();
+        } catch (error) {
+          message.error('发布失败，请重试');
+        }
+      },
+    });
+  };
 
-  const handleCancel = useCallback(async (id: number) => {
+  const handleCancel = async (id: number) => {
     Modal.confirm({
       title: '确认取消',
       content: '确定要取消这个计划吗？',
-      okText: '确认取消',
       okType: 'danger',
-      cancelText: '返回',
       onOk: async () => {
         try {
           await cancelPlan(id, { reason: '用户手动取消' });
@@ -185,45 +181,93 @@ const Plans: React.FC = () => {
         }
       },
     });
-  }, []);
+  };
 
-  const handleView = useCallback((plan: ProductionPlan) => {
-    setSelectedPlan(plan);
-    setDetailVisible(true);
-  }, []);
+  const handleComplete = async (id: number) => {
+    Modal.confirm({
+      title: '确认完成',
+      content: '确定要标记这个计划为已完成吗？',
+      okType: 'primary',
+      onOk: async () => {
+        try {
+          await completePlan(id);
+          message.success('计划已完成');
+          fetchPlans();
+        } catch (error) {
+          message.error('操作失败，请重试');
+        }
+      },
+    });
+  };
 
-  const handleEdit = useCallback((plan: ProductionPlan) => {
+  const handleView = async (plan: ProductionPlan) => {
+    try {
+      const detail = await getPlanById(plan.id!);
+      if (detail.data) {
+        setSelectedPlan(detail.data);
+        setDetailVisible(true);
+      }
+    } catch (error) {
+      message.error('获取计划详情失败');
+    }
+  };
+
+  const handleEdit = (plan: ProductionPlan) => {
     setSelectedPlan(plan);
     setIsEdit(true);
     setVisible(true);
-  }, []);
+  };
 
-  const handleResetFilters = useCallback(() => {
-    setFilters({
-      baseId: undefined,
-      planType: '',
-      status: '',
-      dateRange: null,
-      search: '',
+  const handleBatchDelete = (selectedRows: ProductionPlan[]) => {
+    Modal.confirm({
+      title: '批量删除确认',
+      content: `确定要删除选中的 ${selectedRows.length} 条计划吗？此操作不可撤销。`,
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          for (const row of selectedRows) {
+            if (row.id) await deletePlan(row.id);
+          }
+          message.success(`已成功删除 ${selectedRows.length} 条计划`);
+          fetchPlans();
+        } catch (error) {
+          console.error('删除失败:', error);
+          message.error('删除失败');
+        }
+      },
     });
-    setPagination(prev => ({ ...prev, current: 1 }));
-  }, []);
+  };
 
-  const columns: TableColumnsType<ProductionPlan> = useMemo(() => [
+  const stats = useMemo(() => {
+    const total = plans.length;
+    const draft = plans.filter(p => p.status === 'draft').length;
+    const published = plans.filter(p => p.status === 'published').length;
+    const active = plans.filter(p => p.status === 'active').length;
+    const completed = plans.filter(p => p.status === 'completed').length;
+    const cancelled = plans.filter(p => p.status === 'cancelled').length;
+    return { total, draft, published, active, completed, cancelled };
+  }, [plans]);
+
+  const columns: ProColumns<ProductionPlan>[] = [
     {
       title: '计划标题',
       dataIndex: 'title',
-      key: 'title',
-      width: 180,
+      width: 200,
       ellipsis: true,
-      sorter: (a, b) => (a.title || '').localeCompare(b.title || ''),
     },
     {
       title: '所属基地',
       dataIndex: 'baseId',
-      key: 'baseId',
-      width: 180,
+      width: 150,
       ellipsis: true,
+      valueType: 'select',
+      valueEnum: useMemo(() => {
+        const enumMap: any = {};
+        bases.forEach(base => {
+          enumMap[base.value] = { text: base.label };
+        });
+        return enumMap;
+      }, [bases]),
       render: (baseId: number) => {
         const base = bases.find(b => b.value === baseId);
         return base ? base.label : '-';
@@ -232,257 +276,286 @@ const Plans: React.FC = () => {
     {
       title: '计划类型',
       dataIndex: 'planType',
-      key: 'planType',
-      filters: Object.entries(PLAN_TYPE_MAP).map(([value, label]) => ({ text: label, value })),
-      onFilter: (value, record) => record.planType === value,
       width: 120,
+      valueType: 'select',
+      valueEnum: useMemo(() => {
+        const enumMap: any = {};
+        Object.entries(PLAN_TYPE_MAP).forEach(([value, label]) => {
+          enumMap[value] = { text: label };
+        });
+        return enumMap;
+      }, []),
       render: (type: string) => PLAN_TYPE_MAP[type] || type,
     },
     {
-      title: '目标',
-      key: 'target',
-      render: (_, record) => (
-        <span>{TARGET_TYPE_MAP[record.targetType || ''] || ''} {record.targetId || ''}</span>
-      ),
-      width: 120,
+      title: '目标类型',
+      dataIndex: 'targetType',
+      width: 100,
+      valueType: 'select',
+      valueEnum: useMemo(() => {
+        const enumMap: any = {};
+        Object.entries(TARGET_TYPE_MAP).forEach(([value, label]) => {
+          enumMap[value] = { text: label };
+        });
+        return enumMap;
+      }, []),
+      render: (type: string) => TARGET_TYPE_MAP[type] || type,
     },
     {
-      title: '计划时间',
-      key: 'time',
-      render: (_, record) => (
-        <span>{`${record.startTime || ''} ~ ${record.endTime || ''}`}</span>
-      ),
-      width: 200,
-      sorter: (a, b) => (a.startTime || '').localeCompare(b.startTime || ''),
+      title: '目标',
+      dataIndex: 'targetId',
+      width: 100,
+      render: (targetId: number, record: ProductionPlan) => {
+        const pond = ponds.find(p => p.value === targetId);
+        return pond ? pond.label : record.targetName || '-';
+      },
     },
     {
       title: '状态',
       dataIndex: 'status',
-      key: 'status',
-      filters: Object.entries(STATUS_MAP).map(([value, { label }]) => ({ text: label, value })),
-      onFilter: (value, record) => record.status === value,
-      render: (status: string) => {
-        const config = STATUS_MAP[status] || { label: status, color: 'default' };
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
       width: 100,
+      valueType: 'select',
+      valueEnum: useMemo(() => {
+        const enumMap: any = {};
+        Object.entries(STATUS_MAP).forEach(([value, { label }]) => {
+          enumMap[value] = { text: label };
+        });
+        return enumMap;
+      }, []),
+      render: (status: string) => {
+        const config = STATUS_MAP[status] || { label: status, color: 'default', status: 'default' };
+        return (
+          <Badge status={config.status} text={
+            <Tag color={config.color} style={{ borderRadius: '2px' }}>{config.label}</Tag>
+          } />
+        );
+      },
     },
     {
-      title: '制定人',
-      dataIndex: 'ownerId',
-      key: 'ownerId',
-      width: 100,
-      render: (ownerId: number) => ownerId || '-',
+      title: '计划时间',
+      key: 'time',
+      width: 220,
+      render: (_, record) => (
+        <span>{`${record.startTime || '-'} ~ ${record.endTime || '-'}`}</span>
+      ),
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 120,
-      sorter: (a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''),
+      valueType: 'dateTime',
+      width: 180,
       defaultSortOrder: 'descend',
     },
     {
       title: '操作',
-      key: 'action',
-      width: 220,
+      valueType: 'option',
       fixed: 'right',
-      render: (_, record) => (
-        <Space size="small">
+      width: 280,
+      render: (_, record) => [
+        <Button
+          type="link"
+          size="small"
+          icon={<EyeOutlined />}
+          key="view"
+          onClick={() => handleView(record)}
+        >
+          查看
+        </Button>,
+        record.status === 'draft' && (
           <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record)}
-          >
-            查看
-          </Button>
-          <Button
-            type="text"
+            type="link"
             size="small"
             icon={<EditOutlined />}
+            key="edit"
             onClick={() => handleEdit(record)}
           >
             编辑
           </Button>
-          {record.status === 'draft' && (
-            <Button
-              type="text"
-              size="small"
-              onClick={() => handlePublish(record.id!)}
-            >
-              发布
-            </Button>
-          )}
-          {(record.status === 'draft' || record.status === 'published') && (
-            <Button
-              type="text"
-              size="small"
-              danger
-              onClick={() => handleCancel(record.id!)}
-            >
-              取消
-            </Button>
-          )}
+        ),
+        record.status === 'draft' && (
           <Button
-            type="text"
+            type="link"
+            size="small"
+            icon={<CheckCircleOutlined />}
+            key="publish"
+            onClick={() => handlePublish(record.id!)}
+          >
+            发布
+          </Button>
+        ),
+        (record.status === 'published' || record.status === 'active') && (
+          <Button
+            type="link"
+            size="small"
+            icon={<CheckCircleOutlined />}
+            key="complete"
+            onClick={() => handleComplete(record.id!)}
+          >
+            完成
+          </Button>
+        ),
+        (record.status === 'draft' || record.status === 'published') && (
+          <Button
+            type="link"
+            size="small"
+            danger
+            icon={<CloseCircleOutlined />}
+            key="cancel"
+            onClick={() => handleCancel(record.id!)}
+          >
+            取消
+          </Button>
+        ),
+        record.status === 'draft' && (
+          <Button
+            type="link"
             size="small"
             danger
             icon={<DeleteOutlined />}
+            key="delete"
             onClick={() => handleDelete(record.id!)}
           >
             删除
           </Button>
-        </Space>
-      ),
+        ),
+      ],
     },
-  ], [bases, handleView, handleEdit, handleDelete, handlePublish, handleCancel]);
+  ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card
-        title="计划管理"
-        extra={
-          <Space size="middle">
+    <PageContainer title={false}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="总计划"
+              value={stats.total}
+              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="草稿"
+              value={stats.draft}
+              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="已发布"
+              value={stats.published}
+              valueStyle={{ color: '#13c2c2', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="执行中"
+              value={stats.active}
+              valueStyle={{ color: '#fa8c16', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="已完成"
+              value={stats.completed}
+              valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title="已取消"
+              value={stats.cancelled}
+              valueStyle={{ color: '#8c8c8c', fontFamily: 'AlibabaSans' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <ProTable<ProductionPlan>
+        headerTitle="计划管理"
+        columns={columns}
+        dataSource={plans}
+        loading={loading}
+        rowKey="id"
+        search={{ labelWidth: 'auto' }}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => {
+            setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
+            fetchPlans({ current: page, pageSize: pageSize || 10 });
+          },
+        }}
+        rowSelection={{
+          onChange: (_, selectedRows) => {},
+        }}
+        tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
+          <Space size={24}>
+            <span>已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
+            <a onClick={onCleanSelected}>取消选择</a>
+          </Space>
+        )}
+        tableAlertOptionRender={({ selectedRows }) => (
+          <Space size={16}>
             <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setIsEdit(false);
-                setSelectedPlan(null);
-                setVisible(true);
-              }}
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleBatchDelete(selectedRows)}
             >
-              新建计划
-            </Button>
-            <Button
-              icon={<FileDoneOutlined />}
-              onClick={() => setBatchVisible(true)}
-            >
-              批量计划
-            </Button>
-            <Button
-              icon={<CopyOutlined />}
-              onClick={() => setTemplateVisible(true)}
-            >
-              计划模板
-            </Button>
-            <Button
-              icon={<CalendarOutlined />}
-            >
-              日历视图
+              批量删除
             </Button>
           </Space>
-        }
-      >
-        <div style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <Select
-            placeholder="所属基地"
-            style={{ width: 180 }}
-            value={filters.baseId}
-            onChange={(value) => {
-              setFilters(prev => ({ ...prev, baseId: value }));
-              setPagination(prev => ({ ...prev, current: 1 }));
-            }}
-            allowClear
+        )}
+        toolBarRender={() => [
+          <Button
+            key="template"
+            icon={<CopyOutlined />}
+            onClick={() => setTemplateVisible(true)}
           >
-            {bases.map(base => (
-              <Option key={base.value} value={base.value}>{base.label}</Option>
-            ))}
-          </Select>
-          
-          <Select
-            placeholder="计划类型"
-            style={{ width: 150 }}
-            value={filters.planType}
-            onChange={(value) => {
-              setFilters(prev => ({ ...prev, planType: value }));
-              setPagination(prev => ({ ...prev, current: 1 }));
-            }}
-            allowClear
+            计划模板
+          </Button>,
+          <Button
+            key="batch"
+            icon={<FileDoneOutlined />}
+            onClick={() => setBatchVisible(true)}
           >
-            {Object.entries(PLAN_TYPE_MAP).map(([value, label]) => (
-              <Option key={value} value={value}>{label}</Option>
-            ))}
-          </Select>
-          
-          <Select
-            placeholder="计划状态"
-            style={{ width: 120 }}
-            value={filters.status}
-            onChange={(value) => {
-              setFilters(prev => ({ ...prev, status: value }));
-              setPagination(prev => ({ ...prev, current: 1 }));
-            }}
-            allowClear
+            批量计划
+          </Button>,
+          <Button
+            key="calendar"
+            icon={<CalendarOutlined />}
           >
-            {Object.entries(STATUS_MAP).map(([value, { label }]) => (
-              <Option key={value} value={value}>{label}</Option>
-            ))}
-          </Select>
-          
-          <RangePicker
-            style={{ width: 300 }}
-            placeholder={['开始日期', '结束日期']}
-            onChange={(dates, dateStrings) => {
-              if (dates && dateStrings) {
-                setFilters(prev => ({ 
-                  ...prev, 
-                  dateRange: [dateStrings[0], dateStrings[1]] 
-                }));
-                setPagination(prev => ({ ...prev, current: 1 }));
-              } else {
-                setFilters(prev => ({ ...prev, dateRange: null }));
-              }
+            日历视图
+          </Button>,
+          <Button
+            key="add"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setIsEdit(false);
+              setSelectedPlan(null);
+              setVisible(true);
             }}
-          />
-          
-          <Search
-            placeholder="搜索计划名称"
-            style={{ width: 200 }}
-            onSearch={(value) => {
-              setFilters(prev => ({ ...prev, search: value }));
-              setPagination(prev => ({ ...prev, current: 1 }));
-            }}
-            allowClear
-          />
-          
-          {(filters.baseId || filters.planType || filters.status || filters.dateRange || filters.search) && (
-            <Button onClick={handleResetFilters}>
-              重置筛选
-            </Button>
-          )}
-        </div>
-
-        <Spin spinning={loading} tip="加载中...">
-          <Table
-            columns={columns}
-            dataSource={plans}
-            rowKey="id"
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: pagination.total,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-              pageSizeOptions: ['10', '20', '50', '100'],
-              onChange: (page, pageSize) => {
-                setPagination({ current: page, pageSize, total: pagination.total });
-              },
-            }}
-            locale={{
-              emptyText: (
-                <Empty
-                  description="暂无计划数据"
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              ),
-            }}
-            scroll={{ x: 1400 }}
-          />
-        </Spin>
-      </Card>
+          >
+            新建计划
+          </Button>,
+        ]}
+        size="small"
+        bordered
+        scroll={{ x: 1500 }}
+      />
 
       <PlanForm
         visible={visible}
@@ -495,6 +568,7 @@ const Plans: React.FC = () => {
         initialValues={isEdit ? selectedPlan : undefined}
         isEdit={isEdit}
         bases={bases}
+        ponds={ponds}
       />
 
       <PlanDetail
@@ -506,7 +580,7 @@ const Plans: React.FC = () => {
       <BatchPlanModal
         visible={batchVisible}
         onCancel={() => setBatchVisible(false)}
-        onOk={async (values) => {
+        onOk={async () => {
           try {
             setLoading(true);
             await fetchPlans();
@@ -524,7 +598,7 @@ const Plans: React.FC = () => {
         visible={templateVisible}
         onCancel={() => setTemplateVisible(false)}
       />
-    </div>
+    </PageContainer>
   );
 };
 
