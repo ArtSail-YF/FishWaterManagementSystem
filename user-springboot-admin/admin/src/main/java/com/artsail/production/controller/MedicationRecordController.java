@@ -57,10 +57,18 @@ public class MedicationRecordController extends BaseController<MedicationRecordS
      * 更新 prod_log.verify_status 和 med_record 相关状态
      */
 
+
+
     /**
      * 导出用药记录
      * GET /production/medication/export
      * 导出 Excel：包含药品名称、用量、休药期、禁采日期等
+     */
+
+    /**
+     * 批量录入用药记录
+     * POST /production/medication/batch
+     * 一次性录入多条用药记录（如：一次用药涉及多种药品）
      */
 
     /**
@@ -69,9 +77,5 @@ public class MedicationRecordController extends BaseController<MedicationRecordS
      * 汇总 usage_qty * mat_info.unit_price
      */
 
-    /**
-     * 批量录入用药记录
-     * POST /production/medication/batch
-     * 一次性录入多条用药记录（如：一次用药涉及多种药品）
-     */
+
 }

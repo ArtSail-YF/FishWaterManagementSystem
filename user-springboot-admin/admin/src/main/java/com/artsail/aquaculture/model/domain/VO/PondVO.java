@@ -1,6 +1,7 @@
 package com.artsail.aquaculture.model.domain.VO;
 
 import com.artsail.common.enums.PondStatusEnum;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -34,6 +35,8 @@ public class PondVO {
     private LocalDate stockingDate;
     private BigDecimal estimatedOutput;
     private PondStatusEnum status;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 }

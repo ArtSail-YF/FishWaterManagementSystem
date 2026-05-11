@@ -1,5 +1,6 @@
 package com.artsail.aquaculture.model.domain.VO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -24,6 +25,8 @@ public class MatInfoVO {
     private BigDecimal unitPrice;
     private String approvalCode;
     private String manufacturer;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 }

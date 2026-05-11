@@ -4,6 +4,7 @@ import com.artsail.aquaculture.model.domain.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -45,11 +46,13 @@ public class ProdTask extends BaseEntity {
     /**
      * 要求执行的具体时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime actionTime;
 
     /**
      * 最晚完成时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime deadlineTime;
 
     /**
@@ -76,5 +79,6 @@ public class ProdTask extends BaseEntity {
     /**
      * 删除时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime deleteTime;
 }

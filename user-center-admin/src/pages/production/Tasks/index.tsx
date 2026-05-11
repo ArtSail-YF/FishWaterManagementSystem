@@ -60,6 +60,7 @@ const Tasks: React.FC = () => {
   const [bases, setBases] = useState<Array<{ label: string; value: number }>>([]);
   const [ponds, setPonds] = useState<Array<{ label: string; value: number }>>([]);
   const [users, setUsers] = useState<Array<{ label: string; value: number }>>([]);
+  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
 
   useEffect(() => {
     fetchBases();
@@ -68,7 +69,7 @@ const Tasks: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [pagination.current, pagination.pageSize]);
+  }, []);
 
   const fetchBases = async () => {
     try {
@@ -103,6 +104,7 @@ const Tasks: React.FC = () => {
       const apiParams = {
         current: pagination.current,
         pageSize: pagination.pageSize,
+        ...searchParams,
         ...params,
       };
 
@@ -120,9 +122,11 @@ const Tasks: React.FC = () => {
         ...prev,
         total: response.total || 0,
       }));
+      return { data: taskList, total: response.total || 0 };
     } catch (error) {
       message.error('获取任务列表失败');
       console.error('获取任务列表失败:', error);
+      return { data: [], total: 0 };
     } finally {
       setLoading(false);
     }
@@ -470,17 +474,29 @@ const Tasks: React.FC = () => {
       <ProTable<Task>
         headerTitle="任务管理"
         columns={columns}
-        dataSource={data}
         loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
+        request={async (params = {}, sort, filter) => {
+          setSearchParams(params);
+          setPagination(prev => ({
+            ...prev,
+            current: params.current || 1,
+            pageSize: params.pageSize || 10,
+          }));
+          const result = await fetchTasks({
+            ...params,
+            current: params.current || 1,
+            pageSize: params.pageSize || 10,
+          });
+          return { data: result.data, success: true, total: result.total };
+        }}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
           total: pagination.total,
           onChange: (page, pageSize) => {
             setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
-            fetchTasks({ current: page, pageSize: pageSize || 10 });
           },
         }}
         rowSelection={{

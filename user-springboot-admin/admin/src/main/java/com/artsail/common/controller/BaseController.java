@@ -117,4 +117,8 @@ public abstract class BaseController<S extends IService<T>, T, V, Q> {
      */
     @GetMapping("/search")
     public abstract Result<Page<V>> search(Page<V> page, Q query);
+
+
+
+
 }

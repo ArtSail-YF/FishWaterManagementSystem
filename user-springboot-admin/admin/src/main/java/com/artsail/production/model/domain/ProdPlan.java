@@ -2,6 +2,7 @@ package com.artsail.production.model.domain;
 
 import com.artsail.aquaculture.model.domain.BaseEntity;
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -53,11 +54,13 @@ public class ProdPlan extends BaseEntity {
     /**
      * 计划开始时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime startTime;
 
     /**
      * 计划结束时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime endTime;
 
     /**
@@ -89,6 +92,7 @@ public class ProdPlan extends BaseEntity {
     /**
      * 删除时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime deleteTime;
 }
 

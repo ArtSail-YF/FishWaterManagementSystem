@@ -63,6 +63,7 @@ const Plans: React.FC = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [bases, setBases] = useState<Array<{ label: string; value: number }>>([]);
   const [ponds, setPonds] = useState<Array<{ label: string; value: number }>>([]);
+  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
 
   useEffect(() => {
     fetchBases();
@@ -70,7 +71,7 @@ const Plans: React.FC = () => {
 
   useEffect(() => {
     fetchPlans();
-  }, [pagination.current, pagination.pageSize]);
+  }, []);
 
   const fetchBases = async () => {
     try {
@@ -96,6 +97,7 @@ const Plans: React.FC = () => {
       const apiParams = {
         current: pagination.current,
         pageSize: pagination.pageSize,
+        ...searchParams,
         ...params,
       };
 
@@ -112,9 +114,11 @@ const Plans: React.FC = () => {
         ...prev,
         total: response.total || 0,
       }));
+      return { data: planList, total: response.total || 0 };
     } catch (error) {
       message.error('获取计划列表失败');
       console.error('获取计划列表失败:', error);
+      return { data: [], total: 0 };
     } finally {
       setLoading(false);
     }
@@ -484,17 +488,29 @@ const Plans: React.FC = () => {
       <ProTable<ProductionPlan>
         headerTitle="计划管理"
         columns={columns}
-        dataSource={plans}
         loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
+        request={async (params = {}, sort, filter) => {
+          setSearchParams(params);
+          setPagination(prev => ({
+            ...prev,
+            current: params.current || 1,
+            pageSize: params.pageSize || 10,
+          }));
+          const result = await fetchPlans({
+            ...params,
+            current: params.current || 1,
+            pageSize: params.pageSize || 10,
+          });
+          return { data: result.data, success: true, total: result.total };
+        }}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
           total: pagination.total,
           onChange: (page, pageSize) => {
             setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
-            fetchPlans({ current: page, pageSize: pageSize || 10 });
           },
         }}
         rowSelection={{

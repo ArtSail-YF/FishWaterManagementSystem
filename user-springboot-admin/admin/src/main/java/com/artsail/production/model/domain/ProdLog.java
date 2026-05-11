@@ -2,6 +2,7 @@ package com.artsail.production.model.domain;
 
 import com.artsail.aquaculture.model.domain.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,6 +23,7 @@ public class ProdLog extends BaseEntity {
     private String targetType;
     private Long targetId;
     private String logType;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime actionTime;
     private BigDecimal quantity;
     private String photoUrls;
