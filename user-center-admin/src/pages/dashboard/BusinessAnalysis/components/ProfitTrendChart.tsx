@@ -110,8 +110,8 @@ const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({ onMonthClick }) => 
           data: costData,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { color: '#1890ff', width: 2 },
-          itemStyle: { color: '#1890ff', borderWidth: 2, borderColor: '#fff' }
+          lineStyle: { color: '#1f2937', width: 2 },
+          itemStyle: { color: '#1f2937', borderWidth: 2, borderColor: '#fff' }
         }
       ]
     };

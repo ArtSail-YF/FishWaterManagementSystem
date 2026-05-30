@@ -44,7 +44,7 @@ const GISStats: React.FC<GISStatsProps> = ({ stats, onStatusClick }) => {
                 </span>
               }
               value={stats.normal}
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: '#6b7280' }}
               suffix="个"
               size="small"
             />
@@ -71,7 +71,7 @@ const GISStats: React.FC<GISStatsProps> = ({ stats, onStatusClick }) => {
                 </span>
               }
               value={stats.todo}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#1f2937' }}
               suffix="项"
               size="small"
             />
@@ -98,7 +98,7 @@ const GISStats: React.FC<GISStatsProps> = ({ stats, onStatusClick }) => {
                 </span>
               }
               value={stats.warning}
-              valueStyle={{ color: '#ff4d4f' }}
+              valueStyle={{ color: '#ef4444' }}
               suffix="处"
               size="small"
             />

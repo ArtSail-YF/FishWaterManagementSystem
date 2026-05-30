@@ -1,5 +1,7 @@
 package com.artsail.aquaculture.model.domain;
 
+import com.artsail.common.domain.LogicDeleteEntity;
+
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -11,7 +13,7 @@ import java.math.BigDecimal;
 @Data
 @TableName("mat_info")
 @EqualsAndHashCode(callSuper = true)
-public class MatInfo extends BaseEntity {
+public class MatInfo extends LogicDeleteEntity {
 
     private String matCode;
     private String matName;
@@ -28,8 +30,4 @@ public class MatInfo extends BaseEntity {
     private BigDecimal unitPrice;    // 参考单价
     private String approvalCode;     // 批准文号
     private String manufacturer;     // 生产厂家
-
-
-    @TableLogic
-    private Integer isDelete;
 }

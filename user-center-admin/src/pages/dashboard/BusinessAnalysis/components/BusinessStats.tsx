@@ -24,7 +24,7 @@ const BusinessStats: React.FC<BusinessStatsProps> = ({ data }) => {
             {title}
             {showWarning && (
               <Tooltip title="成本上升，需关注！">
-                <WarningOutlined style={{ color: '#faad14' }} />
+                <WarningOutlined style={{ color: '#9ca3af' }} />
               </Tooltip>
             )}
           </Space>

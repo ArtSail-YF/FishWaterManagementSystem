@@ -261,12 +261,12 @@ const StatusTag: React.FC<{ status: string; text: string }> = ({ status, text })
 // 趋势图标组件
 const TrendIcon: React.FC<{ trend: string }> = ({ trend }) => {
   if (trend === 'up') {
-    return <ArrowUpOutlined style={{ color: '#52c41a' }} />;
+    return <ArrowUpOutlined style={{ color: '#6b7280' }} />;
   }
   if (trend === 'down') {
-    return <ArrowDownOutlined style={{ color: '#ff4d4f' }} />;
+    return <ArrowDownOutlined style={{ color: '#ef4444' }} />;
   }
-  return <ArrowRightOutlined style={{ color: '#1890ff' }} />;
+  return <ArrowRightOutlined style={{ color: '#1f2937' }} />;
 };
 
 // 设备状态图标组件
@@ -321,14 +321,14 @@ const Welcome: React.FC = () => {
           style={{
             borderRadius: 8,
             marginBottom: 16,
-            borderLeft: '4px solid #ff4d4f',
+            borderLeft: '4px solid #ef4444',
           }}
         >
           <div style={{ marginBottom: 16 }}>
             <Carousel autoplay effect="fade" style={{ marginBottom: 16 }}>
               {managerQuotes.map((quote, index) => (
                 <div key={index} style={{ textAlign: 'center', padding: '8px 0' }}>
-                  <Text style={{ fontSize: '14px', color: '#1890ff' }}>🔹 “{quote}”</Text>
+                  <Text style={{ fontSize: '14px', color: '#1f2937' }}>🔹 “{quote}”</Text>
                 </div>
               ))}
             </Carousel>
@@ -492,7 +492,7 @@ const Welcome: React.FC = () => {
                       dataIndex: 'change',
                       key: 'change',
                       render: (change: number, record: any) => (
-                        <Text style={{ color: record.trend === 'up' ? '#52c41a' : '#ff4d4f' }}>
+                        <Text style={{ color: record.trend === 'up' ? '#6b7280' : '#ef4444' }}>
                           {record.trend === 'up' ? '↑' : '↓'}{change}%
                         </Text>
                       ),
@@ -532,7 +532,7 @@ const Welcome: React.FC = () => {
                 <Card
                   style={{
                     borderRadius: 8,
-                    borderLeft: `4px solid ${pond.status === 'error' ? '#ff4d4f' : '#faad14'}`,
+                    borderLeft: `4px solid ${pond.status === 'error' ? '#ef4444' : '#9ca3af'}`,
                   }}
                 >
                   <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>

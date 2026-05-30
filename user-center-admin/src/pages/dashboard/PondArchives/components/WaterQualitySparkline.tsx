@@ -7,7 +7,7 @@ interface WaterQualitySparklineProps {
   height?: string;
 }
 
-const WaterQualitySparkline: React.FC<WaterQualitySparklineProps> = ({ data, color = '#1890ff', height = '40px' }) => {
+const WaterQualitySparkline: React.FC<WaterQualitySparklineProps> = ({ data, color = '#1f2937', height = '40px' }) => {
   const option = {
     grid: { left: 0, right: 0, top: 5, bottom: 5 },
     xAxis: { type: 'category', show: false },

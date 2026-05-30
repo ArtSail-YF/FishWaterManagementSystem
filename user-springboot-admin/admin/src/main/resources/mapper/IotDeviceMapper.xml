@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.aquaculture.mapper.IotDeviceMapper">
+
+    <resultMap id="IotDeviceVOMap" type="com.artsail.aquaculture.model.domain.IotDevice">
+        <id column="id" property="id"/>
+        <result column="device_sn" property="deviceSn"/>
+        <result column="device_name" property="deviceName"/>
+        <result column="type_id" property="typeId"/>
+        <result column="base_id" property="baseId"/>
+        <result column="pond_id" property="pondId"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="port" property="port"/>
+        <result column="auth_info" property="authInfo"/>
+        <result column="status" property="status"/>
+        <result column="last_heartbeat" property="lastHeartbeat"/>
+        <result column="install_time" property="installTime"/>
+        <result column="remark" property="remark"/>
+        <!-- 联表字段 -->
+        <result column="type_name" property="typeName"/>
+        <result column="type_code" property="typeCode"/>
+        <result column="base_name" property="baseName"/>
+        <result column="pond_name" property="pondName"/>
+    </resultMap>
+
+    <select id="searchWithNames" resultMap="IotDeviceVOMap">
+        SELECT
+            d.id,
+            d.device_sn,
+            d.device_name,
+            d.type_id,
+            d.base_id,
+            d.pond_id,
+            d.ip_address,
+            d.port,
+            d.auth_info,
+            d.status,
+            d.last_heartbeat,
+            d.install_time,
+            d.remark,
+            t.type_name,
+            t.type_code,
+            b.base_name,
+            p.pond_name
+        FROM iot_device d
+        LEFT JOIN iot_device_type t ON d.type_id = t.id
+        LEFT JOIN base_info b ON d.base_id = b.id
+        LEFT JOIN pond_info p ON d.pond_id = p.id
+        <where>
+            <if test="query.deviceSn != null and query.deviceSn != ''">
+                AND d.device_sn LIKE CONCAT('%', #{query.deviceSn}, '%')
+            </if>
+            <if test="query.deviceName != null and query.deviceName != ''">
+                AND d.device_name LIKE CONCAT('%', #{query.deviceName}, '%')
+            </if>
+            <if test="query.typeId != null">
+                AND d.type_id = #{query.typeId}
+            </if>
+            <if test="query.baseId != null">
+                AND d.base_id = #{query.baseId}
+            </if>
+            <if test="query.pondId != null">
+                AND d.pond_id = #{query.pondId}
+            </if>
+            <if test="query.status != null">
+                AND d.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY d.id ASC
+    </select>
+
+    <select id="selectByBaseId" resultMap="IotDeviceVOMap">
+        SELECT
+            d.id,
+            d.device_sn,
+            d.device_name,
+            d.type_id,
+            d.base_id,
+            d.pond_id,
+            d.ip_address,
+            d.port,
+            d.auth_info,
+            d.status,
+            d.last_heartbeat,
+            d.install_time,
+            d.remark,
+            t.type_name,
+            t.type_code
+        FROM iot_device d
+        LEFT JOIN iot_device_type t ON d.type_id = t.id
+        WHERE d.base_id = #{baseId} AND d.status = 1
+        ORDER BY d.id ASC
+    </select>
+
+</mapper>

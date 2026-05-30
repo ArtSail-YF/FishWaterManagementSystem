@@ -1,5 +1,5 @@
 import { Card, Row, Col, Statistic, Tag } from 'antd';
-import { TrendingUpOutlined, TrendingDownOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import React from 'react';
 
 interface FinancialKPICardsProps {
@@ -102,7 +102,7 @@ const FinancialKPICards: React.FC<FinancialKPICardsProps> = ({
                 <div style={{ marginTop: 8 }}>
                   <Tag 
                     color={kpi.isUp ? 'success' : 'error'} 
-                    icon={kpi.isUp ? <TrendingUpOutlined /> : <TrendingDownOutlined />}
+                    icon={kpi.isUp ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
                   >
                     {kpi.isUp ? '+' : ''}{kpi.percent}%
                   </Tag>

@@ -23,7 +23,7 @@ const TideModule: React.FC = () => {
         const val = params[0].value;
         const time = params[0].name;
         let action = '';
-        if (val > 1.5) action = '<br/><span style="color:#52c41a">● 适宜纳水</span>';
+        if (val > 1.5) action = '<br/><span style="color:#6b7280">● 适宜纳水</span>';
         if (val < 0.5) action = '<br/><span style="color:#f5222d">● 适宜排污</span>';
         return `${time}<br/>潮位: <span style="font-family:fin-number">${val}m</span>${action}`;
       }
@@ -56,18 +56,18 @@ const TideModule: React.FC = () => {
             ]
           }
         },
-        itemStyle: { color: '#1890ff' },
+        itemStyle: { color: '#1f2937' },
         lineStyle: { width: 2 },
         markPoint: {
           data: [
-            { type: 'max', name: '满潮', symbolSize: 40, itemStyle: { color: '#1890ff' } },
+            { type: 'max', name: '满潮', symbolSize: 40, itemStyle: { color: '#1f2937' } },
             { type: 'min', name: '干潮', symbolSize: 40, itemStyle: { color: '#595959' } }
           ],
           label: { fontSize: 10, offset: [0, 0] }
         },
         markLine: {
           silent: true,
-          lineStyle: { color: '#52c41a', type: 'dashed', opacity: 0.5 },
+          lineStyle: { color: '#6b7280', type: 'dashed', opacity: 0.5 },
           data: [
             { yAxis: 1.5, label: { formatter: '纳水阈值', position: 'end', fontSize: 10 } },
             { yAxis: 0.5, label: { formatter: '排污阈值', position: 'end', fontSize: 10 } }

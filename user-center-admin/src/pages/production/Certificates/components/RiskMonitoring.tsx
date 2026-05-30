@@ -90,7 +90,7 @@ const RiskMonitoring: React.FC = () => {
             percent={Math.max(0, (1 - record.remainingDays / record.totalDays) * 100)} 
             size="small" 
             showInfo={false}
-            strokeColor={record.status === '锁定中' ? '#ff4d4f' : '#52c41a'}
+            strokeColor={record.status === '锁定中' ? '#ef4444' : '#6b7280'}
           />
         </Space>
       ),

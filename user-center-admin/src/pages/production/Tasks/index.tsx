@@ -1,13 +1,17 @@
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CheckCircleOutlined, CloseCircleOutlined, UserOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CheckCircleOutlined, CloseCircleOutlined, UserOutlined, ArrowUpOutlined, ArrowDownOutlined, FileTextOutlined, ClockCircleOutlined, SendOutlined, SyncOutlined, AlertOutlined, CloudOutlined } from '@ant-design/icons';
 import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Badge } from 'antd';
+import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Badge, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState, useEffect, useMemo } from 'react';
+
+const { Text } = Typography;
 import TaskForm from './components/TaskForm';
 import TaskDetail from './components/TaskDetail';
 import {
   searchTasks,
   deleteTask,
+  createTask,
+  updateTask,
   completeTask,
   skipTask,
   getTaskById,
@@ -16,13 +20,20 @@ import { getBaseOptions } from '@/services/api/base';
 import { getPondOptions } from '@/services/api/pond';
 import { getUserOptions } from '@/services/api/user';
 
-const STATUS_MAP: Record<string, { label: string; color: string; status: 'success' | 'processing' | 'default' | 'error' | 'warning' }> = {
-  pending: { label: '待办', color: 'blue', status: 'default' },
-  assigned: { label: '已派发', color: 'cyan', status: 'processing' },
-  doing: { label: '进行中', color: 'orange', status: 'processing' },
-  done: { label: '已完成', color: 'green', status: 'success' },
-  skipped: { label: '已跳过', color: 'gray', status: 'default' },
-  expired: { label: '已过期', color: 'red', status: 'error' },
+const STATUS_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
+  pending: { label: '待办', bgColor: '#EBE5DE', textColor: '#5C4F42' },
+  assigned: { label: '已派发', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
+  doing: { label: '进行中', bgColor: '#F5EDD6', textColor: '#A0843A' },
+  done: { label: '已完成', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
+  skipped: { label: '已跳过', bgColor: '#EBE5DE', textColor: '#7A6E64' },
+  expired: { label: '已过期', bgColor: '#F5E0DC', textColor: '#B54E3C' },
+};
+
+const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
+  low: { label: '低', color: '#8c8c8c' },
+  medium: { label: '中', color: '#A0843A' },
+  high: { label: '高', color: '#B54E3C' },
+  urgent: { label: '紧急', color: '#cf1322' },
 };
 
 const TARGET_TYPE_MAP: Record<string, string> = {
@@ -107,16 +118,8 @@ const Tasks: React.FC = () => {
         ...searchParams,
         ...params,
       };
-
       const response = await searchTasks(apiParams);
-
-      const taskList = (response.data || []).map((item: any) => ({
-        ...item,
-        baseName: bases.find(b => b.value === item.baseId)?.label || item.baseId,
-        targetName: item.targetId,
-        assigneeName: users.find(u => u.value === item.assigneeId)?.label || item.assigneeId,
-      }));
-
+      const taskList = response.data || [];
       setData(taskList);
       setPagination(prev => ({
         ...prev,
@@ -131,31 +134,37 @@ const Tasks: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const handleCreate = async () => {
+  const handleCreate = async (formValues?: any) => {
     try {
-      fetchTasks();
+      if (formValues) {
+        if (isEdit && selectedTask?.id) {
+          await updateTask(selectedTask.id, formValues);
+        } else {
+          await createTask(formValues);
+        }
+      }
+      await fetchTasks();
       setVisible(false);
       setSelectedTask(null);
       setIsEdit(false);
-      message.success('任务创建成功');
-    } catch (error) {
-      message.error('操作失败，请重试');
+      message.success(isEdit ? '任务更新成功' : '任务创建成功');
+    } catch (error: any) {
+      message.error(error.message || '操作失败，请重试');
     }
   };
 
   const handleDelete = (id: number) => {
     Modal.confirm({
       title: '删除确认',
-      content: '确定要删除这个任务吗？删除后无法恢复。',
+      content: '确定要删除这个任务吗？',
       okType: 'danger',
       onOk: async () => {
         try {
           await deleteTask(id);
-          message.success('任务删除成功');
+          message.success('任务已删除');
           fetchTasks();
         } catch (error) {
-          message.error('删除失败，请重试');
+          message.error('删除失败');
         }
       },
     });
@@ -177,15 +186,14 @@ const Tasks: React.FC = () => {
       },
     });
   };
-
   const handleSkip = (id: number) => {
     Modal.confirm({
       title: '跳过确认',
-      content: '请输入跳过原因（选填）',
-      okType: 'default',
+      content: '请输入跳过原因（可选）',
+      okText: '确认跳过',
       onOk: async () => {
         try {
-          await skipTask(id, { reason: '' });
+          await skipTask(id, { reason: '手动跳过' });
           message.success('任务已跳过');
           fetchTasks();
         } catch (error) {
@@ -195,16 +203,9 @@ const Tasks: React.FC = () => {
     });
   };
 
-  const handleView = async (task: Task) => {
-    try {
-      const detail = await getTaskById(task.id);
-      if (detail.data) {
-        setSelectedTask(detail.data);
-        setDetailVisible(true);
-      }
-    } catch (error) {
-      message.error('获取任务详情失败');
-    }
+  const handleView = (task: Task) => {
+    setSelectedTask(task);
+    setDetailVisible(true);
   };
 
   const handleEdit = (task: Task) => {
@@ -216,336 +217,193 @@ const Tasks: React.FC = () => {
   const handleBatchDelete = (selectedRows: Task[]) => {
     Modal.confirm({
       title: '批量删除确认',
-      content: `确定要删除选中的 ${selectedRows.length} 条任务吗？此操作不可撤销。`,
-      okType: 'danger',
+      content: `确定要删除选中的 ${selectedRows.length} 条任务吗？`,
       onOk: async () => {
         try {
           for (const row of selectedRows) {
-            await deleteTask(row.id);
+            if (row.id) await deleteTask(row.id);
           }
-          message.success(`已成功删除 ${selectedRows.length} 条任务`);
+          message.success(`已删除 ${selectedRows.length} 条任务`);
           fetchTasks();
         } catch (error) {
-          console.error('删除失败:', error);
-          message.error('删除失败');
+          message.error('批量删除失败');
         }
       },
     });
   };
 
   const stats = useMemo(() => {
-    const total = data.length;
-    const pending = data.filter(t => t.status === 'pending').length;
-    const assigned = data.filter(t => t.status === 'assigned').length;
-    const doing = data.filter(t => t.status === 'doing').length;
-    const done = data.filter(t => t.status === 'done').length;
-    const expired = data.filter(t => t.status === 'expired').length;
-    return { total, pending, assigned, doing, done, expired };
+    const s: Record<string, number> = { pending: 0, assigned: 0, doing: 0, done: 0, skipped: 0, expired: 0 };
+    data.forEach(t => {
+      const status = t.status || 'pending';
+      if (s[status] !== undefined) s[status]++;
+    });
+    return s;
   }, [data]);
-
   const columns: ProColumns<Task>[] = [
+    { title: '任务名称', dataIndex: 'taskTitle', width: 200, ellipsis: true },
+    { title: '所属基地', dataIndex: 'baseName', width: 120, hideInTable: true, hideInSearch: false },
+    { title: '作业对象', dataIndex: 'targetName', width: 120 },
     {
-      title: '任务标题',
-      dataIndex: 'taskTitle',
-      width: 200,
-      ellipsis: true,
+      title: '执行时间', dataIndex: 'actionTime', width: 160,
+      render: (_, r) => r.actionTime ? dayjs(r.actionTime).format('MM-DD HH:mm') : '-',
     },
     {
-      title: '所属基地',
-      dataIndex: 'baseId',
-      width: 150,
-      ellipsis: true,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        bases.forEach(base => {
-          enumMap[base.value] = { text: base.label };
-        });
-        return enumMap;
-      }, [bases]),
-      render: (baseId: number) => {
-        const base = bases.find(b => b.value === baseId);
-        return base ? base.label : '-';
+      title: '截止时间', dataIndex: 'deadlineTime', width: 160,
+      render: (_, r) => r.deadlineTime ? dayjs(r.deadlineTime).format('MM-DD HH:mm') : '-',
+    },
+    {
+      title: '状态', dataIndex: 'status', width: 100,
+      render: (_, r) => {
+        const c = STATUS_MAP[r.status || ''];
+        return c ? (
+          <Tag style={{ backgroundColor: c.bgColor, color: c.textColor, border: 'none' }}>
+            {c.label}
+          </Tag>
+        ) : r.status;
       },
     },
     {
-      title: '目标类型',
-      dataIndex: 'targetType',
-      width: 100,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        Object.entries(TARGET_TYPE_MAP).forEach(([value, label]) => {
-          enumMap[value] = { text: label };
-        });
-        return enumMap;
-      }, []),
-      render: (type: string) => TARGET_TYPE_MAP[type] || type,
+      title: '执行人', dataIndex: 'assigneeName', width: 100,
+      render: (_, r) => r.assigneeName || <Tag icon={<UserOutlined />}>未分配</Tag>,
     },
     {
-      title: '目标',
-      dataIndex: 'targetId',
-      width: 100,
-      render: (targetId: number, record: Task) => {
-        const pond = ponds.find(p => p.value === targetId);
-        return pond ? pond.label : record.targetName || '-';
+      title: '优先级', dataIndex: 'priority', width: 70,
+      render: (val: string) => {
+        const p = PRIORITY_MAP[val];
+        return p ? <Tag style={{ backgroundColor: p.color + '20', color: p.color, border: 'none' }}>{p.label}</Tag> : '-';
       },
     },
+    // IoT 设备（预留）
     {
-      title: '状态',
-      dataIndex: 'status',
-      width: 100,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        Object.entries(STATUS_MAP).forEach(([value, { label }]) => {
-          enumMap[value] = { text: label };
-        });
-        return enumMap;
-      }, []),
-      render: (status: string) => {
-        const config = STATUS_MAP[status] || { label: status, color: 'default', status: 'default' };
-        return (
-          <Badge status={config.status} text={
-            <Tag color={config.color} style={{ borderRadius: '2px' }}>{config.label}</Tag>
-          } />
-        );
-      },
+      title: 'IoT 设备', dataIndex: 'deviceId', width: 90,
+      render: (val: any) =>
+        val ? <Tag icon={<CloudOutlined />} color="#2B6B8A">设备 #{val}</Tag> : '-',
     },
     {
-      title: '执行人',
-      dataIndex: 'assigneeId',
-      width: 100,
-      render: (assigneeId: number) => {
-        const user = users.find(u => u.value === assigneeId);
-        return user ? (
-          <span><UserOutlined style={{ marginRight: 4 }} />{user.label}</span>
-        ) : '-';
-      },
-    },
-    {
-      title: '要求执行时间',
-      dataIndex: 'actionTime',
-      valueType: 'dateTime',
-      width: 180,
-    },
-    {
-      title: '最晚完成时间',
-      dataIndex: 'deadlineTime',
-      valueType: 'dateTime',
-      width: 180,
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      valueType: 'dateTime',
-      width: 180,
-      defaultSortOrder: 'descend',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      fixed: 'right',
-      width: 260,
+      title: '操作', width: 300, fixed: 'right',
       render: (_, record) => [
-        <Button
-          type="link"
-          size="small"
-          icon={<EyeOutlined />}
-          key="view"
-          onClick={() => handleView(record)}
-        >
-          查看
-        </Button>,
+        <Button type="link" size="small" icon={<EyeOutlined />} key="view" onClick={() => handleView(record)}>查看</Button>,
         record.status === 'pending' && (
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            key="edit"
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
+          <Button type="link" size="small" icon={<EditOutlined />} key="edit" onClick={() => handleEdit(record)} style={{ color: '#8c8c8c' }}>编辑</Button>
         ),
-        (record.status === 'pending' || record.status === 'assigned' || record.status === 'doing') && (
-          <Button
-            type="link"
-            size="small"
-            icon={<CheckCircleOutlined />}
-            key="complete"
-            onClick={() => handleComplete(record.id)}
-          >
-            完成
-          </Button>
+        (record.status === 'assigned' || record.status === 'doing') && (
+          <Button type="link" size="small" icon={<CheckCircleOutlined />} key="complete" onClick={() => handleComplete(record.id)} style={{ color: '#8c8c8c' }}>完成</Button>
         ),
         (record.status === 'pending' || record.status === 'assigned') && (
-          <Button
-            type="link"
-            size="small"
-            icon={<CloseCircleOutlined />}
-            key="skip"
-            onClick={() => handleSkip(record.id)}
-          >
-            跳过
-          </Button>
+          <Button type="link" size="small" icon={<CloseCircleOutlined />} key="skip" onClick={() => handleSkip(record.id)} style={{ color: '#8c8c8c' }}>跳过</Button>
         ),
         record.status === 'pending' && (
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            key="delete"
-            onClick={() => handleDelete(record.id)}
-          >
-            删除
-          </Button>
+          <Button type="link" size="small" icon={<DeleteOutlined />} key="delete" onClick={() => handleDelete(record.id)} style={{ color: '#8c8c8c' }}>删除</Button>
         ),
       ],
     },
   ];
-
   return (
-    <PageContainer title={false}>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+    <PageContainer>
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="总任务"
-              value={stats.total}
-              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>任务总数</Text>}
+              value={data.length}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<FileTextOutlined />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="待办"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>待办</Text>}
               value={stats.pending}
-              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<ClockCircleOutlined />}
             />
-            <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
-              占比 <span className="fin-number">{data.length ? Math.round(stats.pending / data.length * 100) : 0}%</span>
-            </div>
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已派发"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已派发</Text>}
               value={stats.assigned}
-              valueStyle={{ color: '#13c2c2', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<SendOutlined />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="进行中"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>进行中</Text>}
               value={stats.doing}
-              valueStyle={{ color: '#fa8c16', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<SyncOutlined spin />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已完成"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已完成</Text>}
               value={stats.done}
-              valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<CheckCircleOutlined />}
             />
-            <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
-              完成率 <span className="fin-number">{data.length ? Math.round(stats.done / data.length * 100) : 0}%</span>
-            </div>
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已过期"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已过期</Text>}
               value={stats.expired}
-              valueStyle={{ color: '#ff4d4f', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<AlertOutlined />}
             />
           </Card>
         </Col>
       </Row>
-
       <ProTable<Task>
         headerTitle="任务管理"
         columns={columns}
         loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
-        request={async (params = {}, sort, filter) => {
+        request={async (params = {}) => {
           setSearchParams(params);
-          setPagination(prev => ({
-            ...prev,
-            current: params.current || 1,
-            pageSize: params.pageSize || 10,
-          }));
-          const result = await fetchTasks({
-            ...params,
-            current: params.current || 1,
-            pageSize: params.pageSize || 10,
-          });
+          setPagination(prev => ({ ...prev, current: params.current || 1, pageSize: params.pageSize || 10 }));
+          const result = await fetchTasks({ ...params, current: params.current || 1, pageSize: params.pageSize || 10 });
           return { data: result.data, success: true, total: result.total };
         }}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
           total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
-          },
+          onChange: (page, ps) => setPagination({ ...pagination, current: page, pageSize: ps || 10 }),
         }}
-        rowSelection={{
-          onChange: (_, selectedRows) => {},
-        }}
+        rowSelection={{}}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <Space size={24}>
-            <span>已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
+            <span>已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
             <a onClick={onCleanSelected}>取消选择</a>
           </Space>
         )}
         tableAlertOptionRender={({ selectedRows }) => (
           <Space size={16}>
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleBatchDelete(selectedRows)}
-            >
-              批量删除
-            </Button>
+            <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleBatchDelete(selectedRows)}>批量删除</Button>
           </Space>
         )}
         toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setIsEdit(false);
-              setSelectedTask(null);
-              setVisible(true);
-            }}
-          >
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => { setIsEdit(false); setSelectedTask(null); setVisible(true); }}>
             新建任务
           </Button>,
         ]}
         size="small"
-        bordered
         scroll={{ x: 1500 }}
       />
-
       <TaskForm
         visible={visible}
-        onCancel={() => {
-          setVisible(false);
-          setSelectedTask(null);
-          setIsEdit(false);
-        }}
+        onCancel={() => { setVisible(false); setSelectedTask(null); setIsEdit(false); }}
         onOk={handleCreate}
         initialValues={isEdit ? selectedTask : undefined}
         isEdit={isEdit}
@@ -553,7 +411,6 @@ const Tasks: React.FC = () => {
         ponds={ponds}
         users={users}
       />
-
       <TaskDetail
         visible={detailVisible}
         onCancel={() => setDetailVisible(false)}

@@ -27,7 +27,7 @@ const Contacts: React.FC = () => {
           <Avatar 
             src={record.avatar} 
             icon={<UserOutlined />} 
-            style={{ backgroundColor: record.department === 'technical' ? '#1890ff' : '#87d068' }}
+            style={{ backgroundColor: record.department === 'technical' ? '#1f2937' : '#87d068' }}
           />
           <Text strong>{text}</Text>
         </Space>

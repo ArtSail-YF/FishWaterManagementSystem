@@ -26,7 +26,7 @@ const WaterQualityStats: React.FC<WaterQualityStatsProps> = ({ stats }) => {
               </span>
             }
             value={stats.normal}
-            valueStyle={{ color: '#52c41a' }}
+            valueStyle={{ color: '#6b7280' }}
             suffix="个"
           />
         </Col>
@@ -39,7 +39,7 @@ const WaterQualityStats: React.FC<WaterQualityStatsProps> = ({ stats }) => {
               </span>
             }
             value={stats.warning}
-            valueStyle={{ color: '#faad14' }}
+            valueStyle={{ color: '#9ca3af' }}
             suffix="个"
           />
         </Col>
@@ -52,7 +52,7 @@ const WaterQualityStats: React.FC<WaterQualityStatsProps> = ({ stats }) => {
               </span>
             }
             value={stats.error}
-            valueStyle={{ color: '#ff4d4f' }}
+            valueStyle={{ color: '#ef4444' }}
             suffix="个"
           />
         </Col>

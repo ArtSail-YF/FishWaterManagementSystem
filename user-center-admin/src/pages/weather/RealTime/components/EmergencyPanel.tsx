@@ -39,7 +39,7 @@ const EmergencyPanel: React.FC = () => {
           <div style={{ fontSize: '12px', color: '#856404', marginBottom: '12px' }}>
             系统已自动通过短信和 APP 强提醒推送至 45 户养殖户。
           </div>
-          <Button block type="primary" style={{ backgroundColor: '#faad14', border: 'none', borderRadius: '2px' }}>
+          <Button block type="primary" style={{ backgroundColor: '#9ca3af', border: 'none', borderRadius: '2px' }}>
             查看养殖户收悉状态
           </Button>
         </div>

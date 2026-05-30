@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
@@ -63,7 +64,7 @@ const PlanForm: React.FC<PlanFormProps> = ({
       form.setFieldsValue({
         ...initialValues,
         timeRange: initialValues.startTime && initialValues.endTime
-          ? [initialValues.startTime, initialValues.endTime]
+          ? [dayjs(initialValues.startTime), dayjs(initialValues.endTime)]
           : undefined,
       });
       setPlanType(initialValues.planType || '');
@@ -114,6 +115,13 @@ const PlanForm: React.FC<PlanFormProps> = ({
         endTime: endTime ? endTime.format('YYYY-MM-DD HH:mm:ss') : undefined,
         cycleRule: values.cycleRule,
         assigneeGroupId: values.assigneeGroupId,
+        feedVariety: values.feedVariety,
+        feedAmount: values.feedAmount ? Number(values.feedAmount) : undefined,
+        drugName: values.drugName,
+        dosage: values.dosage,
+        withdrawalDays: values.withdrawalDays ? Number(values.withdrawalDays) : undefined,
+        weatherReq: values.weatherReq,
+        estYield: values.estYield ? Number(values.estYield) : undefined,
       };
 
       if (isEdit && initialValues?.id) {
@@ -178,7 +186,7 @@ const PlanForm: React.FC<PlanFormProps> = ({
               rules={[{ required: true, message: '请选择计划类型' }]}
             >
               <Select
-                placeholder="请选择计划类型"
+                placeholder="请选择"
                 onChange={(value) => setPlanType(value)}
               >
                 {PLAN_TYPES.map(type => (

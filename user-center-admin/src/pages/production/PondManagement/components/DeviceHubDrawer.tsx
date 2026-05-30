@@ -111,7 +111,7 @@ const DeviceHubDrawer: React.FC<DeviceHubDrawerProps> = ({ visible, onClose, pon
         <Card size="small" title="连接诊断" style={{ backgroundColor: '#f9f9f9' }}>
           <div style={{ fontSize: '12px', color: '#666' }}>
             <div>● 最近心跳: 2026-03-28 14:25:31</div>
-            <div>● 信号强度: <span style={{ color: '#52c41a' }}>Excellent (-45dBm)</span></div>
+            <div>● 信号强度: <span style={{ color: '#6b7280' }}>Excellent (-45dBm)</span></div>
             <div>● 数据延迟: <span className="fin-number">12ms</span></div>
           </div>
         </Card>

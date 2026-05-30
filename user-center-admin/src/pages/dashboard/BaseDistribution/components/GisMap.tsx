@@ -200,7 +200,7 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
       }
 
       // 根据基地状态设置标记点颜色
-      const color = base.status === 'warning' ? '#ff4d4f' : base.status === 'todo' ? '#1890ff' : '#52c41a';
+      const color = base.status === 'warning' ? '#ef4444' : base.status === 'todo' ? '#1f2937' : '#6b7280';
       // 创建 DOM 元素作为标记点内容，避免 AMap 2.0 的 string content 兼容性问题
       const div = document.createElement('div');
       // 设置标记点样式
@@ -279,13 +279,13 @@ const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) =
       content: `
         <div style="padding: 12px; min-width: 200px;">
           <h4 style="margin: 0 0 8px 0; font-size: 16px;">${base.name}</h4>
-          <div style="margin-bottom: 4px;">状态: <span style="color: ${base.status === 'warning' ? '#ff4d4f' : '#52c41a'}">${base.status === 'warning' ? '预警' : '正常'}</span></div>
+          <div style="margin-bottom: 4px;">状态: <span style="color: ${base.status === 'warning' ? '#ef4444' : '#6b7280'}">${base.status === 'warning' ? '预警' : '正常'}</span></div>
           <div style="margin-bottom: 4px;">溶氧量: ${waterQuality.oxygen} mg/L</div>
           <div style="margin-bottom: 4px;">水温: ${waterQuality.temperature} ℃</div>
           <div style="margin-bottom: 4px;">PH值: ${waterQuality.ph}</div>
           <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-            <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1890ff; margin-right: 16px;">查看详情 &gt;</a>
-            <a href="/dashboard/water-quality?baseId=${base.id}" style="color: #1890ff;">水质监控 &gt;</a>
+            <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1f2937; margin-right: 16px;">查看详情 &gt;</a>
+            <a href="/dashboard/water-quality?baseId=${base.id}" style="color: #1f2937;">水质监控 &gt;</a>
           </div>
         </div>
       `,

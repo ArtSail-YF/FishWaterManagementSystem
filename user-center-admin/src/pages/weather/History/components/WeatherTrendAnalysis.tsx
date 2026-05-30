@@ -64,7 +64,7 @@ const WeatherTrendAnalysis: React.FC = () => {
         type: 'line',
         smooth: true,
         data: [16, 19, 25, 29, 24, 18, 14, 11],
-        itemStyle: { color: '#1890ff' },
+        itemStyle: { color: '#1f2937' },
         lineStyle: { width: 2 }
       },
       {
@@ -72,7 +72,7 @@ const WeatherTrendAnalysis: React.FC = () => {
         type: 'line',
         yAxisIndex: 1,
         data: [1015, 1012, 1008, 995, 1005, 1010, 1014, 1016],
-        itemStyle: { color: '#52c41a' },
+        itemStyle: { color: '#6b7280' },
         lineStyle: { width: 1.5, type: 'dashed' },
         areaStyle: {
           color: {

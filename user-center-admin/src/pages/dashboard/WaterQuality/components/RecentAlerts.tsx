@@ -49,7 +49,7 @@ const RecentAlerts: React.FC<RecentAlertsProps> = ({ pond }) => {
         <List.Item
           style={{
             padding: '16px 12px',
-            borderLeft: `4px solid ${item.status === 'error' ? '#ff4d4f' : '#faad14'}`,
+            borderLeft: `4px solid ${item.status === 'error' ? '#ef4444' : '#9ca3af'}`,
             marginBottom: 12,
             borderRadius: 6,
             backgroundColor: '#fafafa',

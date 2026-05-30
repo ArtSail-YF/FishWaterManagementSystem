@@ -1,27 +1,21 @@
 package com.artsail.aquaculture.model.domain;
 
+import com.artsail.common.domain.LogicDeleteEntity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 网箱信息实体类
  */
 @Data
 @TableName("cage_info")
-public class Cage implements Serializable {
+public class Cage extends LogicDeleteEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
 
     /**
      * 网箱编码
@@ -108,30 +102,8 @@ public class Cage implements Serializable {
      */
     private Integer status;
 
-    /**
-     * 创建时间
-     */
-    @TableField(fill = FieldFill.INSERT)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime createTime;
 
-    /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime updateTime;
 
-    /**
-     * 是否删除: 0-正常, 1-已删除
-     */
-    @TableLogic
-    private Integer isDelete;
 
-    /**
-     * 删除时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime deleteTime;
 }
 

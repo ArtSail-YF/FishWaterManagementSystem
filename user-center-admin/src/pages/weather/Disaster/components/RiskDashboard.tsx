@@ -25,7 +25,7 @@ const RiskDashboard: React.FC = () => {
         ],
         itemStyle: {
           color: (params: any) => {
-            const colors = ['#cf1322', '#f5222d', '#ff4d4f', '#ffa39e'];
+            const colors = ['#cf1322', '#f5222d', '#ef4444', '#ffa39e'];
             return colors[params.dataIndex];
           }
         }
@@ -76,7 +76,7 @@ const RiskDashboard: React.FC = () => {
                       percent={item.progress} 
                       size="small" 
                       status={item.progress < 50 ? 'exception' : 'active'}
-                      strokeColor={item.progress < 50 ? '#ff4d4f' : '#52c41a'}
+                      strokeColor={item.progress < 50 ? '#ef4444' : '#6b7280'}
                       showInfo={false}
                     />
                     <Text type="secondary" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>防灾进度 {item.progress}%</Text>

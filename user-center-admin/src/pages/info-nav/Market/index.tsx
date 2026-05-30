@@ -71,7 +71,7 @@ const MarketInfo: React.FC = () => {
       dataIndex: 'region',
       render: (text) => (
         <Space>
-          <EnvironmentOutlined style={{ color: '#1890ff' }} />
+          <EnvironmentOutlined style={{ color: '#1f2937' }} />
           <span>{text}</span>
         </Space>
       ),
@@ -93,8 +93,8 @@ const MarketInfo: React.FC = () => {
         const isUp = val > 0;
         return (
           <Space size={4}>
-            {isUp ? <ArrowUpOutlined style={{ color: '#cf1322' }} /> : <ArrowDownOutlined style={{ color: '#52c41a' }} />}
-            <span className="fin-number" style={{ color: isUp ? '#cf1322' : '#52c41a', fontWeight: 600 }}>
+            {isUp ? <ArrowUpOutlined style={{ color: '#cf1322' }} /> : <ArrowDownOutlined style={{ color: '#6b7280' }} />}
+            <span className="fin-number" style={{ color: isUp ? '#cf1322' : '#6b7280', fontWeight: 600 }}>
               {Math.abs(val)}%
             </span>
           </Space>
@@ -135,7 +135,7 @@ const MarketInfo: React.FC = () => {
                   <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{item.title}</div>
                   <Space align="baseline">
                     <span className="fin-number" style={{ fontSize: '20px', fontWeight: 'bold' }}>{item.price}</span>
-                    <span className="fin-number" style={{ fontSize: '12px', color: item.change.startsWith('+') ? '#cf1322' : '#52c41a' }}>
+                    <span className="fin-number" style={{ fontSize: '12px', color: item.change.startsWith('+') ? '#cf1322' : '#6b7280' }}>
                       {item.change}
                     </span>
                   </Space>

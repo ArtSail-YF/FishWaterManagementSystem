@@ -309,7 +309,7 @@ const MaterialTable: React.FC<MaterialTableProps> = ({
               transition: 'transform 0.2s',
               cursor: 'pointer',
               fontSize: '12px',
-              color: '#1890ff',
+              color: '#1f2937',
             }}
           />
         ),

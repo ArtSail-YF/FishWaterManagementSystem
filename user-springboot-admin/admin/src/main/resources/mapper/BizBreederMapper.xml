@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.aquaculture.mapper.BizBreederMapper">
+
+    <!-- 养殖户 VO 结果映射 -->
+    <resultMap id="BizBreederVOMap" type="com.artsail.aquaculture.model.domain.VO.BizBreederVO">
+        <id property="id" column="id"/>
+        <result property="breederCode" column="breeder_code"/>
+        <result property="breederName" column="breeder_name"/>
+        <result property="legalPerson" column="legal_person"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="idCard" column="id_card"/>
+        <result property="businessLicense" column="business_license"/>
+        <result property="licenseNo" column="license_no"/>
+        <result property="regCapital" column="reg_capital"/>
+        <result property="establishDate" column="establish_date"/>
+        <result property="province" column="province"/>
+        <result property="city" column="city"/>
+        <result property="county" column="county"/>
+        <result property="address" column="address"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="status" column="status"/>
+        <result property="baseId" column="base_id"/>
+        <result property="baseName" column="base_name"/>
+        <result property="pondIds" column="pond_ids"/>
+        <result property="pondNames" column="pond_names"/>
+        <result property="position" column="position"/>
+        <result property="hireDate" column="hire_date"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 多表关联查询养殖户列表（GROUP_CONCAT 拼接塘口） -->
+    <select id="searchWithNames" resultMap="BizBreederVOMap">
+        SELECT
+            b.id,
+            b.breeder_code,
+            b.breeder_name,
+            b.legal_person,
+            b.phone,
+            b.email,
+            b.id_card,
+            b.business_license,
+            b.license_no,
+            b.reg_capital,
+            b.establish_date,
+            b.province,
+            b.city,
+            b.county,
+            b.address,
+            b.longitude,
+            b.latitude,
+            b.status,
+            b.base_id,
+            b.position,
+            b.hire_date,
+            bi.base_name,
+            GROUP_CONCAT(bp.pond_id ORDER BY bp.pond_id) AS pond_ids,
+            GROUP_CONCAT(pi.pond_name ORDER BY bp.pond_id SEPARATOR '||') AS pond_names,
+            b.create_time,
+            b.update_time
+        FROM biz_breeder b
+        LEFT JOIN base_info bi ON b.base_id = bi.id
+        LEFT JOIN biz_breeder_pond bp ON b.id = bp.breeder_id
+        LEFT JOIN pond_info pi ON bp.pond_id = pi.id
+        WHERE b.is_delete = 0
+        <if test="query.breederCode != null and query.breederCode != ''">
+            AND b.breeder_code LIKE CONCAT('%', #{query.breederCode}, '%')
+        </if>
+        <if test="query.breederName != null and query.breederName != ''">
+            AND b.breeder_name LIKE CONCAT('%', #{query.breederName}, '%')
+        </if>
+        <if test="query.legalPerson != null and query.legalPerson != ''">
+            AND b.legal_person LIKE CONCAT('%', #{query.legalPerson}, '%')
+        </if>
+        <if test="query.phone != null and query.phone != ''">
+            AND b.phone LIKE CONCAT('%', #{query.phone}, '%')
+        </if>
+        <if test="query.status != null">
+            AND b.status = #{query.status}
+        </if>
+        GROUP BY b.id
+        ORDER BY b.create_time DESC
+    </select>
+
+    <!-- 批量插入养殖户-塘口关联 -->
+    <insert id="insertBreederPonds">
+        INSERT INTO biz_breeder_pond (breeder_id, pond_id, create_time) VALUES
+        <foreach collection="pondIds" item="pondId" separator=",">
+            (#{breederId}, #{pondId}, NOW())
+        </foreach>
+    </insert>
+
+    <!-- 删除养殖户的所有塘口关联 -->
+    <delete id="deleteBreederPonds">
+        DELETE FROM biz_breeder_pond WHERE breeder_id = #{breederId}
+    </delete>
+
+</mapper>

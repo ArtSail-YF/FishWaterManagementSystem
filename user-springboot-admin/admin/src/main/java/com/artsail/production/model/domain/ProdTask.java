@@ -1,6 +1,6 @@
 package com.artsail.production.model.domain;
 
-import com.artsail.aquaculture.model.domain.BaseEntity;
+import com.artsail.common.domain.LogicDeleteEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("prod_task")
 @EqualsAndHashCode(callSuper = true)
-public class ProdTask extends BaseEntity {
+public class ProdTask extends LogicDeleteEntity {
 
     /**
      * 来源计划ID
@@ -71,14 +71,43 @@ public class ProdTask extends BaseEntity {
     private String cancelReason;
 
     /**
-     * 是否删除
+     * 关联 IoT 设备ID
      */
-    @TableLogic
-    private Integer isDelete;
+    private Long deviceId;
 
     /**
-     * 删除时间
+     * IoT 设备操作指令: read/on/off/set
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime deleteTime;
+    private String deviceAction;
+
+    /**
+     * 优先级: low/medium/high/urgent
+     */
+    private String priority;
+
+    /** 饲料品种 */
+    private String feedVariety;
+
+    /** 投喂量(kg) */
+    private java.math.BigDecimal feedAmount;
+
+    /** 药品名称 */
+    private String drugName;
+
+    /** 用量 */
+    private String dosage;
+
+    /** 休药期天数 */
+    private Integer withdrawalDays;
+
+    /** 气象要求 */
+    private String weatherReq;
+
+    /**
+     * 操作说明/详细描述（发布时从计划复制）
+     */
+    @TableField(exist = false)
+    private String contentDesc;
+
+
 }

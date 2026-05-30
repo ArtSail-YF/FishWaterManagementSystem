@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.ProdTaskMapper">
+
+    <!-- 生产任务 VO 结果映射 -->
+    <resultMap id="ProdTaskVOMap" type="com.artsail.production.model.domain.VO.ProdTaskVO">
+        <id property="id" column="id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="baseId" column="base_id"/>
+        <result property="baseName" column="base_name"/>
+        <result property="taskTitle" column="task_title"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetName" column="target_name"/>
+        <result property="actionTime" column="action_time"/>
+        <result property="deadlineTime" column="deadline_time"/>
+        <result property="status" column="status"/>
+        <result property="assigneeId" column="assignee_id"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="deviceAction" column="device_action"/>
+        <result property="priority" column="priority"/>
+        <result property="contentDesc" column="content_desc"/>
+
+        <result property="feedVariety" column="feed_variety"/>
+        <result property="feedAmount" column="feed_amount"/>
+        <result property="drugName" column="drug_name"/>
+        <result property="dosage" column="dosage"/>
+        <result property="withdrawalDays" column="withdrawal_days"/>
+        <result property="weatherReq" column="weather_req"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 多表关联查询任务列表（带基地名称、目标名称） -->
+    <select id="searchWithNames" resultMap="ProdTaskVOMap">
+        SELECT
+            t.id,
+            t.plan_id,
+            t.base_id,
+            b.base_name,
+            t.task_title,
+            t.target_type,
+            t.target_id,
+            CASE WHEN t.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT(t.target_id, '号塘')) WHEN t.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', t.target_id)) WHEN t.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', t.target_id)) ELSE CONCAT(t.target_id, '') END AS target_name,
+            t.action_time,
+            t.deadline_time,
+            t.status,
+            t.assignee_id,
+            t.cancel_reason,
+            t.device_id,
+            t.device_action,
+            t.priority,
+            t.feed_variety,
+            t.feed_amount,
+            t.drug_name,
+            t.dosage,
+            t.withdrawal_days,
+            t.weather_req,
+            t.create_time,
+            t.update_time,
+            p.content_desc
+        FROM prod_task t
+        LEFT JOIN base_info b ON t.base_id = b.id
+        LEFT JOIN pond_info po ON t.target_id = po.id AND t.target_type = 'pond'
+        LEFT JOIN cage_info ci ON t.target_id = ci.id AND t.target_type = 'cage'
+        LEFT JOIN vsl_info vi ON t.target_id = vi.id AND t.target_type = 'vsl'
+        LEFT JOIN prod_plan p ON t.plan_id = p.id
+
+        WHERE t.is_delete = 0
+        <if test="query.planId != null">
+            AND t.plan_id = #{query.planId}
+        </if>
+        <if test="query.baseId != null">
+            AND t.base_id = #{query.baseId}
+        </if>
+        <if test="query.targetType != null and query.targetType != ''">
+            AND t.target_type = #{query.targetType}
+        </if>
+        <if test="query.targetId != null">
+            AND t.target_id = #{query.targetId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND t.status = #{query.status}
+        </if>
+        <if test="query.assigneeId != null">
+            AND t.assignee_id = #{query.assigneeId}
+        </if>
+        ORDER BY t.create_time DESC
+    </select>
+
+</mapper>

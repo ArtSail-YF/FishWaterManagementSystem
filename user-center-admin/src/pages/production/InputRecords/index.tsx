@@ -163,7 +163,7 @@ const InputRecords: React.FC = () => {
         <a key="edit" onClick={() => { setCurrentRow(record); setModalVisible(true); }}>编辑</a>,
         <a
           key="delete"
-          style={{ color: '#ff4d4f' }}
+          style={{ color: '#ef4444' }}
           onClick={async () => {
             try {
               await deleteStockRecord(record.id);
@@ -218,7 +218,7 @@ const InputRecords: React.FC = () => {
               title="待审核投入"
               value={8}
               suffix="笔"
-              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ color: '#9ca3af', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               涉及金额: <span className="fin-number">¥12,450.00</span>
@@ -232,7 +232,7 @@ const InputRecords: React.FC = () => {
               value={85600.00}
               prefix="¥"
               precision={2}
-              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ color: '#1f2937', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               年度预算执行率: <span className="fin-number">65%</span>
@@ -310,7 +310,6 @@ const InputRecords: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        bordered
       />
 
       <InputForm

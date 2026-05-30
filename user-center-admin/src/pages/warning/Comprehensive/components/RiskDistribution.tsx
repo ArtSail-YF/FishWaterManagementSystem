@@ -62,7 +62,7 @@ const RiskDistribution: React.FC = () => {
         itemWidth: 10,
         itemHeight: 80,
         inRange: {
-          color: ['#f6ffed', '#faad14', '#cf1322']
+          color: ['#f6ffed', '#9ca3af', '#cf1322']
         },
         textStyle: { fontSize: 10 }
       },

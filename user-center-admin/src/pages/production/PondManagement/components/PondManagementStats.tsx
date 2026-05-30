@@ -37,7 +37,7 @@ const PondManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
             title="管理设施总数"
             value={data.length}
             suffix="个"
-            valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             prefix={<AppstoreOutlined />}
           />
           <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
@@ -54,11 +54,11 @@ const PondManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
             value={totalArea}
             suffix={data.some(item => item.category === 'pond') ? '亩' : '单位'}
             precision={1}
-            valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             prefix={<DeploymentUnitOutlined />}
           />
           <div style={{ marginTop: 8 }}>
-            <Progress percent={Math.min(onlineRate, 100)} size="small" strokeColor="#52c41a" showInfo={false} />
+            <Progress percent={Math.min(onlineRate, 100)} size="small" strokeColor="#6b7280" showInfo={false} />
             <div style={{ fontSize: '11px', color: '#999', display: 'flex', justifyContent: 'space-between' }}>
               <span>设备在线率</span>
               <span>{onlineRate.toFixed(1)}%</span>
@@ -73,12 +73,12 @@ const PondManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
             value={onlineRate}
             suffix="%"
             precision={1}
-            valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             prefix={<VideoCameraOutlined />}
           />
           <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            <span style={{ color: '#52c41a' }}>● 在线: {onlineCount}</span>
-            <span style={{ marginLeft: 12, color: '#ff4d4f' }}>● 异常: {data.length - onlineCount}</span>
+            <span style={{ color: '#6b7280' }}>● 在线: {onlineCount}</span>
+            <span style={{ marginLeft: 12, color: '#ef4444' }}>● 异常: {data.length - onlineCount}</span>
           </div>
         </Card>
       </Col>
@@ -88,7 +88,7 @@ const PondManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
             title="IoT 设备覆盖"
             value={totalSensors}
             suffix="个"
-            valueStyle={{ color: '#722ed1', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             prefix={<ApiOutlined />}
           />
           <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>

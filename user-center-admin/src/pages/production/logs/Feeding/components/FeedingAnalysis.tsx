@@ -29,7 +29,7 @@ const FeedingAnalysis: React.FC = () => {
         areaStyle: {},
         emphasis: { focus: 'series' },
         data: [120, 132, 101, 134, 90, 230, 210],
-        itemStyle: { color: '#1890ff' }
+        itemStyle: { color: '#B54E3C' }
       },
       {
         name: '1.0mm 饲料',
@@ -38,7 +38,7 @@ const FeedingAnalysis: React.FC = () => {
         areaStyle: {},
         emphasis: { focus: 'series' },
         data: [220, 182, 191, 234, 290, 330, 310],
-        itemStyle: { color: '#52c41a' }
+        itemStyle: { color: '#2B6B8A' }
       },
       {
         name: '1.5mm 饲料',
@@ -47,7 +47,7 @@ const FeedingAnalysis: React.FC = () => {
         areaStyle: {},
         emphasis: { focus: 'series' },
         data: [150, 232, 201, 154, 190, 330, 410],
-        itemStyle: { color: '#faad14' }
+        itemStyle: { color: '#C4A35A' }
       }
     ]
   };
@@ -72,8 +72,8 @@ const FeedingAnalysis: React.FC = () => {
         name: '投喂时间分布',
         type: 'radar',
         data: [{ value: [420, 300, 450, 120], name: '当前周期' }],
-        itemStyle: { color: '#1890ff' },
-        areaStyle: { color: 'rgba(24, 144, 255, 0.2)' }
+        itemStyle: { color: '#B54E3C' },
+        areaStyle: { color: 'rgba(181, 78, 60, 0.15)' }
       }
     ]
   };

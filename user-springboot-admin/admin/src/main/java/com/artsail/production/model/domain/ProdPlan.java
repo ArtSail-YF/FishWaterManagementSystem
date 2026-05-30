@@ -1,12 +1,13 @@
 package com.artsail.production.model.domain;
 
-import com.artsail.aquaculture.model.domain.BaseEntity;
+import com.artsail.common.domain.LogicDeleteEntity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
  * 生产计划实体类
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("prod_plan")
 @EqualsAndHashCode(callSuper = true)
-public class ProdPlan extends BaseEntity {
+public class ProdPlan extends LogicDeleteEntity {
 
     /**
      * 所属基地ID
@@ -83,16 +84,19 @@ public class ProdPlan extends BaseEntity {
      */
     private Long assigneeGroupId;
 
-    /**
-     * 是否删除: 0-正常, 1-已删除
-     */
-    @TableLogic
-    private Integer isDelete;
-
-    /**
-     * 删除时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime deleteTime;
+    /** 饲料品种 */
+    private String feedVariety;
+    /** 计划投喂量(kg) */
+    private BigDecimal feedAmount;
+    /** 药品名称 */
+    private String drugName;
+    /** 用量 */
+    private String dosage;
+    /** 休药期天数 */
+    private Integer withdrawalDays;
+    /** 气象要求 */
+    private String weatherReq;
+    /** 预计产量 */
+    private BigDecimal estYield;
 }
 

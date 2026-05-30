@@ -1,5 +1,7 @@
 package com.artsail.aquaculture.model.domain;
 
+import com.artsail.common.domain.LogicDeleteEntity;
+
 import com.artsail.common.enums.PondStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 @TableName("pond_info")
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Pond extends BaseEntity {
+public class Pond extends LogicDeleteEntity {
 
     /**
      * 塘口编码
@@ -153,17 +155,5 @@ public class Pond extends BaseEntity {
     @TableField("status")
     private PondStatusEnum status;
 
-    /**
-     * 逻辑删除标识：0-未删除，1-已删除
-     */
-    @TableLogic
-    @TableField("is_delete")
-    private Boolean isDeleted;
 
-    /**
-     * 删除时间
-     */
-    @TableField("delete_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime deleteTime;
 }

@@ -48,7 +48,7 @@ const BatchMedicineModal: React.FC<BatchMedicineModalProps> = ({ visible, onCanc
       destroyOnClose
       styles={{ body: { padding: '24px' } }}
     >
-      <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fff7e6', borderLeft: '4px solid #fa8c16', borderRadius: '2px' }}>
+      <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fff7e6', borderLeft: '4px solid #9ca3af', borderRadius: '2px' }}>
         <Paragraph style={{ marginBottom: '4px', fontSize: '13px' }}>
           <Text strong>专家建议：</Text>用药记录合规性要求高，建议由技术员根据现场诊断统一录入。
         </Paragraph>

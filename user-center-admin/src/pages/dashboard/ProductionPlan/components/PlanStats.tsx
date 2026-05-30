@@ -26,7 +26,7 @@ const PlanStats: React.FC<PlanStatsProps> = ({ stats }) => {
           <Statistic
             title="今日待执行"
             value={stats.todayTasks}
-            prefix={<ClockCircleOutlined style={{ color: '#1890ff' }} />}
+            prefix={<ClockCircleOutlined style={{ color: '#1f2937' }} />}
             suffix="项"
           />
         </Col>
@@ -34,7 +34,7 @@ const PlanStats: React.FC<PlanStatsProps> = ({ stats }) => {
           <Statistic
             title="已完成任务"
             value={stats.completedTasks}
-            valueStyle={{ color: '#52c41a' }}
+            valueStyle={{ color: '#6b7280' }}
             prefix={<CheckCircleOutlined />}
             suffix="项"
           />
@@ -51,7 +51,7 @@ const PlanStats: React.FC<PlanStatsProps> = ({ stats }) => {
           <Statistic
             title="逾期未完成"
             value={stats.overdueTasks}
-            valueStyle={{ color: '#ff4d4f' }}
+            valueStyle={{ color: '#ef4444' }}
             prefix={<WarningOutlined />}
             suffix="项"
           />

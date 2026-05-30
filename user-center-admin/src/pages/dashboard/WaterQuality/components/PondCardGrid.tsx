@@ -17,11 +17,11 @@ const PondCardGrid: React.FC<PondCardGridProps> = ({ ponds, selectedPondId, onSe
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'normal':
-        return '#52c41a';
+        return '#6b7280';
       case 'warning':
-        return '#faad14';
+        return '#9ca3af';
       case 'error':
-        return '#ff4d4f';
+        return '#ef4444';
       default:
         return '#d9d9d9';
     }
@@ -45,7 +45,7 @@ const PondCardGrid: React.FC<PondCardGridProps> = ({ ponds, selectedPondId, onSe
               body: { padding: 12 },
             }}
             style={{
-              border: `1px solid ${selectedPondId === pond.id ? '#1890ff' : '#f0f0f0'}`,
+              border: `1px solid ${selectedPondId === pond.id ? '#1f2937' : '#f0f0f0'}`,
               borderLeft: `4px solid ${getStatusColor(pond.status)}`,
               boxShadow: selectedPondId === pond.id ? '0 0 8px rgba(24,144,255,0.2)' : 'none',
               transition: 'all 0.3s',
@@ -60,7 +60,7 @@ const PondCardGrid: React.FC<PondCardGridProps> = ({ ponds, selectedPondId, onSe
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>溶氧 (DO)</Text>
                 <Space size={4}>
-                  <Text strong style={{ color: (pond.indicators?.oxygen?.value || 0) < 5 ? '#ff4d4f' : 'inherit' }}>
+                  <Text strong style={{ color: (pond.indicators?.oxygen?.value || 0) < 5 ? '#ef4444' : 'inherit' }}>
                     {(pond.indicators?.oxygen?.value || '--')} mg/L
                   </Text>
                   <TrendIcon trend={pond.indicators?.oxygen?.trend || 'stable'} />

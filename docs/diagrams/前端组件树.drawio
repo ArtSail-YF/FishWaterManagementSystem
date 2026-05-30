@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron" modified="2026-05-29T10:30:00.000Z" agent="5.0" version="21.3.7">
+  <diagram id="log-frontend-tree" name="前端组件树">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- 标题 -->
+        <mxCell id="title" value="生产日志 前端组件树" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="400" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- 根路由 -->
+        <mxCell id="router" value="/production/logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#37474f;strokeColor=#263238;fontColor=#ffffff;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="90" width="220" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- 日志主页面 -->
+        <mxCell id="main-page" value="页：index.tsx&#10;日志管理主页面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="150" width="220" height="45" as="geometry"/>
+        </mxCell>
+        
+        <!-- 公共组件 -->
+        <mxCell id="common-label" value="公共组件 (components/)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="160" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- 公共子组件 -->
+        <mxCell id="log-filter" value="LogFilter.tsx&#10;筛选面板" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-table" value="LogTable.tsx&#10;日志列表表格" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-detail" value="LogDetail.tsx&#10;日志详情弹窗" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-form" value="LogForm.tsx&#10;录入/编辑表单" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-verify" value="LogVerifyModal.tsx&#10;审核弹窗" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="480" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-photo" value="LogPhotoViewer.tsx&#10;照片预览" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="log-stats" value="LogStats.tsx&#10;统计概览" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="580" width="140" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- 投喂子模块 -->
+        <mxCell id="feeding-label" value="投喂日志 (Feeding/)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="330" y="240" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="feeding-index" value="index.tsx&#10;投喂日志页面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="280" width="150" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="feeding-filter" value="FeedingFilter.tsx&#10;投喂筛选" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="330" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="feeding-table" value="FeedingLogTable.tsx&#10;投喂日志表格" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="375" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="feeding-analysis" value="FeedingAnalysis.tsx&#10;投喂分析" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="420" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="feeding-stats" value="FeedingStats.tsx&#10;投喂统计" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="465" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="batch-feeding" value="BatchFeedingModal.tsx&#10;批量录入弹窗" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ef6c00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="510" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- 用药子模块 -->
+        <mxCell id="medicine-label" value="用药日志 (Medicine/)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="610" y="240" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="medicine-index" value="index.tsx&#10;用药日志页面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="280" width="150" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="medicine-filter" value="MedicineFilter.tsx&#10;用药筛选" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="330" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="medicine-table" value="MedicineLogTable.tsx&#10;用药日志表格" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="375" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="medicine-analysis" value="MedicineAnalysis.tsx&#10;用药分析" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="420" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="medicine-stats" value="MedicineStats.tsx&#10;用药统计" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="465" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="batch-medicine" value="BatchMedicineModal.tsx&#10;批量录入弹窗" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="510" width="150" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- 连线 -->
+        <mxCell id="line-main-to-common" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1565c0;strokeWidth=1;dashed=1;" edge="1" parent="1">
+          <mxGeometry x="480" y="195" relative="1" as="geometry">
+            <mxPoint x="480" y="195"/>
+            <mxPoint x="140" y="260"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="line-main-to-feeding" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef6c00;strokeWidth=1;dashed=1;" edge="1" parent="1">
+          <mxGeometry x="460" y="195" relative="1" as="geometry">
+            <mxPoint x="460" y="195"/>
+            <mxPoint x="380" y="260"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="line-main-to-medicine" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#388e3c;strokeWidth=1;dashed=1;" edge="1" parent="1">
+          <mxGeometry x="500" y="195" relative="1" as="geometry">
+            <mxPoint x="500" y="195"/>
+            <mxPoint x="660" y="260"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

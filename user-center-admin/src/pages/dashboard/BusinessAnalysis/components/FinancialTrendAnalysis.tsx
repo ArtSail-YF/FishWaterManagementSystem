@@ -91,7 +91,7 @@ const FinancialTrendAnalysis: React.FC = () => {
           shape: 'circle',
           style: {
             fill: 'white',
-            stroke: '#1890ff',
+            stroke: '#1f2937',
             lineWidth: 2,
           },
         },
@@ -110,7 +110,7 @@ const FinancialTrendAnalysis: React.FC = () => {
             },
           },
           areaStyle: {
-            fill: 'l(270) 0:#ffffff 0.5:#1890ff 1:#1890ff',
+            fill: 'l(270) 0:#ffffff 0.5:#1f2937 1:#1f2937',
           },
         });
       }
@@ -146,7 +146,7 @@ const FinancialTrendAnalysis: React.FC = () => {
           value: { alias: '利润率(%)' },
         },
         smooth: true,
-        color: '#52c41a',
+        color: '#6b7280',
         lineStyle: {
           lineWidth: 3,
         },
@@ -155,7 +155,7 @@ const FinancialTrendAnalysis: React.FC = () => {
           shape: 'diamond',
           style: {
             fill: 'white',
-            stroke: '#52c41a',
+            stroke: '#6b7280',
             lineWidth: 2,
           },
         },
@@ -206,7 +206,7 @@ const FinancialTrendAnalysis: React.FC = () => {
         legend: {
           position: 'top',
         },
-        color: ['#1890ff', '#ff4d4f'],
+        color: ['#1f2937', '#ef4444'],
         label: {
           position: 'middle',
           style: {

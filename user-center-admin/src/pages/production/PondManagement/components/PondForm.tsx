@@ -55,7 +55,7 @@ const PondForm: React.FC<PondFormProps> = ({
 
   const renderPondFields = () => (
     <>
-      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         基础身份信息
       </div>
       <Row gutter={16}>
@@ -78,7 +78,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         物理规格
       </div>
       <Row gutter={16}>
@@ -120,7 +120,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         设备与智能化
       </div>
       <Row gutter={16}>
@@ -168,7 +168,7 @@ const PondForm: React.FC<PondFormProps> = ({
 
   const renderCageFields = () => (
     <>
-      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         基础身份信息
       </div>
       <Row gutter={16}>
@@ -191,7 +191,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         位置与环境
       </div>
       <Row gutter={16}>
@@ -224,7 +224,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         规格与材质
       </div>
       <Row gutter={16}>
@@ -269,7 +269,7 @@ const PondForm: React.FC<PondFormProps> = ({
 
   const renderWorkboatFields = () => (
     <>
-      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         基础身份信息
       </div>
       <Row gutter={16}>
@@ -290,7 +290,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         船舶参数
       </div>
       <Row gutter={16}>
@@ -328,7 +328,7 @@ const PondForm: React.FC<PondFormProps> = ({
         </Col>
       </Row>
 
-      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+      <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
         生产能力
       </div>
       <Row gutter={16}>

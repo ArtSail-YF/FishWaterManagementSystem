@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.ProdLogMapper">
+
+    <select id="selectStatsByLogType" resultType="java.util.HashMap">
+        SELECT 
+            log_type AS logType,
+            COUNT(*) AS count
+        FROM prod_log
+        WHERE is_delete = 0
+          AND log_type IS NOT NULL
+        GROUP BY log_type
+        ORDER BY count DESC
+    </select>
+
+    <select id="selectStatsByBase" resultType="java.util.HashMap">
+        SELECT 
+            base_id AS baseId,
+            COUNT(*) AS count
+        FROM prod_log
+        WHERE is_delete = 0
+          AND base_id IS NOT NULL
+        GROUP BY base_id
+        ORDER BY count DESC
+    </select>
+
+</mapper>

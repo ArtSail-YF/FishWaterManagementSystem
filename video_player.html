@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水产管理操作系统 - 项目介绍</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a192f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+
+  .player {
+    width: 360px;
+    height: 640px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 150, 255, 0.3);
+    position: relative;
+    background: #000;
+  }
+
+  .slides {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+  }
+
+  .slide.active { opacity: 1; }
+
+  .slide-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .slide-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    transition: width 0.1s linear;
+  }
+
+  .slide-label {
+    position: absolute;
+    bottom: 20px;
+    left: 0; right: 0;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="player" id="player">
+  <div class="slides" id="slides"></div>
+  <div class="slide-overlay">
+    <div class="slide-progress" id="progress"></div>
+  </div>
+  <div class="slide-label" id="label">1 / 5</div>
+</div>
+
+<script>
+const FRAMES_BASE = 'file:///C:/Users/13372/Desktop/mark/项目/水产管理/video_frames';
+
+const slides = [
+  { file: 'frame_001_title.png', label: '厦门现代渔业 水产管理操作系统' },
+  { file: 'frame_002_positioning.png', label: '核心定位：合规·两岸·陆基·数据' },
+  { file: 'frame_003_users.png', label: '三大核心用户群体' },
+  { file: 'frame_004_capabilities.png', label: '系统核心能力矩阵' },
+  { file: 'frame_005_closing.png', label: '让合规创造价值' },
+];
+
+const DURATION = 10;
+const SLIDE_TIME = DURATION / slides.length;
+
+const container = document.getElementById('slides');
+slides.forEach((s, i) => {
+  const div = document.createElement('div');
+  div.className = 'slide' + (i === 0 ? ' active' : '');
+  div.style.backgroundImage = `url(${FRAMES_BASE}/${s.file})`;
+  container.appendChild(div);
+});
+
+let current = 0;
+const els = container.querySelectorAll('.slide');
+const progress = document.getElementById('progress');
+const label = document.getElementById('label');
+
+function updateProgress() {
+  const elapsed = (Date.now() - startTime) / 1000;
+  const pct = Math.min(100, (elapsed / DURATION) * 100);
+  progress.style.width = pct + '%';
+
+  // which slide
+  const idx = Math.min(slides.length - 1, Math.floor(elapsed / SLIDE_TIME));
+  if (idx !== current) {
+    els[current].classList.remove('active');
+    els[idx].classList.add('active');
+    current = idx;
+    label.textContent = `${idx + 1} / ${slides.length}  ${slides[idx].label}`;
+  }
+
+  if (elapsed < DURATION) {
+    requestAnimationFrame(updateProgress);
+  }
+}
+
+const startTime = Date.now();
+requestAnimationFrame(updateProgress);
+label.textContent = `1 / ${slides.length}  ${slides[0].label}`;
+</script>
+
+</body>
+</html>

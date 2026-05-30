@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.ProdPlanMapper">
+
+    <!-- 生产计划 VO 结果映射 -->
+    <resultMap id="ProdPlanVOMap" type="com.artsail.production.model.domain.VO.ProdPlanVO">
+        <id property="id" column="id"/>
+        <result property="baseId" column="base_id"/>
+        <result property="baseName" column="base_name"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetName" column="target_name"/>
+        <result property="parentPlanId" column="parent_plan_id"/>
+        <result property="targetType" column="target_type"/>
+        <result property="planType" column="plan_type"/>
+        <result property="title" column="title"/>
+        <result property="contentDesc" column="content_desc"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="cycleRule" column="cycle_rule"/>
+        <result property="status" column="status"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="assigneeGroupId" column="assignee_group_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 多表关联查询计划列表（带基地名称、目标名称） -->
+    <select id="searchWithNames" resultMap="ProdPlanVOMap">
+        SELECT
+            p.id,
+            p.base_id,
+            b.base_name,
+            p.target_id,
+            CASE WHEN p.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT(p.target_id, '号塘')) WHEN p.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', p.target_id)) WHEN p.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', p.target_id)) ELSE CONCAT(p.target_id, '') END AS target_name,
+            p.parent_plan_id,
+            p.target_type,
+            p.plan_type,
+            p.title,
+            p.content_desc,
+            p.start_time,
+            p.end_time,
+            p.cycle_rule,
+            p.status,
+            p.owner_id,
+            p.assignee_group_id,
+            p.create_time,
+            p.update_time
+        FROM prod_plan p
+        LEFT JOIN base_info b ON p.base_id = b.id
+        LEFT JOIN pond_info po ON p.target_id = po.id AND p.target_type = 'pond'
+        LEFT JOIN cage_info ci ON p.target_id = ci.id AND p.target_type = 'cage'
+        LEFT JOIN vsl_info vi ON p.target_id = vi.id AND p.target_type = 'vsl'
+        WHERE p.is_delete = 0
+        <if test="query.baseId != null">
+            AND p.base_id = #{query.baseId}
+        </if>
+        <if test="query.targetType != null and query.targetType != ''">
+            AND p.target_type = #{query.targetType}
+        </if>
+        <if test="query.targetId != null">
+            AND p.target_id = #{query.targetId}
+        </if>
+        <if test="query.planType != null and query.planType != ''">
+            AND p.plan_type = #{query.planType}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND p.status = #{query.status}
+        </if>
+        <if test="query.title != null and query.title != ''">
+            AND p.title LIKE CONCAT('%', #{query.title}, '%')
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+</mapper>

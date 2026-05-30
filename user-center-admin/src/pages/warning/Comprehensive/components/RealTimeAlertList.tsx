@@ -16,9 +16,9 @@ const RealTimeAlertList: React.FC<RealTimeAlertListProps> = ({ data, onHandle, o
       case 'P0':
         return { color: '#fff', backgroundColor: '#cf1322', fontWeight: 'bold' };
       case 'P1':
-        return { color: '#faad14', backgroundColor: 'transparent', border: '1px solid #faad14' };
+        return { color: '#9ca3af', backgroundColor: 'transparent', border: '1px solid #9ca3af' };
       case 'P2':
-        return { color: '#1890ff', backgroundColor: 'transparent', border: '1px solid #1890ff' };
+        return { color: '#1f2937', backgroundColor: 'transparent', border: '1px solid #1f2937' };
       default:
         return {};
     }

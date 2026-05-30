@@ -167,7 +167,7 @@ const BaseFilter: React.FC<BaseFilterProps> = ({
           header={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
               <span style={{ display: 'flex', alignItems: 'center', fontSize: 14, fontWeight: 500 }}>
-                <FilterOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                <FilterOutlined style={{ marginRight: 8, color: '#1f2937' }} />
                 高级筛选
               </span>
             </div>

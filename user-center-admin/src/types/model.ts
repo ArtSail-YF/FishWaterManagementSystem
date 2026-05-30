@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 数据模型类型定义
  * 前端使用的理想数据模型
  */
@@ -36,16 +36,18 @@ export interface ProductionPlan extends BaseEntity {
   status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled'; // 状态
   ownerId?: number;                   // 制定人/管理员ID
   assigneeGroupId?: number;           // 指派班组/角色ID
-  // 计划详情字段 (prod_plan_detail)
-  feedAmount?: number;                // 计划投喂量(kg)
-  feedVariety?: string;               // 饲料品种
-  drugName?: string;                  // 药品名称
-  dosage?: string;                    // 用量
-  withdrawalDays?: number;            // 休药期天数
-  longitude?: number;                 // 作业海域经度
-  latitude?: number;                  // 作业海域纬度
-  weatherReq?: string;                // 气象要求
-  estYield?: number;                  // 预计产量
+  baseName?: string;                   // 基地名称（关联查询）
+  targetName?: string;                  // 目标名称（关联查询）
+  deviceId?: number;                    // 关联 IoT 设备ID
+  deviceAction?: string;                // IoT 设备操作指令
+  priority?: string;                     // 优先级: low/medium/high/urgent
+  feedVariety?: string;                  // 饲料品种
+  feedAmount?: number;                    // 投喂量(kg)
+  drugName?: string;                      // 药品名称
+  dosage?: string;                        // 用量
+  withdrawalDays?: number;               // 休药期天数
+  weatherReq?: string;                    // 气象要求
+  estYield?: number;                      // 预计产量(kg)
   // 系统字段
   createTime?: string;                // 创建时间
   updateTime?: string;                // 更新时间
@@ -65,6 +67,8 @@ export interface ProductionTask extends BaseEntity {
   status?: 'pending' | 'assigned' | 'doing' | 'done' | 'skipped' | 'expired'; // 状态
   assigneeId?: number;                // 具体执行工人ID
   cancelReason?: string;              // 取消/跳过原因
+  baseName?: string;                   // 基地名称（关联查询）
+  targetName?: string;                  // 目标名称（关联查询）
   // 系统字段
   createTime?: string;                // 创建时间
   updateTime?: string;                // 更新时间
@@ -287,6 +291,29 @@ export interface IoTNode extends BaseEntity {
   lastMaintenanceDate?: string; // 最后维护日期
   nextMaintenanceDate?: string; // 下次维护日期
 }
+
+/** IoT 设备 (iot_device) */
+export interface IoTDevice {
+  id?: number;
+  deviceSn?: string;             // 设备唯一序列号
+  deviceName?: string;           // 设备名称
+  typeId?: number;               // 设备类型ID
+  typeName?: string;             // 设备类型名称（联表）
+  typeCode?: string;             // 设备类型编码（联表）
+  baseId?: number;               // 所属基地ID
+  baseName?: string;             // 基地名称（联表）
+  pondId?: number;               // 关联塘口ID
+  pondName?: string;             // 塘口名称（联表）
+  ipAddress?: string;            // IP地址
+  port?: number;                 // 端口
+  authInfo?: string;             // 鉴权信息
+  status?: number;               // 1=在线, 0=离线, 2=维护中
+  statusText?: string;           // 状态文本
+  lastHeartbeat?: string;        // 最后心跳时间
+  installTime?: string;          // 安装时间
+  remark?: string;               // 备注
+}
+
 
 // ====== 输入记录模型 ======
 

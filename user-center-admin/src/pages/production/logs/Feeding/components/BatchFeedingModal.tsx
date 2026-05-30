@@ -49,7 +49,7 @@ const BatchFeedingModal: React.FC<BatchFeedingModalProps> = ({ visible, onCancel
       destroyOnClose
       styles={{ body: { padding: '24px' } }}
     >
-      <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f0f5ff', borderLeft: '4px solid #1890ff', borderRadius: '2px' }}>
+      <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f0f5ff', borderLeft: '4px solid #1f2937', borderRadius: '2px' }}>
         <Paragraph style={{ marginBottom: '4px', fontSize: '13px' }}>
           <Text strong>专家建议：</Text>针对现场工人填报意愿低的现状，采用“文员代填模式”。
         </Paragraph>

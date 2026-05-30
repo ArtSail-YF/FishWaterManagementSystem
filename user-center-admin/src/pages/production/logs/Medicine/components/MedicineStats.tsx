@@ -14,7 +14,7 @@ const MedicineStats: React.FC = () => {
             value={850}
             precision={0}
             valueStyle={{ fontSize: '24px', fontWeight: 'bold' }}
-            prefix={<MedicineBoxOutlined style={{ color: '#1890ff', marginRight: '8px' }} />}
+            prefix={<MedicineBoxOutlined style={{ color: '#1f2937', marginRight: '8px' }} />}
             className="fin-number"
           />
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
@@ -28,7 +28,7 @@ const MedicineStats: React.FC = () => {
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>休药期监控中 (池塘)</Text>}
             value={5}
-            valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}
+valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
             prefix={<HistoryOutlined style={{ marginRight: '8px' }} />}
             className="fin-number"
           />
@@ -43,7 +43,7 @@ const MedicineStats: React.FC = () => {
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>库存周转警报 (品种)</Text>}
             value={2}
-            valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#cf1322' }}
+valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
             prefix={<StockOutlined style={{ marginRight: '8px' }} />}
             className="fin-number"
           />
@@ -58,7 +58,7 @@ const MedicineStats: React.FC = () => {
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>违禁/异常用药预警</Text>}
             value={0}
-            valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}
+valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
             prefix={<AlertOutlined style={{ marginRight: '8px' }} />}
             className="fin-number"
           />

@@ -1,0 +1,8 @@
+拒绝访问。
+[ERROR] The goal you specified requires a project to execute but there is no POM in this directory (C:\Users\13372\Desktop\mark\项目\水产管理\user-springboot-admin). Please verify you invoked Maven from the correct directory. -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MissingProjectException

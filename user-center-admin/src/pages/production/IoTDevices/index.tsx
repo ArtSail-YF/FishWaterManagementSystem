@@ -1,385 +1,171 @@
-import { PlusOutlined, WifiOutlined, ApiOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Modal, message, Badge, Card, Row, Col, Statistic, Progress } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, WifiOutlined, ApiOutlined, SettingOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { PageContainer, ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
+import { Button, Tag, Space, Modal, message, Card, Row, Col, Statistic, Typography, Descriptions } from 'antd';
 
-// IoT 设备数据类型定义
-export interface IoTDeviceItem {
-  id: string;
-  deviceId: string;
-  name: string;
-  type: 'sensor' | 'gateway' | 'controller' | 'camera';
-  status: 'online' | 'offline' | 'error';
-  location: string;
-  pondId: string;
-  pondName: string;
-  firmwareVersion: string;
-  lastCommunication: string;
-  batteryLevel?: number;
-  signalStrength?: number;
-  dataPoints: number;
-  createdAt: string;
-  updatedAt: string;
-}
+const { Text } = Typography;
+import {
+  searchIotDevices,
+  createIotDevice,
+  updateIotDevice,
+  deleteIotDevice,
+  setDeviceStatus,
+} from '@/services/api/iot';
+import type { IoTDevice } from '@/types/model';
+import DeviceConfigModal from './components/DeviceConfigModal';
 
-// 模拟数据
-const mockData: IoTDeviceItem[] = [
-  {
-    id: 'D001',
-    deviceId: 'SENSOR-001',
-    name: '水质传感器-1号塘',
-    type: 'sensor',
-    status: 'online',
-    location: '1号精养塘-东北角',
-    pondId: 'P001',
-    pondName: '1号精养塘',
-    firmwareVersion: 'v1.2.3',
-    lastCommunication: '2024-01-15 14:30:25',
-    batteryLevel: 85,
-    signalStrength: 92,
-    dataPoints: 1250,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: 'D002',
-    deviceId: 'GATEWAY-001',
-    name: '网关设备-中心区域',
-    type: 'gateway',
-    status: 'online',
-    location: '养殖基地中心',
-    pondId: 'P001',
-    pondName: '1号精养塘',
-    firmwareVersion: 'v2.1.0',
-    lastCommunication: '2024-01-15 14:28:10',
-    batteryLevel: 100,
-    signalStrength: 95,
-    dataPoints: 0,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: 'D003',
-    deviceId: 'CAMERA-001',
-    name: '监控摄像头-南侧',
-    type: 'camera',
-    status: 'error',
-    location: '1号精养塘-南侧',
-    pondId: 'P001',
-    pondName: '1号精养塘',
-    firmwareVersion: 'v1.5.2',
-    lastCommunication: '2024-01-14 09:15:30',
-    batteryLevel: 45,
-    signalStrength: 78,
-    dataPoints: 320,
-    createdAt: '2024-01-05',
-    updatedAt: '2024-01-14',
-  },
-  {
-    id: 'D004',
-    deviceId: 'SENSOR-002',
-    name: '温度传感器-2号塘',
-    type: 'sensor',
-    status: 'offline',
-    location: '2号混养塘-西侧',
-    pondId: 'P002',
-    pondName: '2号混养塘',
-    firmwareVersion: 'v1.2.1',
-    lastCommunication: '2024-01-13 16:45:20',
-    batteryLevel: 25,
-    signalStrength: 65,
-    dataPoints: 890,
-    createdAt: '2024-01-03',
-    updatedAt: '2024-01-13',
-  },
-  {
-    id: 'D005',
-    deviceId: 'CONTROLLER-001',
-    name: '投喂控制器',
-    type: 'controller',
-    status: 'online',
-    location: '1号精养塘-投喂区',
-    pondId: 'P001',
-    pondName: '1号精养塘',
-    firmwareVersion: 'v1.8.0',
-    lastCommunication: '2024-01-15 14:25:15',
-    batteryLevel: 92,
-    signalStrength: 88,
-    dataPoints: 560,
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-15',
-  },
-];
-
-// 统计组件
-const IoTDeviceStats: React.FC<{ data: IoTDeviceItem[] }> = ({ data }) => {
-  const onlineCount = data.filter(item => item.status === 'online').length;
-  const offlineCount = data.filter(item => item.status === 'offline').length;
-  const errorCount = data.filter(item => item.status === 'error').length;
-  const onlineRate = data.length > 0 ? (onlineCount / data.length) * 100 : 0;
-  
-  const totalDataPoints = data.reduce((sum, item) => sum + item.dataPoints, 0);
-  const avgBatteryLevel = data.reduce((sum, item) => sum + (item.batteryLevel || 0), 0) / data.length;
-
-  return (
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-      <Col span={6}>
-        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
-          <Statistic
-            title="设备总数"
-            value={data.length}
-            suffix="台"
-            valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
-            prefix={<WifiOutlined />}
-          />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            <Tag color="green" size="small">在线: {onlineCount}</Tag>
-            <Tag color="orange" size="small">离线: {offlineCount}</Tag>
-            <Tag color="red" size="small">异常: {errorCount}</Tag>
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
-          <Statistic
-            title="设备在线率"
-            value={onlineRate}
-            suffix="%"
-            precision={1}
-            valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
-            prefix={<ApiOutlined />}
-          />
-          <div style={{ marginTop: 8 }}>
-            <Progress percent={onlineRate} size="small" strokeColor="#52c41a" showInfo={false} />
-            <div style={{ fontSize: '11px', color: '#999', display: 'flex', justifyContent: 'space-between' }}>
-              <span>运行状态</span>
-              <span>{onlineRate.toFixed(1)}%</span>
-            </div>
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
-          <Statistic
-            title="数据采集总量"
-            value={totalDataPoints}
-            suffix="条"
-            valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
-            prefix={<SettingOutlined />}
-          />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            <span>今日新增: 125条</span>
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
-          <Statistic
-            title="平均电池电量"
-            value={avgBatteryLevel}
-            suffix="%"
-            precision={1}
-            valueStyle={{ color: '#722ed1', fontFamily: 'AlibabaSans' }}
-            prefix={<ReloadOutlined />}
-          />
-          <div style={{ marginTop: 8 }}>
-            <Progress percent={avgBatteryLevel} size="small" strokeColor="#722ed1" showInfo={false} />
-            <div style={{ fontSize: '11px', color: '#999', display: 'flex', justifyContent: 'space-between' }}>
-              <span>电量状态</span>
-              <span>{avgBatteryLevel.toFixed(1)}%</span>
-            </div>
-          </div>
-        </Card>
-      </Col>
-    </Row>
-  );
+const STATUS_MAP = {
+  1: { label: '在线', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
+  0: { label: '离线', bgColor: '#EBE5DE', textColor: '#7A6E64' },
+  2: { label: '维护中', bgColor: '#F5EDD6', textColor: '#A0843A' },
 };
 
-const IoTDevices: React.FC = () => {
-  const [selectedRowsState, setSelectedRows] = useState<IoTDeviceItem[]>([]);
+const IoTDevices = () => {
+  const actionRef = useRef(null);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({ total: 0, online: 0, offline: 0, maintenance: 0 });
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [configModalVisible, setConfigModalVisible] = useState(false);
+  const [configDevice, setConfigDevice] = useState(null);
+  const [detailDevice, setDetailDevice] = useState(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  // 批量删除处理
-  const handleBatchDelete = (selectedRows: IoTDeviceItem[]) => {
+  const fetchStats = async (list) => {
+    const total = list.length;
+    const online = list.filter(d => d.status === 1).length;
+    const offline = list.filter(d => d.status === 0).length;
+    const maintenance = list.filter(d => d.status === 2).length;
+    setStats({ total, online, offline, maintenance });
+  };
+
+  const fetchDevices = async (params = {}) => {
+    setLoading(true);
+    try {
+      const response = await searchIotDevices(params);
+      const list = response.data || [];
+      setDevices(list);
+      fetchStats(list);
+      return { data: list, total: response.total || 0 };
+    } catch (error) {
+      message.error('获取设备列表失败');
+      return { data: [], total: 0 };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = (id) => {
     Modal.confirm({
-      title: '批量删除确认',
-      content: `确定要删除选中的 ${selectedRows.length} 个设备吗？此操作不可撤销。`,
-      okText: '确认删除',
+      title: '确认删除',
+      content: '确认要删除该设备？删除后无法恢复',
       okType: 'danger',
-      cancelText: '取消',
-      onOk: () => {
-        message.success(`已成功删除 ${selectedRows.length} 个设备`);
-        setSelectedRows([]);
+      onOk: async () => {
+        try {
+          await deleteIotDevice(id);
+          message.success('设备已删除');
+          actionRef.current?.reload();
+        } catch (error) {
+          message.error('删除失败，请重试');
+        }
       },
     });
   };
 
-  // 批量导出处理
-  const handleBatchExport = (selectedRows: IoTDeviceItem[]) => {
-    message.loading('正在生成导出文件...');
-    setTimeout(() => {
-      message.success(`已成功导出 ${selectedRows.length} 条设备数据 (Excel格式)`);
-    }, 1000);
+  const handleBatchDelete = (selectedRows) => {
+    Modal.confirm({
+      title: '批量删除确认',
+      content: `确认要删除选中的 ${selectedRows.length} 台设备吗？此操作不可撤销`,
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          for (const row of selectedRows) {
+            if (row.id) await deleteIotDevice(row.id);
+          }
+          message.success(`已成功删除 ${selectedRows.length} 台设备`);
+          actionRef.current?.reload();
+        } catch {
+          message.error('删除失败');
+        }
+      },
+    });
   };
 
-  // 设备状态渲染
-  const renderStatus = (status: string) => {
-    const statusMap = {
-      online: { color: 'success', text: '在线' },
-      offline: { color: 'default', text: '离线' },
-      error: { color: 'error', text: '异常' },
-    };
-    const config = statusMap[status as keyof typeof statusMap] || { color: 'default', text: status || '未知' };
-    return <Badge status={config.color as any} text={config.text} />;
+  const renderStatus = (status) => {
+    const c = STATUS_MAP[status ?? -1];
+    return c ? (
+      <Tag style={{ backgroundColor: c.bgColor, color: c.textColor, border: 'none' }}>
+        {c.label}
+      </Tag>
+    ) : '-';
   };
 
-  // 设备类型渲染
-  const renderType = (type: string) => {
-    const typeMap = {
-      sensor: { color: 'blue', text: '传感器' },
-      gateway: { color: 'green', text: '网关' },
-      controller: { color: 'orange', text: '控制器' },
-      camera: { color: 'purple', text: '摄像头' },
-    };
-    const config = typeMap[type as keyof typeof typeMap] || { color: 'default', text: type || '未知' };
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  // 表格列定义
-  const columns: ProColumns<IoTDeviceItem>[] = [
-    {
-      title: '设备ID',
-      dataIndex: 'deviceId',
-      copyable: true,
-      fixed: 'left',
-      width: 120,
-      render: (dom) => <span className="fin-number">{dom}</span>,
-    },
+  const columns = [
     {
       title: '设备名称',
-      dataIndex: 'name',
+      dataIndex: 'deviceName',
       width: 180,
+      fixed: 'left',
+      render: (_, r) => <>{r.deviceName || '-'}</>,
     },
     {
-      title: '设备类型',
-      dataIndex: 'type',
-      width: 100,
-      valueEnum: {
-        sensor: { text: '传感器', color: 'blue' },
-        gateway: { text: '网关', color: 'green' },
-        controller: { text: '控制器', color: 'orange' },
-        camera: { text: '摄像头', color: 'purple' },
-      },
-      render: (type) => renderType(type as string),
+      title: '设备型号',
+      dataIndex: 'typeName',
+      width: 120,
+      render: (_, r) => r.typeName ? `${r.typeName} (${r.typeCode || ''})` : '-',
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      width: 100,
-      valueEnum: {
-        online: { text: '在线', status: 'Success' },
-        offline: { text: '离线', status: 'Default' },
-        error: { text: '异常', status: 'Error' },
-      },
-      render: (status) => renderStatus(status as string),
-    },
-    {
-      title: '所属塘口',
+      title: '绑定塘口',
       dataIndex: 'pondName',
+      width: 110,
+      render: (val) => val || '-',
+    },
+    {
+      title: '所在基地',
+      dataIndex: 'baseName',
       width: 120,
     },
     {
-      title: '位置',
-      dataIndex: 'location',
-      width: 150,
-    },
-    {
-      title: '电池电量',
-      dataIndex: 'batteryLevel',
-      width: 120,
-      render: (level) => (
-        <Space>
-          <Progress 
-            percent={level || 0} 
-            size="small" 
-            strokeColor={level && level > 20 ? '#52c41a' : '#ff4d4f'} 
-            format={() => `${level}%`}
-            style={{ width: 60 }}
-          />
-        </Space>
-      ),
-    },
-    {
-      title: '信号强度',
-      dataIndex: 'signalStrength',
-      width: 120,
-      render: (strength) => (
-        <Space>
-          <WifiOutlined style={{ color: strength && strength > 80 ? '#52c41a' : strength && strength > 60 ? '#faad14' : '#ff4d4f' }} />
-          <span>{strength}%</span>
-        </Space>
-      ),
-    },
-    {
-      title: '固件版本',
-      dataIndex: 'firmwareVersion',
-      width: 100,
-    },
-    {
-      title: '最后通信',
-      dataIndex: 'lastCommunication',
-      width: 150,
-      valueType: 'dateTime',
-    },
-    {
-      title: '数据点数',
-      dataIndex: 'dataPoints',
-      width: 100,
-      render: (count) => <span className="fin-number">{count}</span>,
+      title: '运行状态',
+      dataIndex: 'status',
+      width: 80,
+      render: (_, r) => renderStatus(r.status),
     },
     {
       title: '操作',
-      valueType: 'option',
+      width: 220,
       fixed: 'right',
-      width: 200,
       render: (_, record) => [
-        <Button 
-          key="edit" 
-          type="link" 
-          size="small" 
-          icon={<EditOutlined />}
-          onClick={() => {
-            message.info(`编辑设备: ${record.name}`);
-          }}
-        >
-          编辑
+        <Button type="link" size="small" icon={<EyeOutlined />} key="view" onClick={async () => {
+          setDetailDevice(record);
+          setDetailModalVisible(true);
+        }}>
+          查看
         </Button>,
-        <Button 
-          key="config" 
-          type="link" 
-          size="small" 
-          icon={<SettingOutlined />}
-          onClick={() => {
-            message.info(`配置设备: ${record.name}`);
-          }}
-        >
+        <Button type="link" size="small" icon={<SettingOutlined />} key="config" onClick={() => {
+          setConfigDevice(record);
+          setConfigModalVisible(true);
+        }} style={{ color: '#8c8c8c' }}>
           配置
         </Button>,
-        <Button 
-          key="delete" 
-          type="link" 
-          danger 
-          size="small" 
-          icon={<DeleteOutlined />}
-          onClick={() => {
-            Modal.confirm({
-              title: '删除确认',
-              content: `确定要删除设备 ${record.name} 吗？`,
-              onOk: () => {
-                message.success('设备删除成功');
-              },
-            });
-          }}
-        >
+        <Button type="link" size="small" icon={<EditOutlined />} key="edit" onClick={() => {
+          message.info('编辑功能待开发');
+        }} style={{ color: '#8c8c8c' }}>
+          编辑
+        </Button>,
+        ...(record.status === 0 || record.status === 1 ? [
+          <Button type="link" size="small" icon={<PoweroffOutlined />} key="toggle" onClick={async () => {
+            const newStatus = record.status === 1 ? 0 : 1;
+            try {
+              await setDeviceStatus(record.id, newStatus);
+              message.success(newStatus === 1 ? '设备已启动' : '设备已关闭');
+              actionRef.current?.reload();
+            } catch { message.error('操作失败'); }
+          }} style={{ color: record.status === 1 ? '#B54E3C' : '#8c8c8c' }}>
+            {record.status === 1 ? '关闭' : '启动'}
+          </Button>,
+        ] : []),
+        <Button type="link" size="small" icon={<DeleteOutlined />} key="delete" onClick={() => handleDelete(record.id)} style={{ color: '#8c8c8c' }}>
           删除
         </Button>,
       ],
@@ -387,71 +173,131 @@ const IoTDevices: React.FC = () => {
   ];
 
   return (
-    <PageContainer title={false}>
-      <IoTDeviceStats data={mockData} />
-      
-      <ProTable<IoTDeviceItem>
+    <PageContainer>
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>设备总数</Text>}
+              value={stats.total}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }}
+              prefix={<ApiOutlined style={{ color: '#8C8C8C' }} />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>在线</Text>}
+              value={stats.online}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }}
+              prefix={<WifiOutlined style={{ color: '#8C8C8C' }} />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>离线</Text>}
+              value={stats.offline}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }}
+              prefix={<ApiOutlined style={{ color: '#8C8C8C' }} />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>维护中</Text>}
+              value={stats.maintenance}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }}
+              prefix={<ApiOutlined style={{ color: '#8C8C8C' }} />}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <ProTable
+        actionRef={actionRef}
         headerTitle="IoT 设备列表"
         columns={columns}
-        dataSource={mockData}
+        loading={loading}
         rowKey="id"
-        search={{
-          labelWidth: 'auto',
-        }}
-        pagination={{
-          pageSize: 10,
+        search={{ labelWidth: 'auto' }}
+        request={async (params = {}) => {
+          const result = await fetchDevices(params);
+          return { data: result.data, success: true, total: result.total };
         }}
         rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+          selectedRowKeys,
+          onChange: keys => setSelectedRowKeys(keys),
         }}
-        tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
+        tableAlertRender={({ selectedRowKeys: keys, onCleanSelected }) => (
           <Space size={24}>
-            <span>
-              已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
-              <a style={{ marginLeft: 8 }} onClick={onCleanSelected}>
-                取消选择
-              </a>
-            </span>
+            <span>已选 <a style={{ fontWeight: 600 }}>{keys.length}</a> 项</span>
+            <a onClick={onCleanSelected}>取消选择</a>
           </Space>
         )}
-        tableAlertOptionRender={() => {
-          return (
-            <Space size={16}>
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />} 
-                onClick={() => handleBatchDelete(selectedRowsState)}
-              >
-                批量删除
-              </Button>
-              <Button 
-                type="link" 
-                icon={<PlusOutlined style={{ transform: 'rotate(45deg)' }} />} 
-                onClick={() => handleBatchExport(selectedRowsState)}
-              >
-                批量导出
-              </Button>
-              <Button 
-                type="link" 
-                icon={<ReloadOutlined />} 
-                onClick={() => message.info('正在批量刷新设备状态...')}
-              >
-                批量刷新
-              </Button>
-            </Space>
-          );
-        }}
+        tableAlertOptionRender={({ selectedRows }) => (
+          <Space size={16}>
+            <Button size="small" icon={<DeleteOutlined />} onClick={() => handleBatchDelete(selectedRows)} style={{ color: '#8c8c8c' }}>
+              批量删除
+            </Button>
+          </Space>
+        )}
         toolBarRender={() => [
-          <Button key="button" icon={<PlusOutlined />} type="primary">
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => {
+            message.info('添加设备功能待开发');
+          }}>
             添加设备
           </Button>,
         ]}
         size="small"
-        bordered
+        scroll={{ x: 1400 }}
       />
+      <Modal
+        title={null}
+        open={detailModalVisible}
+        onCancel={() => { setDetailModalVisible(false); setDetailDevice(null); }}
+        footer={null}
+        closable
+        width={500}
+        destroyOnClose
+      >
+        {detailDevice && (() => {
+          const d = detailDevice;
+          const sl = d.status === 1 ? '在线' : d.status === 0 ? '离线' : '维护中';
+          return (
+            <div style={{ padding: '4px 0' }}>
+              <Descriptions title="设备信息" column={2} size="small" bordered style={{ marginBottom: 20 }}>
+                <Descriptions.Item label="所在基地" span={2}>{d.baseName || '-'}</Descriptions.Item>
+                <Descriptions.Item label="绑定塘口">{d.pondName || '未绑定'}</Descriptions.Item>
+                <Descriptions.Item label="序列号">{d.deviceSn || '-'}</Descriptions.Item>
+                <Descriptions.Item label="设备型号">{d.typeName ? d.typeName + (d.typeCode ? ' (' + d.typeCode + ')' : '') : '-'}</Descriptions.Item>
+                <Descriptions.Item label="运行状态"><Tag color={d.status === 1 ? 'success' : d.status === 0 ? 'default' : 'warning'}>{sl}</Tag></Descriptions.Item>
+              </Descriptions>
+              <Descriptions title="技术信息" column={2} size="small" bordered>
+                <Descriptions.Item label="IP 地址">{d.ipAddress || '-'}</Descriptions.Item>
+                <Descriptions.Item label="端口号">{d.port != null ? String(d.port) : '-'}</Descriptions.Item>
+                <Descriptions.Item label="安装日期">{d.installTime || '-'}</Descriptions.Item>
+                <Descriptions.Item label="最近心跳">{d.lastHeartbeat || '-'}</Descriptions.Item>
+                <Descriptions.Item label="备注" span={2}>{d.remark || '无'}</Descriptions.Item>
+              </Descriptions>
+            </div>
+          );
+        })()}
+      </Modal>
+
+      <DeviceConfigModal
+        visible={configModalVisible}
+        deviceId={configDevice?.id || 0}
+        deviceName={configDevice?.deviceName || ''}
+        onCancel={() => {
+          setConfigModalVisible(false);
+          setConfigDevice(null);
+        }}
+      />
+
     </PageContainer>
   );
 };

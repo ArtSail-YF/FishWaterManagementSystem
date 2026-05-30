@@ -28,7 +28,7 @@ const MedicineAnalysis: React.FC = () => {
         stack: 'Total',
         areaStyle: { opacity: 0.1 },
         data: [120, 132, 101, 134, 90, 230, 210],
-        itemStyle: { color: '#f5222d' }
+        itemStyle: { color: '#B54E3C' }
       },
       {
         name: '消毒剂',
@@ -36,7 +36,7 @@ const MedicineAnalysis: React.FC = () => {
         stack: 'Total',
         areaStyle: { opacity: 0.1 },
         data: [220, 182, 191, 234, 290, 330, 310],
-        itemStyle: { color: '#1890ff' }
+        itemStyle: { color: '#2B6B8A' }
       },
       {
         name: '营养/中草药',
@@ -44,7 +44,7 @@ const MedicineAnalysis: React.FC = () => {
         stack: 'Total',
         areaStyle: { opacity: 0.1 },
         data: [150, 232, 201, 154, 190, 330, 410],
-        itemStyle: { color: '#52c41a' }
+        itemStyle: { color: '#C4A35A' }
       }
     ]
   };
@@ -60,11 +60,11 @@ const MedicineAnalysis: React.FC = () => {
         roseType: 'area',
         itemStyle: { borderRadius: 4 },
         data: [
-          { value: 40, name: '预防性消毒', itemStyle: { color: '#52c41a' } },
-          { value: 25, name: '肠炎治疗', itemStyle: { color: '#f5222d' } },
-          { value: 15, name: '烂鳃病治疗', itemStyle: { color: '#fa8c16' } },
-          { value: 12, name: '寄生虫治理', itemStyle: { color: '#1890ff' } },
-          { value: 8, name: '应激缓解', itemStyle: { color: '#722ed1' } },
+{ value: 40, name: '预防性消毒', itemStyle: { color: '#8C7C6E' } },
+{ value: 25, name: '肠炎治疗', itemStyle: { color: '#B54E3C' } },
+{ value: 15, name: '烂鳃病治疗', itemStyle: { color: '#5B8C5A' } },
+{ value: 12, name: '寄生虫治理', itemStyle: { color: '#5C4F42' } },
+{ value: 8, name: '应激缓解', itemStyle: { color: '#A0843A' } },
         ],
         label: { fontSize: 10, color: '#595959' }
       }

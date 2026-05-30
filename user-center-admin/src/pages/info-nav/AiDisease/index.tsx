@@ -205,7 +205,7 @@ const AiDisease: React.FC = () => {
               <Progress
                 percent={topPercent}
                 status={result?.riskLevel === '高' ? 'exception' : 'active'}
-                strokeColor={result?.riskLevel === '高' ? '#ff4d4f' : '#1677ff'}
+                strokeColor={result?.riskLevel === '高' ? '#ef4444' : '#1677ff'}
               />
             </div>
 

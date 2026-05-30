@@ -60,9 +60,11 @@ export async function deletePlan(id: string | number) {
 }
 
 /** 发布计划 POST /api/plan/{id}/publish */
-export async function publishPlan(id: string | number) {
+export async function publishPlan(id: string | number, body?: any) {
   return request<BaseResponse<boolean>>(`/plan/${id}/publish`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
   });
 }
 
@@ -79,6 +81,7 @@ export async function cancelPlan(id: string | number, body?: CancelPlanRequest) 
 export async function completePlan(id: string | number) {
   return request<BaseResponse<boolean>>(`/plan/${id}/complete`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
@@ -93,5 +96,22 @@ export async function getPlansByBase(baseId: string | number) {
 export async function getPlanStats() {
   return request<BaseResponse<PlanStatsDTO>>('/plan/stats', {
     method: 'GET',
+  });
+}
+
+/** 批量发布计划 POST /api/plan/batch-publish */
+export async function batchPublishPlans(ids: (string | number)[]) {
+  return request<BaseResponse<boolean>>('/plan/batch-publish', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: { ids },
+  });
+}
+
+/** 获取计划类型的默认任务模板 GET /api/plan/{planType}/task-templates */
+export async function getTaskTemplates(planType: string, startTime?: string, endTime?: string) {
+  return request<BaseResponse<any[]>>(`/plan/${planType}/task-templates`, {
+    method: 'GET',
+    params: { startTime, endTime },
   });
 }

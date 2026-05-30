@@ -19,7 +19,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <ReloadOutlined spin style={{ fontSize: '24px', color: '#1890ff', marginBottom: '16px' }} />
+        <ReloadOutlined spin style={{ fontSize: '24px', color: '#1f2937', marginBottom: '16px' }} />
         <div style={{ color: '#999' }}>加载塘口数据中...</div>
       </div>
     );
@@ -40,10 +40,10 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
 
   const getStatusColor = (status: Pond.PondItem['status']) => {
     switch (status) {
-      case 'breeding': return '#1890ff';
-      case 'empty': return '#52c41a';
+      case 'breeding': return '#1f2937';
+      case 'empty': return '#6b7280';
       case 'locked': return '#f5222d';
-      case 'ready': return '#faad14';
+      case 'ready': return '#9ca3af';
       default: return '#d9d9d9';
     }
   };
@@ -110,7 +110,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
                       <Text type="secondary" style={{ fontSize: '10px' }}>mg/L (DO)</Text>
                     </div>
 
-                    <WaterQualitySparkline data={pond.doTrend} color={pond.do < 4 ? '#ff4d4f' : '#1890ff'} />
+                    <WaterQualitySparkline data={pond.doTrend} color={pond.do < 4 ? '#ef4444' : '#1f2937'} />
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', borderTop: '1px solid #f0f0f0', paddingTop: '4px' }}>
                       <Text type="secondary" style={{ fontSize: '10px' }}>水温: <span className="fin-number">{pond.temp.toFixed(1)}°C</span></Text>
@@ -138,7 +138,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
                 }}>
                   <VideoCameraOutlined style={{ fontSize: '24px', opacity: 0.5 }} />
                   <div style={{ position: 'absolute', top: '4px', left: '8px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#52c41a', animation: 'pulse 2s infinite' }} />
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#6b7280', animation: 'pulse 2s infinite' }} />
                     <span style={{ opacity: 0.8 }}>REC {pond.id}</span>
                   </div>
                   <style>{`
@@ -161,7 +161,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
                     <Col span={8}>
                       <Tooltip title="增氧机状态">
                         <div style={{ textAlign: 'center', padding: '4px', backgroundColor: '#f6ffed', borderRadius: '2px', border: '1px solid #b7eb8f' }}>
-                          <ThunderboltOutlined style={{ color: '#52c41a', fontSize: '12px' }} />
+                          <ThunderboltOutlined style={{ color: '#6b7280', fontSize: '12px' }} />
                           <div style={{ fontSize: '9px', color: '#389e0d' }}>运行中</div>
                         </div>
                       </Tooltip>
@@ -177,7 +177,7 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
                     <Col span={8}>
                       <Tooltip title="智能投饵机">
                         <div style={{ textAlign: 'center', padding: '4px', backgroundColor: '#e6f7ff', borderRadius: '2px', border: '1px solid #91d5ff' }}>
-                          <ReloadOutlined style={{ color: '#1890ff', fontSize: '12px' }} />
+                          <ReloadOutlined style={{ color: '#1f2937', fontSize: '12px' }} />
                           <div style={{ fontSize: '9px', color: '#0050b3' }}>待命</div>
                         </div>
                       </Tooltip>

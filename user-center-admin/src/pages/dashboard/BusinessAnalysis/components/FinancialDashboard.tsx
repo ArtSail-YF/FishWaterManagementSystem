@@ -91,9 +91,9 @@ const FinancialDashboard: React.FC = () => {
         yField: 'profit',
         colorField: 'profit',
         color: ({ profit }) => {
-          if (profit > 800) return '#52c41a';
-          if (profit > 500) return '#faad14';
-          return '#ff4d4f';
+          if (profit > 800) return '#6b7280';
+          if (profit > 500) return '#9ca3af';
+          return '#ef4444';
         },
         yAxis: {
           label: {
@@ -148,12 +148,12 @@ const FinancialDashboard: React.FC = () => {
         geometryOptions: [
           {
             geometry: 'line',
-            color: '#1890ff',
+            color: '#1f2937',
             smooth: true,
           },
           {
             geometry: 'line',
-            color: '#ff4d4f',
+            color: '#ef4444',
             smooth: true,
           },
         ],
@@ -194,7 +194,7 @@ const FinancialDashboard: React.FC = () => {
           title: {
             formatter: () => '利润率',
             style: {
-              color: '#1890ff',
+              color: '#1f2937',
               fontSize: 16,
             },
           },
@@ -253,7 +253,7 @@ const FinancialDashboard: React.FC = () => {
               title="净利润"
               value={4000}
               precision={2}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#1f2937' }}
               suffix="万"
             />
           </Card>

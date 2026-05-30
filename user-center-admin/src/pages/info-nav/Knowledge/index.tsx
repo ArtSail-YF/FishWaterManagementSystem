@@ -80,7 +80,7 @@ const KnowledgeBase: React.FC = () => {
         {/* 左侧分类导航 */}
         <Col span={6}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '12px' } }}>
-            <div style={{ padding: '8px 12px', fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>
+            <div style={{ padding: '8px 12px', fontSize: '14px', fontWeight: 'bold', color: '#1f2937' }}>
               知识分类 / CATEGORIES
             </div>
             <List
@@ -93,7 +93,7 @@ const KnowledgeBase: React.FC = () => {
                     cursor: 'pointer',
                     borderRadius: '4px',
                     backgroundColor: category === item.key ? '#e6f7ff' : 'transparent',
-                    color: category === item.key ? '#1890ff' : 'inherit',
+                    color: category === item.key ? '#1f2937' : 'inherit',
                     transition: 'all 0.3s',
                     marginBottom: '4px',
                   }}

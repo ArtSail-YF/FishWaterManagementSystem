@@ -43,7 +43,7 @@ const TyphoonMap: React.FC = () => {
         // 1. 绘制历史路径
         const historyLine = new AMap.Polyline({
           path: typhoonPath.map(p => p.position),
-          strokeColor: '#ff4d4f',
+          strokeColor: '#ef4444',
           strokeWeight: 4,
           strokeStyle: 'solid',
         });
@@ -52,7 +52,7 @@ const TyphoonMap: React.FC = () => {
         // 2. 绘制预测路径
         const forecastLine = new AMap.Polyline({
           path: [typhoonPath[typhoonPath.length - 1].position, ...forecastPath.map(p => p.position)],
-          strokeColor: '#faad14',
+          strokeColor: '#9ca3af',
           strokeWeight: 4,
           strokeStyle: 'dashed',
         });
@@ -65,9 +65,9 @@ const TyphoonMap: React.FC = () => {
         const circle7 = new AMap.Circle({
           center: currentPos,
           radius: 300000,
-          fillColor: '#faad14',
+          fillColor: '#9ca3af',
           fillOpacity: 0.1,
-          strokeColor: '#faad14',
+          strokeColor: '#9ca3af',
           strokeWeight: 1,
         });
         // 10级风圈 (假设半径 150km)
@@ -83,9 +83,9 @@ const TyphoonMap: React.FC = () => {
         const circle12 = new AMap.Circle({
           center: currentPos,
           radius: 80000,
-          fillColor: '#ff4d4f',
+          fillColor: '#ef4444',
           fillOpacity: 0.2,
-          strokeColor: '#ff4d4f',
+          strokeColor: '#ef4444',
           strokeWeight: 1,
         });
         mapInstance.add([circle7, circle10, circle12]);
@@ -95,8 +95,8 @@ const TyphoonMap: React.FC = () => {
         typhoonIcon.innerHTML = `
           <div style="width: 40px; height: 40px; animation: rotateTyphoon 2s linear infinite;">
             <svg viewBox="0 0 1024 1024" width="40" height="40">
-              <path d="M512 512m-128 0a128 128 0 1 0 256 0 128 128 0 1 0-256 0Z" fill="#ff4d4f"></path>
-              <path d="M512 128c-212.1 0-384 171.9-384 384s171.9 384 384 384 384-171.9 384-384-171.9-384-384-384z m0 640c-141.4 0-256-114.6-256-256s114.6-256 256-256 256 114.6 256 256-114.6 256-256 256z" fill="#ff4d4f" opacity="0.3"></path>
+              <path d="M512 512m-128 0a128 128 0 1 0 256 0 128 128 0 1 0-256 0Z" fill="#ef4444"></path>
+              <path d="M512 128c-212.1 0-384 171.9-384 384s171.9 384 384 384 384-171.9 384-384-171.9-384-384-384z m0 640c-141.4 0-256-114.6-256-256s114.6-256 256-256 256 114.6 256 256-114.6 256-256 256z" fill="#ef4444" opacity="0.3"></path>
             </svg>
           </div>
           <style>
@@ -146,7 +146,7 @@ const TyphoonMap: React.FC = () => {
           zIndex: 10 
         }}>
           <Spin size="large" />
-          <div style={{ marginLeft: '12px', color: '#1890ff' }}>加载地图指挥系统...</div>
+          <div style={{ marginLeft: '12px', color: '#1f2937' }}>加载地图指挥系统...</div>
         </div>
       )}
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />

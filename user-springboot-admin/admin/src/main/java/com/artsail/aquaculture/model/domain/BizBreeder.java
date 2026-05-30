@@ -1,5 +1,7 @@
 package com.artsail.aquaculture.model.domain;
 
+import com.artsail.common.domain.LogicDeleteEntity;
+
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,14 +12,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * 养殖户/主体信息
+ * 基地员工信息
  */
 @TableName("biz_breeder")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BizBreeder extends BaseEntity {
+public class BizBreeder extends LogicDeleteEntity {
     
     /**
      * 主体编码
@@ -103,4 +105,19 @@ public class BizBreeder extends BaseEntity {
      * 状态 1-正常 0-停用
      */
     private Integer status;
+
+    /**
+     * 所属基地ID
+     */
+    private Long baseId;
+
+    /**
+     * 岗位：养殖工/技术员/管理员/船长/质检员
+     */
+    private String position;
+
+    /**
+     * 入职日期
+     */
+    private LocalDate hireDate;
 }

@@ -1,6 +1,6 @@
 package com.artsail.production.model.domain;
 
-import com.artsail.aquaculture.model.domain.BaseEntity;
+import com.artsail.common.domain.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

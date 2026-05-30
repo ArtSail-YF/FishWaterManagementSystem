@@ -37,8 +37,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ data }) => {
   const getLevelStyle = (level: string) => {
     switch (level) {
       case 'P0': return { color: '#cf1322', fontWeight: 'bold' };
-      case 'P1': return { color: '#faad14', fontWeight: 'bold' };
-      case 'P2': return { color: '#1890ff', fontWeight: 'bold' };
+      case 'P1': return { color: '#9ca3af', fontWeight: 'bold' };
+      case 'P2': return { color: '#1f2937', fontWeight: 'bold' };
       default: return {};
     }
   };

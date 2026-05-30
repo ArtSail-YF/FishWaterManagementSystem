@@ -139,7 +139,7 @@ const ActionIcons = () => {
             borderRadius: '50%',
           }}
         >
-          <WeiboOutlined style={{ ...iconStyles, color: '#1890ff' }} />
+          <WeiboOutlined style={{ ...iconStyles, color: '#1f2937' }} />
         </div>
       </Space>
     </div>

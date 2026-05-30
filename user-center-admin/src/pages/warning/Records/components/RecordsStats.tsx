@@ -37,7 +37,7 @@ const RecordsStats: React.FC<RecordsStatsProps> = ({ data }) => {
         <Card className="fin-card" styles={{ body: { padding: '12px 16px' } }}>
           <div className="fin-ticker-label">平均处置耗时 / AVG RESPONSE</div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <div className="fin-ticker-value fin-number" style={{ color: '#1890ff' }}>{data.avgHandleTime}</div>
+            <div className="fin-ticker-value fin-number" style={{ color: '#1f2937' }}>{data.avgHandleTime}</div>
             <div style={{ fontSize: '10px', color: '#bfbfbf' }}>SLA: &lt; 10m</div>
           </div>
         </Card>

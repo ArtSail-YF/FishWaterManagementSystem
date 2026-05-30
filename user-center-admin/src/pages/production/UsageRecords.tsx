@@ -179,7 +179,7 @@ const UsageRecords: React.FC = () => {
         <a key="edit" onClick={() => { setCurrentRow(record); setModalVisible(true); }}>编辑</a>,
         <a
           key="delete"
-          style={{ color: '#ff4d4f' }}
+          style={{ color: '#ef4444' }}
           onClick={async () => {
             Modal.confirm({
               title: '删除确认',
@@ -213,7 +213,7 @@ const UsageRecords: React.FC = () => {
               title="本月使用记录"
               value={86}
               suffix="笔"
-              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
               prefix={<InboxOutlined />}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
@@ -227,7 +227,7 @@ const UsageRecords: React.FC = () => {
               title="饲料使用量"
               value={2340}
               suffix="kg"
-              valueStyle={{ color: '#3f8600', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
               prefix={<InboxOutlined />}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
@@ -241,7 +241,7 @@ const UsageRecords: React.FC = () => {
               title="药品使用量"
               value={68}
               suffix="瓶"
-              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               较上月 <ArrowUpOutlined style={{ color: '#cf1322' }} /> 8%
@@ -255,7 +255,7 @@ const UsageRecords: React.FC = () => {
               value={45600}
               prefix="¥"
               precision={2}
-              valueStyle={{ color: '#cf1322', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               年度预算执行率: <span className="fin-number">52%</span>
@@ -338,7 +338,6 @@ const UsageRecords: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        bordered
       />
 
       <UsageForm

@@ -27,7 +27,7 @@ const SpecialForecast: React.FC = () => {
         type: 'line',
         smooth: true,
         data: [24.5, 26.2, 25.8, 24.1],
-        itemStyle: { color: '#1890ff' },
+        itemStyle: { color: '#1f2937' },
         lineStyle: { width: 2 },
         areaStyle: {
           color: {
@@ -65,14 +65,14 @@ const SpecialForecast: React.FC = () => {
               <Row gutter={12}>
                 <Col span={12}>
                   <div style={{ backgroundColor: '#fff7e6', padding: '10px 4px', borderRadius: '4px' }}>
-                    <div style={{ fontSize: '10px', color: '#fa8c16' }}>🌅 日出</div>
+                    <div style={{ fontSize: '10px', color: '#9ca3af' }}>🌅 日出</div>
                     <div className="fin-number" style={{ fontSize: '18px', fontWeight: 'bold' }}>06:05</div>
                     <Tag color="orange" style={{ margin: 0, fontSize: '10px', scale: '0.85' }}>建议巡塘</Tag>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div style={{ backgroundColor: '#e6f7ff', padding: '10px 4px', borderRadius: '4px' }}>
-                    <div style={{ fontSize: '10px', color: '#1890ff' }}>🌇 日落</div>
+                    <div style={{ fontSize: '10px', color: '#1f2937' }}>🌇 日落</div>
                     <div className="fin-number" style={{ fontSize: '18px', fontWeight: 'bold' }}>18:14</div>
                     <Tag color="blue" style={{ margin: 0, fontSize: '10px', scale: '0.85' }}>建议巡塘</Tag>
                   </div>

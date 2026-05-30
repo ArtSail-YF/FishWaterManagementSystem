@@ -110,7 +110,7 @@ const FishingStats: React.FC<{ data: FishingRecordItem[] }> = ({ data }) => {
     <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
       <Col span={6}>
         <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
             {totalWeight} kg
           </div>
           <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
@@ -123,7 +123,7 @@ const FishingStats: React.FC<{ data: FishingRecordItem[] }> = ({ data }) => {
       </Col>
       <Col span={6}>
         <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>
             {data.length} 条
           </div>
           <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
@@ -138,7 +138,7 @@ const FishingStats: React.FC<{ data: FishingRecordItem[] }> = ({ data }) => {
       </Col>
       <Col span={6}>
         <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#9ca3af' }}>
             {new Set(data.map(item => item.team)).size} 组
           </div>
           <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
@@ -427,7 +427,6 @@ const FishingRecords: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        bordered
       />
     </PageContainer>
   );

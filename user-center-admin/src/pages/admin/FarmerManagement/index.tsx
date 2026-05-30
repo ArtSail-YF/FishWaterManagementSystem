@@ -1,247 +1,163 @@
-import React, { useState, useRef } from 'react';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import React, { useState, useRef, useEffect } from 'react';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CalendarOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable, PageContainer } from '@ant-design/pro-components';
-import { Button, message, Modal, Form, Input, Select, Card, Row, Col, Tag, Avatar, Descriptions } from 'antd';
+import { Button, message, Modal, Form, Input, Select, Card, Tag, Avatar, Descriptions, Row, Col, DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import {
+  searchBreeders,
+  getBreederById,
+  createBreeder,
+  updateBreeder,
+  deleteBreeder,
+  saveBreederPonds,
+} from '@/services/api/breeder';
+import { getBaseOptions } from '@/services/api/base';
+import { getPondOptions } from '@/services/api/pond';
 
 const { Option } = Select;
 
-interface FarmerInfo {
-  id: number;
-  name: string;
-  phone: string;
-  idCard: string;
-  gender: 'male' | 'female';
-  age: number;
-  address: string;
-  baseName: string;
-  pondCount: number;
-  experience: number;
-  status: 'active' | 'inactive' | 'pending';
-  registerTime: string;
-  lastLogin: string;
-}
+const POSITION_OPTIONS = [
+  { value: '养殖工', label: '养殖工' },
+  { value: '技术员', label: '技术员' },
+  { value: '管理员', label: '管理员' },
+  { value: '船长', label: '船长' },
+  { value: '质检员', label: '质检员' },
+  { value: '投喂工', label: '投喂工' },
+  { value: '机修工', label: '机修工' },
+];
 
-const FarmerManagement: React.FC = () => {
+const STATUS_MAP: Record<number, { label: string; color: string }> = {
+  1: { label: '在职', color: 'green' },
+  0: { label: '离职', color: 'red' },
+};
+
+const EmployeeManagement: React.FC = () => {
   const [form] = Form.useForm();
   const actionRef = useRef<ActionType>();
   const [modalVisible, setModalVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
-  const [editingFarmer, setEditingFarmer] = useState<FarmerInfo | null>(null);
-  const [currentFarmer, setCurrentFarmer] = useState<FarmerInfo | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [currentEmployee, setCurrentEmployee] = useState<any>(null);
+  const [bases, setBases] = useState<{ label: string; value: number }[]>([]);
+  const [ponds, setPonds] = useState<{ label: string; value: number }[]>([]);
+  const [selectedPonds, setSelectedPonds] = useState<number[]>([]);
+  const [baseId, setBaseId] = useState<number | undefined>();
 
-  // 模拟数据
-  const mockData: FarmerInfo[] = [
-    {
-      id: 1,
-      name: '张三',
-      phone: '13800138000',
-      idCard: '330102198501010101',
-      gender: 'male',
-      age: 38,
-      address: '浙江省杭州市西湖区',
-      baseName: '西湖淡水基地',
-      pondCount: 15,
-      experience: 12,
-      status: 'active',
-      registerTime: '2023-05-10',
-      lastLogin: '2024-04-18',
-    },
-    {
-      id: 2,
-      name: '李四',
-      phone: '13900139000',
-      idCard: '330103198602020202',
-      gender: 'male',
-      age: 35,
-      address: '浙江省宁波市鄞州区',
-      baseName: '东海养殖基地',
-      pondCount: 25,
-      experience: 8,
-      status: 'active',
-      registerTime: '2023-07-15',
-      lastLogin: '2024-04-17',
-    },
-    {
-      id: 3,
-      name: '王五',
-      phone: '13700137000',
-      idCard: '330104198703030303',
-      gender: 'male',
-      age: 42,
-      address: '浙江省温州市鹿城区',
-      baseName: '南山特种养殖基地',
-      pondCount: 8,
-      experience: 15,
-      status: 'inactive',
-      registerTime: '2023-09-20',
-      lastLogin: '2024-03-10',
-    },
-    {
-      id: 4,
-      name: '赵六',
-      phone: '13600136000',
-      idCard: '330105198804040404',
-      gender: 'female',
-      age: 33,
-      address: '浙江省嘉兴市南湖区',
-      baseName: '西湖淡水基地',
-      pondCount: 12,
-      experience: 6,
-      status: 'pending',
-      registerTime: '2024-01-05',
-      lastLogin: '2024-04-15',
-    },
-  ];
+  useEffect(() => {
+    fetchBases();
+  }, []);
 
-  const columns: ProColumns<FarmerInfo>[] = [
+  const fetchBases = async () => {
+    const options = await getBaseOptions();
+    setBases(options);
+  };
+
+  const fetchPonds = async (bId?: number) => {
+    if (!bId) { setPonds([]); return; }
+    const options = await getPondOptions(bId);
+    setPonds(options);
+  };
+
+  const handleBaseChange = (value: number) => {
+    setBaseId(value);
+    form.setFieldValue('baseId', value);
+    fetchPonds(value);
+    setSelectedPonds([]);
+  };
+
+  const columns: ProColumns<any>[] = [
     {
-      title: '养殖户信息',
-      dataIndex: 'name',
-      key: 'farmer',
+      title: '员工信息',
       width: 200,
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar size={40} icon={<UserOutlined />} style={{ marginRight: 12 }} />
+          <Avatar size={40} icon={<UserOutlined />} style={{ marginRight: 12, backgroundColor: '#B54E3C' }} />
           <div>
-            <div style={{ fontWeight: 'bold' }}>{record.name}</div>
+            <div style={{ fontWeight: 'bold' }}>{record.breederName || '-'}</div>
             <div style={{ color: '#666', fontSize: '12px' }}>
-              <PhoneOutlined /> {record.phone}
+              <PhoneOutlined /> {record.phone || '-'}
             </div>
           </div>
         </div>
       ),
     },
+    { title: '工号', dataIndex: 'breederCode', width: 110, ellipsis: true },
     {
-      title: '身份证号',
-      dataIndex: 'idCard',
-      key: 'idCard',
-      width: 180,
+      title: '岗位', dataIndex: 'position', width: 90,
+      render: (v: string) => v ? <Tag color="#B54E3C">{v}</Tag> : '-',
+    },
+    { title: '联系电话', dataIndex: 'phone', width: 130 },
+    { title: '所属基地', dataIndex: 'baseName', width: 160 },
+    {
+      title: '关联塘口', dataIndex: 'pondNames', width: 200, search: false,
+      render: (_: any, record: any) =>
+        record.pondNames?.split('||').filter(Boolean).length
+          ? record.pondNames.split('||').filter(Boolean).map((n: string) => <Tag key={n}>{n}</Tag>)
+          : '-',
     },
     {
-      title: '性别',
-      dataIndex: 'gender',
-      key: 'gender',
-      width: 80,
-      valueEnum: {
-        male: { text: '男' },
-        female: { text: '女' },
-      },
-      render: (gender: string) => gender === 'male' ? '男' : '女',
+      title: '入职日期', dataIndex: 'hireDate', width: 110, search: false,
+      render: (v: string) => v || '-',
     },
     {
-      title: '年龄',
-      dataIndex: 'age',
-      key: 'age',
-      width: 80,
-      search: false,
-      sorter: (a, b) => a.age - b.age,
-    },
-    {
-      title: '所属基地',
-      dataIndex: 'baseName',
-      key: 'baseName',
-      width: 120,
-    },
-    {
-      title: '塘口数量',
-      dataIndex: 'pondCount',
-      key: 'pondCount',
-      width: 100,
-      search: false,
-      sorter: (a, b) => a.pondCount - b.pondCount,
-    },
-    {
-      title: '养殖经验(年)',
-      dataIndex: 'experience',
-      key: 'experience',
-      width: 120,
-      search: false,
-      sorter: (a, b) => a.experience - b.experience,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      valueEnum: {
-        active: { text: '正常', status: 'Success' },
-        inactive: { text: '停用', status: 'Error' },
-        pending: { text: '待审核', status: 'Warning' },
-      },
-      render: (status: string) => {
-        const statusMap = {
-          active: { color: 'green', text: '正常' },
-          inactive: { color: 'red', text: '停用' },
-          pending: { color: 'orange', text: '待审核' },
-        };
-        const statusInfo = statusMap[status as keyof typeof statusMap] || { color: 'default', text: status || '未知' };
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+      title: '状态', dataIndex: 'status', width: 70,
+      render: (_: any, record: any) => {
+        const s = STATUS_MAP[record.status];
+        return s ? <Tag color={s.color}>{s.label}</Tag> : '未知';
       },
     },
     {
-      title: '注册时间',
-      dataIndex: 'registerTime',
-      key: 'registerTime',
-      width: 120,
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 200,
+      title: '操作', width: 200, key: 'action',
       render: (_, record) => (
         <>
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => handleViewDetail(record)}
-          >
-            查看
-          </Button>
-          <Button 
-            type="link" 
-            size="small"
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
-          <Button 
-            type="link" 
-            size="small"
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDelete(record)}
-          >
-            删除
-          </Button>
+          <Button type="link" size="small" onClick={() => handleViewDetail(record)}>查看</Button>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: '#8c8c8c' }}>编辑</Button>
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>删除</Button>
         </>
       ),
     },
   ];
 
   const handleAdd = () => {
-    setEditingFarmer(null);
+    setEditingEmployee(null);
     setModalVisible(true);
+    setSelectedPonds([]);
+    setBaseId(undefined);
     form.resetFields();
   };
 
-  const handleEdit = (record: FarmerInfo) => {
-    setEditingFarmer(record);
+  const handleEdit = async (record: any) => {
+    setEditingEmployee(record);
+    setBaseId(record.baseId);
+    setSelectedPonds((record.pondIds || '').split(',').filter(Boolean).map(Number));
     setModalVisible(true);
-    form.setFieldsValue(record);
+    form.setFieldsValue({
+      ...record,
+      hireDate: record.hireDate ? dayjs(record.hireDate) : undefined,
+    });
+    if (record.baseId) {
+      const opts = await getPondOptions(record.baseId);
+      setPonds(opts);
+    }
   };
 
-  const handleViewDetail = (record: FarmerInfo) => {
-    setCurrentFarmer(record);
-    setDetailVisible(true);
+  const handleViewDetail = async (record: any) => {
+    try {
+      const res = await getBreederById(record.id);
+      setCurrentEmployee(res.data || record);
+      setDetailVisible(true);
+    } catch {
+      message.error('获取详情失败');
+    }
   };
 
-  const handleDelete = (record: FarmerInfo) => {
+  const handleDelete = (record: any) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除养殖户"${record.name}"吗？`,
-      onOk: () => {
+      content: `确定要删除员工「${record.breederName || ''}」吗？`,
+      onOk: async () => {
+        await deleteBreeder(record.id);
         message.success('删除成功');
         actionRef.current?.reload();
       },
@@ -250,230 +166,167 @@ const FarmerManagement: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
-      if (editingFarmer) {
-        message.success('更新成功');
+      const submitData = {
+        breederCode: values.breederCode,
+        breederName: values.breederName,
+        phone: values.phone,
+        idCard: values.idCard,
+        baseId: values.baseId,
+        position: values.position,
+        hireDate: values.hireDate ? values.hireDate.format('YYYY-MM-DD') : undefined,
+        status: values.status ?? 1,
+      };
+
+      if (editingEmployee) {
+        await updateBreeder(editingEmployee.id, submitData);
+        await saveBreederPonds(editingEmployee.id, selectedPonds);
       } else {
-        message.success('添加成功');
+        await createBreeder(submitData);
       }
+
+      message.success(editingEmployee ? '更新成功' : '添加成功');
       setModalVisible(false);
       actionRef.current?.reload();
-    } catch (error) {
-      message.error('操作失败');
+    } catch (error: any) {
+      message.error(error?.message || '操作失败');
     }
   };
 
   return (
     <PageContainer>
       <Card>
-        <ProTable<FarmerInfo>
+        <ProTable<any>
           columns={columns}
           actionRef={actionRef}
           cardBordered
           request={async (params) => {
-            // 模拟搜索
-            let data = mockData;
-            if (params.name) {
-              data = data.filter(item => item.name.includes(params.name));
-            }
-            if (params.phone) {
-              data = data.filter(item => item.phone.includes(params.phone));
-            }
-            if (params.status) {
-              data = data.filter(item => item.status === params.status);
-            }
-            if (params.baseName) {
-              data = data.filter(item => item.baseName.includes(params.baseName));
-            }
-            
-            return {
-              data,
-              success: true,
-              total: data.length,
-            };
+            const result = await searchBreeders({
+              current: params.current || 1,
+              pageSize: params.pageSize || 10,
+              breederName: params.breederName,
+              phone: params.phone,
+              status: params.status,
+            });
+            return { data: result.data, success: true, total: result.total };
           }}
           rowKey="id"
           search={{
             labelWidth: 'auto',
+            defaultCollapsed: true,
           }}
           toolBarRender={() => [
-            <Button
-              key="button"
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={handleAdd}
-            >
-              新增养殖户
+            <Button key="add" icon={<PlusOutlined />} type="primary" onClick={handleAdd}>
+              新增员工
             </Button>,
           ]}
         />
 
-        {/* 新增/编辑模态框 */}
         <Modal
-          title={editingFarmer ? '编辑养殖户' : '新增养殖户'}
+          title={editingEmployee ? '编辑员工' : '新增员工'}
           open={modalVisible}
           onCancel={() => setModalVisible(false)}
-          footer={null}
-          width={700}
+          onOk={() => form.submit()}
+          width={650}
+          destroyOnClose
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-          >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label="姓名"
-                  rules={[{ required: true, message: '请输入姓名' }]}
-                >
-                  <Input placeholder="请输入姓名" />
+                <Form.Item name="breederCode" label="工号">
+                  <Input placeholder="自动生成，可不填" />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="phone"
-                  label="手机号"
-                  rules={[
-                    { required: true, message: '请输入手机号' },
-                    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
-                  ]}
-                >
-                  <Input placeholder="请输入手机号" />
+                <Form.Item name="breederName" label="员工姓名" rules={[{ required: true, message: '请输入姓名' }]}>
+                  <Input placeholder="请输入员工姓名" />
                 </Form.Item>
               </Col>
             </Row>
-            
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item
-                  name="idCard"
-                  label="身份证号"
-                  rules={[
-                    { required: true, message: '请输入身份证号' },
-                    { pattern: /^\d{17}[\dXx]$/, message: '请输入正确的身份证号' }
-                  ]}
-                >
-                  <Input placeholder="请输入身份证号" />
+                <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
+                  <Input placeholder="请输入手机号" />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="gender"
-                  label="性别"
-                  rules={[{ required: true, message: '请选择性别' }]}
-                >
-                  <Select placeholder="请选择性别">
-                    <Option value="male">男</Option>
-                    <Option value="female">女</Option>
+                <Form.Item name="idCard" label="身份证号">
+                  <Input placeholder="请输入身份证号" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item name="baseId" label="所属基地" rules={[{ required: true, message: '请选择基地' }]}>
+                  <Select placeholder="请选择基地" onChange={handleBaseChange}>
+                    {bases.map(b => <Option key={b.value} value={b.value}>{b.label}</Option>)}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="position" label="岗位" rules={[{ required: true, message: '请选择岗位' }]}>
+                  <Select placeholder="请选择岗位">
+                    {POSITION_OPTIONS.map(p => <Option key={p.value} value={p.value}>{p.label}</Option>)}
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
-            
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item
-                  name="age"
-                  label="年龄"
-                  rules={[{ required: true, message: '请输入年龄' }]}
-                >
-                  <Input type="number" placeholder="请输入年龄" />
+                <Form.Item label="关联塘口">
+                  <Select
+                    mode="multiple"
+                    placeholder="请选择塘口（可多选）"
+                    value={selectedPonds}
+                    onChange={setSelectedPonds}
+                    disabled={!baseId}
+                  >
+                    {ponds.map(p => <Option key={p.value} value={p.value}>{p.label}</Option>)}
+                  </Select>
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="experience"
-                  label="养殖经验(年)"
-                  rules={[{ required: true, message: '请输入养殖经验' }]}
-                >
-                  <Input type="number" placeholder="请输入养殖经验" />
+                <Form.Item name="hireDate" label="入职日期">
+                  <DatePicker style={{ width: '100%' }} placeholder="选择入职日期" />
                 </Form.Item>
               </Col>
             </Row>
-            
-            <Form.Item
-              name="address"
-              label="地址"
-              rules={[{ required: true, message: '请输入地址' }]}
-            >
-              <Input placeholder="请输入详细地址" />
-            </Form.Item>
-            
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="baseName"
-                  label="所属基地"
-                  rules={[{ required: true, message: '请输入所属基地' }]}
-                >
-                  <Input placeholder="请输入所属基地" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="pondCount"
-                  label="塘口数量"
-                  rules={[{ required: true, message: '请输入塘口数量' }]}
-                >
-                  <Input type="number" placeholder="请输入塘口数量" />
-                </Form.Item>
-              </Col>
-            </Row>
-            
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
+            <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
               <Select placeholder="请选择状态">
-                <Option value="active">正常</Option>
-                <Option value="inactive">停用</Option>
-                <Option value="pending">待审核</Option>
+                <Option value={1}>在职</Option>
+                <Option value={0}>离职</Option>
               </Select>
-            </Form.Item>
-            
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                {editingFarmer ? '更新' : '创建'}
-              </Button>
-              <Button style={{ marginLeft: 8 }} onClick={() => setModalVisible(false)}>
-                取消
-              </Button>
             </Form.Item>
           </Form>
         </Modal>
 
-        {/* 详情模态框 */}
         <Modal
-          title="养殖户详情"
+          title="员工详情"
           open={detailVisible}
           onCancel={() => setDetailVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setDetailVisible(false)}>
-              关闭
-            </Button>
-          ]}
+          footer={<Button onClick={() => setDetailVisible(false)}>关闭</Button>}
           width={600}
         >
-          {currentFarmer && (
-            <Descriptions column={2} bordered>
-              <Descriptions.Item label="姓名">{currentFarmer.name}</Descriptions.Item>
-              <Descriptions.Item label="手机号">{currentFarmer.phone}</Descriptions.Item>
-              <Descriptions.Item label="身份证号">{currentFarmer.idCard}</Descriptions.Item>
-              <Descriptions.Item label="性别">{currentFarmer.gender === 'male' ? '男' : '女'}</Descriptions.Item>
-              <Descriptions.Item label="年龄">{currentFarmer.age}岁</Descriptions.Item>
-              <Descriptions.Item label="养殖经验">{currentFarmer.experience}年</Descriptions.Item>
-              <Descriptions.Item label="地址" span={2}>{currentFarmer.address}</Descriptions.Item>
-              <Descriptions.Item label="所属基地">{currentFarmer.baseName}</Descriptions.Item>
-              <Descriptions.Item label="塘口数量">{currentFarmer.pondCount}个</Descriptions.Item>
-              <Descriptions.Item label="状态">
-                <Tag color={currentFarmer.status === 'active' ? 'green' : currentFarmer.status === 'inactive' ? 'red' : 'orange'}>
-                  {currentFarmer.status === 'active' ? '正常' : currentFarmer.status === 'inactive' ? '停用' : '待审核'}
-                </Tag>
+          {currentEmployee && (
+            <Descriptions column={2} bordered size="small">
+              <Descriptions.Item label="工号">{currentEmployee.breederCode || '-'}</Descriptions.Item>
+              <Descriptions.Item label="姓名">{currentEmployee.breederName || '-'}</Descriptions.Item>
+              <Descriptions.Item label="岗位">
+                {currentEmployee.position ? <Tag color="#B54E3C">{currentEmployee.position}</Tag> : '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="注册时间">{currentFarmer.registerTime}</Descriptions.Item>
-              <Descriptions.Item label="最后登录">{currentFarmer.lastLogin}</Descriptions.Item>
+              <Descriptions.Item label="手机号">{currentEmployee.phone || '-'}</Descriptions.Item>
+              <Descriptions.Item label="身份证号">{currentEmployee.idCard || '-'}</Descriptions.Item>
+              <Descriptions.Item label="入职日期">{currentEmployee.hireDate || '-'}</Descriptions.Item>
+              <Descriptions.Item label="所属基地">{currentEmployee.baseName || '-'}</Descriptions.Item>
+              <Descriptions.Item label="关联塘口">
+                {currentEmployee.pondNames?.split('||').filter(Boolean).length
+                  ? currentEmployee.pondNames.split('||').filter(Boolean).map((n: string) => <Tag key={n}>{n}</Tag>)
+                  : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="状态">
+                {STATUS_MAP[currentEmployee.status] ? (
+                  <Tag color={STATUS_MAP[currentEmployee.status].color}>{STATUS_MAP[currentEmployee.status].label}</Tag>
+                ) : '-'}
+              </Descriptions.Item>
             </Descriptions>
           )}
         </Modal>
@@ -482,4 +335,4 @@ const FarmerManagement: React.FC = () => {
   );
 };
 
-export default FarmerManagement;
+export default EmployeeManagement;

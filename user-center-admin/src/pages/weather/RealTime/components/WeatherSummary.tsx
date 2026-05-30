@@ -43,7 +43,7 @@ const WeatherSummary: React.FC = () => {
           <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>{item.label}:</Text>
             <span className="fin-number" style={{ 
-              color: item.trend === 'up' ? '#cf1322' : item.trend === 'down' ? '#52c41a' : '#fff',
+              color: item.trend === 'up' ? '#cf1322' : item.trend === 'down' ? '#6b7280' : '#fff',
               fontSize: '13px',
               fontWeight: 'bold'
             }}>

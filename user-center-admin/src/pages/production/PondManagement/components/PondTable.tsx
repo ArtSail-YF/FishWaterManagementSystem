@@ -128,7 +128,7 @@ const PondTable: React.FC<PondTableProps> = ({
           <Tag color={record.category === 'pond' ? 'blue' : record.category === 'cage' ? 'green' : 'orange'}>
             {record.categoryName}
           </Tag>
-          {record.hasMonitoring ? <VideoCameraOutlined style={{ color: '#1890ff' }} /> : null}
+          {record.hasMonitoring ? <VideoCameraOutlined style={{ color: '#1f2937' }} /> : null}
         </Space>
       ),
     },

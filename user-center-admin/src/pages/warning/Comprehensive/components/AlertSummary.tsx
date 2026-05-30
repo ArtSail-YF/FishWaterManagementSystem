@@ -31,13 +31,13 @@ const AlertSummary: React.FC<AlertSummaryProps> = ({ data }) => {
         {renderCard('🚨 未处理预警总数', data.unprocessed, '#cf1322', 'CRITICAL', '#cf1322')}
       </Col>
       <Col span={6}>
-        {renderCard('⚡ 近 1 小时新增', data.newInHour, '#faad14', `+${data.newInHour} NEW`)}
+        {renderCard('⚡ 近 1 小时新增', data.newInHour, '#9ca3af', `+${data.newInHour} NEW`)}
       </Col>
       <Col span={6}>
         {renderCard('✅ 今日已处理', data.processedToday, '#3f8600', 'EFFICIENCY')}
       </Col>
       <Col span={6}>
-        {renderCard('⏱️ 平均响应时间', data.avgResponseTime, '#1890ff', 'SLA: 5m')}
+        {renderCard('⏱️ 平均响应时间', data.avgResponseTime, '#1f2937', 'SLA: 5m')}
       </Col>
     </Row>
   );

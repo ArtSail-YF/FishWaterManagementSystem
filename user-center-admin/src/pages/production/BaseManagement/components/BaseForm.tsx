@@ -94,7 +94,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
         onFinish={handleSubmit}
         initialValues={{ status: 1 }}
       >
-        <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+        <div style={{ fontWeight: 'bold', marginBottom: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
           基础身份信息
         </div>
         <Row gutter={16}>
@@ -118,7 +118,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
           </Col>
         </Row>
 
-        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
           地理位置
         </div>
         <Row gutter={16}>
@@ -139,7 +139,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
           </Col>
         </Row>
 
-        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
           环境与水质
         </div>
         <Row gutter={16}>
@@ -181,7 +181,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
           </Col>
         </Row>
 
-        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
           基础设施
         </div>
         <Row gutter={16}>
@@ -202,7 +202,7 @@ const BaseForm: React.FC<BaseFormProps> = ({
           </Col>
         </Row>
 
-        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1890ff', paddingLeft: 8 }}>
+        <div style={{ fontWeight: 'bold', marginBottom: 16, marginTop: 16, borderLeft: '4px solid #1f2937', paddingLeft: 8 }}>
           认证与许可
         </div>
         <Row gutter={16}>

@@ -63,7 +63,7 @@ const StatisticsAnalysis: React.FC = () => {
             value={stats.valid} 
             prefix="✅"
             suffix="张"
-            valueStyle={{ color: '#52c41a' }}
+valueStyle={{ color: '#8C7C6E' }}
           />
         </Col>
         <Col span={6}>
@@ -101,7 +101,7 @@ const StatisticsAnalysis: React.FC = () => {
           <Progress 
             percent={(stats.riskPonds / stats.totalPonds) * 100} 
             status="warning" 
-            strokeColor="#faad14"
+strokeColor="#C4A35A"
           />
         </div>
 

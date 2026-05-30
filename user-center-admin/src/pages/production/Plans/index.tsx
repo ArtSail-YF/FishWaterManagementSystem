@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Badge } from 'antd';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Typography } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -10,23 +10,33 @@ import {
   CopyOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  SendOutlined,
+  FileTextOutlined,
+  SyncOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
-import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
+
+const { Text } = Typography;
+import { PageContainer, ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
+import { history } from '@umijs/max';
 import PlanForm from './components/PlanForm';
 import PlanDetail from './components/PlanDetail';
 import BatchPlanModal from './components/BatchPlanModal';
 import PlanTemplate from './components/PlanTemplate';
+import PublishPlanModal from './components/PublishPlanModal';
 import {
   searchPlans,
   deletePlan,
   publishPlan,
+  batchPublishPlans,
   cancelPlan,
   completePlan,
   getPlanById,
+  getPlanStats,
 } from '@/services/api/production/plan';
 import { getBaseOptions } from '@/services/api/base';
-import { getPondOptions } from '@/services/api/pond';
 import type { ProductionPlan } from '@/types/model';
+import type { PlanStatsDTO } from '@/types/api/plan';
 
 const PLAN_TYPE_MAP: Record<string, string> = {
   feeding: '投喂计划',
@@ -43,34 +53,35 @@ const TARGET_TYPE_MAP: Record<string, string> = {
   vsl: '工船',
 };
 
-const STATUS_MAP: Record<string, { label: string; color: string; status: 'success' | 'processing' | 'default' | 'error' | 'warning' }> = {
-  draft: { label: '草稿', color: 'blue', status: 'default' },
-  published: { label: '已发布', color: 'cyan', status: 'processing' },
-  active: { label: '执行中', color: 'orange', status: 'processing' },
-  completed: { label: '已完成', color: 'green', status: 'success' },
-  cancelled: { label: '已取消', color: 'gray', status: 'default' },
+const STATUS_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
+  draft: { label: '草稿', bgColor: '#EBE5DE', textColor: '#5C4F42' },
+  published: { label: '已发布', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
+  active: { label: '执行中', bgColor: '#F5EDD6', textColor: '#A0843A' },
+  completed: { label: '已完成', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
+  cancelled: { label: '已取消', bgColor: '#EBE5DE', textColor: '#7A6E64' },
 };
 
 const Plans: React.FC = () => {
+  const actionRef = useRef<ActionType>(null);
   const [plans, setPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
   const [batchVisible, setBatchVisible] = useState(false);
   const [templateVisible, setTemplateVisible] = useState(false);
+  const [publishModalVisible, setPublishModalVisible] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<ProductionPlan | null>(null);
+  const [planToPublish, setPlanToPublish] = useState<ProductionPlan | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [bases, setBases] = useState<Array<{ label: string; value: number }>>([]);
-  const [ponds, setPonds] = useState<Array<{ label: string; value: number }>>([]);
   const [searchParams, setSearchParams] = useState<Record<string, any>>({});
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [stats, setStats] = useState<PlanStatsDTO>({ total: 0, draft: 0, published: 0, active: 0, completed: 0, cancelled: 0 });
 
   useEffect(() => {
     fetchBases();
-  }, []);
-
-  useEffect(() => {
-    fetchPlans();
+    fetchStats();
   }, []);
 
   const fetchBases = async () => {
@@ -82,12 +93,14 @@ const Plans: React.FC = () => {
     }
   };
 
-  const fetchPonds = async (baseId: number) => {
+  const fetchStats = async () => {
     try {
-      const options = await getPondOptions(baseId);
-      setPonds(options);
+      const res = await getPlanStats();
+      if (res.data) {
+        setStats(res.data);
+      }
     } catch (error) {
-      console.error('获取塘口列表失败:', error);
+      console.error('获取计划统计失败:', error);
     }
   };
 
@@ -102,12 +115,8 @@ const Plans: React.FC = () => {
       };
 
       const response = await searchPlans(apiParams);
-
-      const planList = (response.data || []).map((item: ProductionPlan) => ({
-        ...item,
-        baseName: bases.find(b => b.value === item.baseId)?.label || item.baseId,
-        targetName: ponds.find(p => p.value === item.targetId)?.label || item.targetId,
-      }));
+      // 后端已返回 baseName / targetName，无需客户端映射
+      const planList = response.data || [];
 
       setPlans(planList);
       setPagination(prev => ({
@@ -125,27 +134,22 @@ const Plans: React.FC = () => {
   };
 
   const handleCreate = async () => {
-    try {
-      fetchPlans();
-      setVisible(false);
-      setSelectedPlan(null);
-      setIsEdit(false);
-      message.success('计划创建成功');
-    } catch (error) {
-      message.error('操作失败，请重试');
-    }
+    actionRef.current?.reload();
+    setVisible(false);
+    setSelectedPlan(null);
+    setIsEdit(false);
   };
 
   const handleDelete = (id: number) => {
     Modal.confirm({
       title: '确认删除',
-      content: '确定要删除这个计划吗？删除后无法恢复。',
+      content: '确定要删除这个计划吗？删除后无法恢复',
       okType: 'danger',
       onOk: async () => {
         try {
           await deletePlan(id);
-          message.success('计划删除成功');
-          fetchPlans();
+          message.success('计划已删除');
+          actionRef.current?.reload();
         } catch (error) {
           message.error('删除失败，请重试');
         }
@@ -153,18 +157,60 @@ const Plans: React.FC = () => {
     });
   };
 
-  const handlePublish = async (id: number) => {
+  const openPublishModal = (plan: ProductionPlan) => {
+    setPlanToPublish(plan);
+    setPublishModalVisible(true);
+  };
+
+  const handlePublishSuccess = (result: { planTitle: string; tasksGenerated: number }) => {
+    setPublishModalVisible(false);
+    setPlanToPublish(null);
+    message.success(`计划「${result.planTitle}」已发布，生成了${result.tasksGenerated}个任务`);
+    actionRef.current?.reload();
+  };
+
+  const handleBatchPublish = async () => {
+    const selectedPlans = plans.filter(p => selectedRowKeys.includes(p.id!));
+    const draftPlans = selectedPlans.filter(p => p.status === 'draft');
+
+    if (draftPlans.length === 0) {
+      message.warning('选中的计划中没有可发布的草稿计划');
+      return;
+    }
+
     Modal.confirm({
-      title: '确认发布',
-      content: '确定要发布这个计划吗？发布后将生成对应的执行任务。',
+      title: '批量发布确认',
+      content: `将发布${draftPlans.length}个草稿计划（已选择${selectedPlans.length}个）`,
+      okText: '确认批量发布',
       okType: 'primary',
       onOk: async () => {
         try {
-          await publishPlan(id);
-          message.success('计划已发布');
-          fetchPlans();
-        } catch (error) {
-          message.error('发布失败，请重试');
+          const res = await batchPublishPlans(draftPlans.map(p => p.id!));
+          const data = res.data as any;
+          if (data.successCount > 0) {
+            message.success(
+              `成功发布${data.successCount}个计划，生成${data.tasksGenerated}个任务` +
+                (data.failCount > 0 ? `，失败${data.failCount}个` : '')
+            );
+            if (data.errors?.length > 0) {
+              Modal.info({
+                title: '发布详情',
+                content: (
+                  <ul style={{ paddingLeft: 20, maxHeight: 200, overflow: 'auto' }}>
+                    {data.errors.map((err: string, i: number) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                ),
+              });
+            }
+          } else {
+            message.error('批量发布失败');
+          }
+          setSelectedRowKeys([]);
+          actionRef.current?.reload();
+        } catch (error: any) {
+          message.error(error?.message || '批量发布失败');
         }
       },
     });
@@ -179,9 +225,9 @@ const Plans: React.FC = () => {
         try {
           await cancelPlan(id, { reason: '用户手动取消' });
           message.success('计划已取消');
-          fetchPlans();
-        } catch (error) {
-          message.error('取消失败，请重试');
+          actionRef.current?.reload();
+        } catch {
+          message.error('取消失败');
         }
       },
     });
@@ -196,9 +242,9 @@ const Plans: React.FC = () => {
         try {
           await completePlan(id);
           message.success('计划已完成');
-          fetchPlans();
-        } catch (error) {
-          message.error('操作失败，请重试');
+          actionRef.current?.reload();
+        } catch {
+          message.error('操作失败');
         }
       },
     });
@@ -211,7 +257,7 @@ const Plans: React.FC = () => {
         setSelectedPlan(detail.data);
         setDetailVisible(true);
       }
-    } catch (error) {
+    } catch {
       message.error('获取计划详情失败');
     }
   };
@@ -225,200 +271,100 @@ const Plans: React.FC = () => {
   const handleBatchDelete = (selectedRows: ProductionPlan[]) => {
     Modal.confirm({
       title: '批量删除确认',
-      content: `确定要删除选中的 ${selectedRows.length} 条计划吗？此操作不可撤销。`,
+      content: `确定要删除选中的${selectedRows.length}个计划吗？此操作不可撤销`,
       okType: 'danger',
       onOk: async () => {
         try {
           for (const row of selectedRows) {
             if (row.id) await deletePlan(row.id);
           }
-          message.success(`已成功删除 ${selectedRows.length} 条计划`);
-          fetchPlans();
-        } catch (error) {
-          console.error('删除失败:', error);
+          message.success(`已成功删除${selectedRows.length}个计划`);
+          actionRef.current?.reload();
+        } catch {
           message.error('删除失败');
         }
       },
     });
   };
 
-  const stats = useMemo(() => {
-    const total = plans.length;
-    const draft = plans.filter(p => p.status === 'draft').length;
-    const published = plans.filter(p => p.status === 'published').length;
-    const active = plans.filter(p => p.status === 'active').length;
-    const completed = plans.filter(p => p.status === 'completed').length;
-    const cancelled = plans.filter(p => p.status === 'cancelled').length;
-    return { total, draft, published, active, completed, cancelled };
-  }, [plans]);
-
   const columns: ProColumns<ProductionPlan>[] = [
     {
-      title: '计划标题',
+      title: '计划名称',
       dataIndex: 'title',
       width: 200,
+      fixed: 'left',
       ellipsis: true,
-    },
-    {
-      title: '所属基地',
-      dataIndex: 'baseId',
-      width: 150,
-      ellipsis: true,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        bases.forEach(base => {
-          enumMap[base.value] = { text: base.label };
-        });
-        return enumMap;
-      }, [bases]),
-      render: (baseId: number) => {
-        const base = bases.find(b => b.value === baseId);
-        return base ? base.label : '-';
-      },
+      render: (_, r) => (
+        <a onClick={() => handleView(r)}>
+          <FileTextOutlined style={{ marginRight: 6, color: '#1677ff' }} />
+          {r.title || '-'}
+        </a>
+      ),
     },
     {
       title: '计划类型',
       dataIndex: 'planType',
+      width: 100,
+      render: (_, r) => PLAN_TYPE_MAP[r.planType || ''] || r.planType || '-',
+    },
+    {
+      title: '所属基地',
+      dataIndex: 'baseName',
       width: 120,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        Object.entries(PLAN_TYPE_MAP).forEach(([value, label]) => {
-          enumMap[value] = { text: label };
-        });
-        return enumMap;
-      }, []),
-      render: (type: string) => PLAN_TYPE_MAP[type] || type,
     },
     {
-      title: '目标类型',
-      dataIndex: 'targetType',
-      width: 100,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        Object.entries(TARGET_TYPE_MAP).forEach(([value, label]) => {
-          enumMap[value] = { text: label };
-        });
-        return enumMap;
-      }, []),
-      render: (type: string) => TARGET_TYPE_MAP[type] || type,
+      title: '作业对象',
+      dataIndex: 'targetName',
+      width: 120,
     },
     {
-      title: '目标',
-      dataIndex: 'targetId',
-      width: 100,
-      render: (targetId: number, record: ProductionPlan) => {
-        const pond = ponds.find(p => p.value === targetId);
-        return pond ? pond.label : record.targetName || '-';
-      },
+      title: '执行周期',
+      width: 180,
+      render: (_, r) => (r.startTime ? `${r.startTime} ~ ${r.endTime || ''}` : '-'),
     },
     {
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      valueType: 'select',
-      valueEnum: useMemo(() => {
-        const enumMap: any = {};
-        Object.entries(STATUS_MAP).forEach(([value, { label }]) => {
-          enumMap[value] = { text: label };
-        });
-        return enumMap;
-      }, []),
-      render: (status: string) => {
-        const config = STATUS_MAP[status] || { label: status, color: 'default', status: 'default' };
-        return (
-          <Badge status={config.status} text={
-            <Tag color={config.color} style={{ borderRadius: '2px' }}>{config.label}</Tag>
-          } />
-        );
+      render: (_, r) => {
+        const c = STATUS_MAP[r.status || ''];
+        return c ? (
+          <Tag style={{ backgroundColor: c.bgColor, color: c.textColor, border: 'none' }}>
+            {c.label}
+          </Tag>
+        ) : r.status;
       },
     },
     {
-      title: '计划时间',
-      key: 'time',
-      width: 220,
-      render: (_, record) => (
-        <span>{`${record.startTime || '-'} ~ ${record.endTime || '-'}`}</span>
-      ),
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      valueType: 'dateTime',
-      width: 180,
-      defaultSortOrder: 'descend',
-    },
-    {
       title: '操作',
-      valueType: 'option',
+      width: 320,
       fixed: 'right',
-      width: 280,
       render: (_, record) => [
-        <Button
-          type="link"
-          size="small"
-          icon={<EyeOutlined />}
-          key="view"
-          onClick={() => handleView(record)}
-        >
+        <Button type="link" size="small" icon={<EyeOutlined />} key="view" onClick={() => handleView(record)}>
           查看
         </Button>,
         record.status === 'draft' && (
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            key="edit"
-            onClick={() => handleEdit(record)}
-          >
+          <Button type="link" size="small" icon={<EditOutlined />} key="edit" onClick={() => handleEdit(record)} style={{ color: '#8c8c8c' }}>
             编辑
           </Button>
         ),
         record.status === 'draft' && (
-          <Button
-            type="link"
-            size="small"
-            icon={<CheckCircleOutlined />}
-            key="publish"
-            onClick={() => handlePublish(record.id!)}
-          >
+          <Button type="link" size="small" icon={<SendOutlined />} key="publish" onClick={() => openPublishModal(record)} style={{ color: '#8c8c8c' }}>
             发布
           </Button>
         ),
         (record.status === 'published' || record.status === 'active') && (
-          <Button
-            type="link"
-            size="small"
-            icon={<CheckCircleOutlined />}
-            key="complete"
-            onClick={() => handleComplete(record.id!)}
-          >
+          <Button type="link" size="small" icon={<CheckCircleOutlined />} key="complete" onClick={() => handleComplete(record.id!)} style={{ color: '#8c8c8c' }}>
             完成
           </Button>
         ),
         (record.status === 'draft' || record.status === 'published') && (
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<CloseCircleOutlined />}
-            key="cancel"
-            onClick={() => handleCancel(record.id!)}
-          >
+          <Button type="link" size="small" icon={<CloseCircleOutlined />} key="cancel" onClick={() => handleCancel(record.id!)} style={{ color: '#8c8c8c' }}>
             取消
           </Button>
         ),
         record.status === 'draft' && (
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            key="delete"
-            onClick={() => handleDelete(record.id!)}
-          >
+          <Button type="link" size="small" icon={<DeleteOutlined />} key="delete" onClick={() => handleDelete(record.id!)} style={{ color: '#8c8c8c' }}>
             删除
           </Button>
         ),
@@ -427,71 +373,78 @@ const Plans: React.FC = () => {
   ];
 
   return (
-    <PageContainer title={false}>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+    <PageContainer>
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="总计划"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>计划总数</Text>}
               value={stats.total}
-              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<BarChartOutlined style={{ color: '#8c8c8c' }} />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="草稿"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>草稿</Text>}
               value={stats.draft}
-              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<EditOutlined style={{ color: '#8c8c8c' }} />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已发布"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已发布</Text>}
               value={stats.published}
-              valueStyle={{ color: '#13c2c2', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<SendOutlined style={{ color: '#8c8c8c' }} />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="执行中"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>执行中</Text>}
               value={stats.active}
-              valueStyle={{ color: '#fa8c16', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<SyncOutlined spin />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已完成"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已完成</Text>}
               value={stats.completed}
-              valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<CheckCircleOutlined style={{ color: '#8c8c8c' }} />}
             />
           </Card>
         </Col>
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title="已取消"
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已取消</Text>}
               value={stats.cancelled}
-              valueStyle={{ color: '#8c8c8c', fontFamily: 'AlibabaSans' }}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<CloseCircleOutlined style={{ color: '#8c8c8c' }} />}
             />
           </Card>
         </Col>
       </Row>
 
       <ProTable<ProductionPlan>
+        actionRef={actionRef}
         headerTitle="计划管理"
         columns={columns}
         loading={loading}
         rowKey="id"
         search={{ labelWidth: 'auto' }}
-        request={async (params = {}, sort, filter) => {
+        request={async (params = {}) => {
           setSearchParams(params);
           setPagination(prev => ({
             ...prev,
@@ -509,49 +462,52 @@ const Plans: React.FC = () => {
           current: pagination.current,
           pageSize: pagination.pageSize,
           total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ ...pagination, current: page, pageSize: pageSize || 10 });
-          },
+          onChange: (page, ps) =>
+            setPagination({ ...pagination, current: page, pageSize: ps || 10 }),
         }}
         rowSelection={{
-          onChange: (_, selectedRows) => {},
+          selectedRowKeys,
+          onChange: keys => setSelectedRowKeys(keys),
         }}
-        tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
+        tableAlertRender={({ selectedRowKeys: keys, onCleanSelected }) => (
           <Space size={24}>
-            <span>已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
+            <span>
+              已选 <a style={{ fontWeight: 600 }}>{keys.length}</a> 项
+            </span>
             <a onClick={onCleanSelected}>取消选择</a>
           </Space>
         )}
-        tableAlertOptionRender={({ selectedRows }) => (
-          <Space size={16}>
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleBatchDelete(selectedRows)}
-            >
-              批量删除
-            </Button>
-          </Space>
-        )}
+        tableAlertOptionRender={({ selectedRows }) => {
+          const hasDraft = (selectedRows as ProductionPlan[]).some(r => r.status === 'draft');
+          return (
+            <Space size={16}>
+              {hasDraft && (
+                <Button size="small" icon={<SendOutlined />} onClick={handleBatchPublish}>
+                  批量发布
+                </Button>
+              )}
+              <Button
+                type="link"
+                icon={<DeleteOutlined />}
+                onClick={() => handleBatchDelete(selectedRows as ProductionPlan[])}
+                style={{ color: '#8c8c8c' }}
+              >
+                批量删除
+              </Button>
+            </Space>
+          );
+        }}
         toolBarRender={() => [
-          <Button
-            key="template"
-            icon={<CopyOutlined />}
-            onClick={() => setTemplateVisible(true)}
-          >
+          <Button key="template" icon={<CopyOutlined />} onClick={() => setTemplateVisible(true)}>
             计划模板
           </Button>,
-          <Button
-            key="batch"
-            icon={<FileDoneOutlined />}
-            onClick={() => setBatchVisible(true)}
-          >
+          <Button key="batch" icon={<FileDoneOutlined />} onClick={() => setBatchVisible(true)}>
             批量计划
           </Button>,
           <Button
             key="calendar"
             icon={<CalendarOutlined />}
+            onClick={() => history.push('/dashboard/production-plan')}
           >
             日历视图
           </Button>,
@@ -569,7 +525,6 @@ const Plans: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        bordered
         scroll={{ x: 1500 }}
       />
 
@@ -584,13 +539,18 @@ const Plans: React.FC = () => {
         initialValues={isEdit ? selectedPlan : undefined}
         isEdit={isEdit}
         bases={bases}
-        ponds={ponds}
       />
 
-      <PlanDetail
-        visible={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        plan={selectedPlan}
+      <PlanDetail visible={detailVisible} onCancel={() => setDetailVisible(false)} plan={selectedPlan} />
+
+      <PublishPlanModal
+        visible={publishModalVisible}
+        plan={planToPublish}
+        onCancel={() => {
+          setPublishModalVisible(false);
+          setPlanToPublish(null);
+        }}
+        onSuccess={handlePublishSuccess}
       />
 
       <BatchPlanModal
@@ -599,21 +559,18 @@ const Plans: React.FC = () => {
         onOk={async () => {
           try {
             setLoading(true);
-            await fetchPlans();
+            actionRef.current?.reload();
             message.success('批量计划创建成功');
             setBatchVisible(false);
-          } catch (error) {
-            message.error('批量创建失败');
+          } catch {
+            message.error('创建失败');
           } finally {
             setLoading(false);
           }
         }}
       />
 
-      <PlanTemplate
-        visible={templateVisible}
-        onCancel={() => setTemplateVisible(false)}
-      />
+      <PlanTemplate visible={templateVisible} onCancel={() => setTemplateVisible(false)} />
     </PageContainer>
   );
 };

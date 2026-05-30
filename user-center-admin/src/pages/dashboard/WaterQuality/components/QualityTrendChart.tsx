@@ -69,9 +69,9 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
     
     //配置指标
     const metricLabels = {
-      oxygen: { name: '溶氧量', unit: 'mg/L', color: '#1890ff', warnLine: 5, errorLine: 4 },
-      temp: { name: '水温', unit: '℃', color: '#faad14', warnLine: 28, errorLine: 32 },
-      ph: { name: 'PH值', unit: '', color: '#52c41a', warnLine: 8.5, errorLine: 9.0 },
+      oxygen: { name: '溶氧量', unit: 'mg/L', color: '#1f2937', warnLine: 5, errorLine: 4 },
+      temp: { name: '水温', unit: '℃', color: '#9ca3af', warnLine: 28, errorLine: 32 },
+      ph: { name: 'PH值', unit: '', color: '#6b7280', warnLine: 8.5, errorLine: 9.0 },
     };
 
     const currentMetric = metricLabels[metric];
@@ -124,12 +124,12 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
               {
                 yAxis: currentMetric.warnLine,
                 name: '预警线',
-                lineStyle: { color: '#faad14', type: 'dashed' },
+                lineStyle: { color: '#9ca3af', type: 'dashed' },
               },
               {
                 yAxis: currentMetric.errorLine,
                 name: '报警线',
-                lineStyle: { color: '#ff4d4f', type: 'dashed' },
+                lineStyle: { color: '#ef4444', type: 'dashed' },
               },
             ],
           },

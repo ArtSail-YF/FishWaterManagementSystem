@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
--- Host: localhost    Database: artsail_admin
+-- Host: 127.0.0.1    Database: artsail_admin
 -- ------------------------------------------------------
 -- Server version	8.0.42
 
@@ -58,8 +58,7 @@ CREATE TABLE `base_info` (
   UNIQUE KEY `base_code` (`base_code`),
   UNIQUE KEY `dept_id` (`dept_id`),
   KEY `breeder_id` (`breeder_id`),
-  CONSTRAINT `base_info_ibfk_1` FOREIGN KEY (`dept_id`) REFERENCES `sys_dept` (`id`),
-  CONSTRAINT `base_info_ibfk_2` FOREIGN KEY (`breeder_id`) REFERENCES `biz_breeder` (`id`)
+  CONSTRAINT `base_info_ibfk_1` FOREIGN KEY (`dept_id`) REFERENCES `sys_dept` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -132,13 +131,18 @@ CREATE TABLE `biz_breeder` (
   `longitude` decimal(10,7) DEFAULT NULL COMMENT '中心经度',
   `latitude` decimal(10,7) DEFAULT NULL COMMENT '中心纬度',
   `status` tinyint DEFAULT '1' COMMENT '1-正常 0-停用',
+  `position` varchar(50) DEFAULT NULL COMMENT '岗位：养殖工/技术员/管理员/船长/质检员',
+  `hire_date` date DEFAULT NULL COMMENT '入职日期',
+  `base_id` bigint DEFAULT NULL COMMENT '所属基地ID',
   `create_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL,
   `is_delete` tinyint NOT NULL DEFAULT '0' COMMENT '是否删除: 0-正常, 1-已删除',
   `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `breeder_code` (`breeder_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=1002 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `breeder_code` (`breeder_code`),
+  KEY `base_id` (`base_id`),
+  CONSTRAINT `biz_breeder_ibfk_base` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1008 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,8 +151,38 @@ CREATE TABLE `biz_breeder` (
 
 LOCK TABLES `biz_breeder` WRITE;
 /*!40000 ALTER TABLE `biz_breeder` DISABLE KEYS */;
-INSERT INTO `biz_breeder` VALUES (1001,'BREEDER_001','陈大海','陈大海','13800138000','chen@example.com','35010119800101001X',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,NULL,0,NULL);
+INSERT INTO `biz_breeder` VALUES (1001,'BREEDER_001','陈大海','陈大海','13800138000','chen@example.com','35010119800101001X',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'管理员','2025-03-01',1,NULL,NULL,0,NULL),(1002,'BREEDER_002','林明辉','陈志明','13950208888','aming@aqua.cn','350205198503151234',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'养殖工','2025-06-15',1,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL),(1003,'BREEDER_003','黄志辉','林文辉','13606923456','huilin@shui.com','350205197808152345',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'养殖工','2025-09-01',1,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL),(1004,'BREEDER_004','吴国栋','黄国栋','13859309999','gdh@ningde.cn','352201198212013456',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'管理员','2024-12-01',2,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL),(1005,'BREEDER_005','张水土','吴建国','15059308888','wjg@deepsea.cn','352201197509214567',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'养殖工','2026-01-10',2,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL),(1006,'BREEDER_006','蔡清泉','蔡清泉','13505952222','cqq@minquan.cn','350521198803216789',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'技术员','2025-04-20',1,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL),(1007,'BREEDER_007','陈阿财','郑有财','13706031234','youcai@fish.cn','350203199012016789',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'养殖工','2026-02-15',1,'2026-05-29 21:02:57','2026-05-29 21:02:57',0,NULL);
 /*!40000 ALTER TABLE `biz_breeder` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `biz_breeder_pond`
+--
+
+DROP TABLE IF EXISTS `biz_breeder_pond`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `biz_breeder_pond` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `breeder_id` bigint NOT NULL COMMENT '养殖户ID',
+  `pond_id` bigint NOT NULL COMMENT '塘口ID',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_breeder_pond` (`breeder_id`,`pond_id`),
+  KEY `pond_id` (`pond_id`),
+  CONSTRAINT `fk_breeder_pond_breeder` FOREIGN KEY (`breeder_id`) REFERENCES `biz_breeder` (`id`),
+  CONSTRAINT `fk_breeder_pond_pond` FOREIGN KEY (`pond_id`) REFERENCES `pond_info` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='养殖户-塘口关联表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `biz_breeder_pond`
+--
+
+LOCK TABLES `biz_breeder_pond` WRITE;
+/*!40000 ALTER TABLE `biz_breeder_pond` DISABLE KEYS */;
+INSERT INTO `biz_breeder_pond` VALUES (3,1003,3,'2026-05-29 21:02:57'),(6,1002,1,'2026-05-29 22:47:38'),(7,1002,2,'2026-05-29 22:47:38'),(8,1004,6,'2026-05-29 23:13:28'),(9,1004,5,'2026-05-29 23:13:28'),(10,1005,8,'2026-05-29 23:13:35');
+/*!40000 ALTER TABLE `biz_breeder_pond` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -294,7 +328,6 @@ CREATE TABLE `cage_info` (
   UNIQUE KEY `cage_code` (`cage_code`),
   KEY `breeder_id` (`breeder_id`),
   KEY `base_id` (`base_id`),
-  CONSTRAINT `cage_info_ibfk_1` FOREIGN KEY (`breeder_id`) REFERENCES `biz_breeder` (`id`),
   CONSTRAINT `cage_info_ibfk_2` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -305,7 +338,7 @@ CREATE TABLE `cage_info` (
 
 LOCK TABLES `cage_info` WRITE;
 /*!40000 ALTER TABLE `cage_info` DISABLE KEYS */;
-INSERT INTO `cage_info` VALUES (6,'CAGE-XM-202605','厦门深海一号网箱',1,1001,118.1234560,24.4567890,'台湾海峡西部',30.5,'升降式','圆形',NULL,15000.00,15.00,'HDPE',NULL,NULL,1,'2026-05-03 08:00:00',NULL,0,NULL);
+INSERT INTO `cage_info` VALUES (1,'CAGE-XM-202605','厦门深海一号网箱',1,1001,118.1234560,24.4567890,'台湾海峡西部',30.5,'升降式','圆形',NULL,15000.00,15.00,'HDPE',NULL,NULL,1,'2026-05-03 08:00:00',NULL,0,NULL);
 /*!40000 ALTER TABLE `cage_info` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -679,7 +712,7 @@ CREATE TABLE `iot_device` (
   UNIQUE KEY `device_sn` (`device_sn`),
   KEY `type_id` (`type_id`),
   CONSTRAINT `iot_device_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `iot_device_type` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -688,6 +721,7 @@ CREATE TABLE `iot_device` (
 
 LOCK TABLES `iot_device` WRITE;
 /*!40000 ALTER TABLE `iot_device` DISABLE KEYS */;
+INSERT INTO `iot_device` VALUES (1,'FD-XM-001','1号自动投喂机',1,1,1,'192.168.1.10',1883,NULL,1,'2026-05-30 01:00:00','2026-01-15 08:00:00','1号鲍鱼育苗车间投喂'),(2,'FD-XM-002','2号自动投喂机',1,1,2,'192.168.1.11',1883,NULL,1,NULL,'2026-01-15 08:00:00','2号石斑鱼高位池投喂'),(3,'FD-XM-003','3号自动投喂机',1,1,3,'192.168.1.12',1883,NULL,0,NULL,'2026-01-15 08:00:00','3号南美白对虾塘'),(4,'DO-XM-001','1号溶解氧传感器',2,1,1,'192.168.1.20',502,NULL,1,'2026-05-30 01:00:00','2026-01-10 09:00:00','鲍鱼车间溶氧监测'),(5,'PH-XM-001','1号pH传感器',3,1,2,'192.168.1.21',502,NULL,1,'2026-05-30 01:00:00','2026-01-10 09:00:00','石斑鱼池pH监测'),(6,'TMP-XM-001','1号温度传感器',4,1,3,'192.168.1.22',502,NULL,0,NULL,'2026-01-10 09:00:00','对虾塘温度监测'),(7,'AR-XM-001','1号增氧机',5,1,3,'192.168.1.30',1883,NULL,1,'2026-05-30 01:00:00','2026-02-01 10:00:00','对虾塘增氧'),(8,'PUMP-XM-001','1号排水泵',6,1,4,'192.168.1.40',1883,NULL,1,'2026-05-30 01:00:00','2026-02-01 10:00:00','4号螠蛏滩涂排水'),(9,'FD-ND-001','宁德1号投喂机',1,2,5,'192.168.2.10',1883,NULL,1,'2026-05-30 01:00:00','2026-03-01 08:00:00','大黄鱼网箱投喂'),(10,'DO-ND-001','宁德1号溶氧传感器',2,2,5,'192.168.2.20',502,NULL,1,'2026-05-30 01:00:00','2026-03-01 09:00:00','深海网箱溶氧监测');
 /*!40000 ALTER TABLE `iot_device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -768,7 +802,7 @@ CREATE TABLE `iot_device_type` (
   `status` tinyint DEFAULT '1' COMMENT '状态 1-正常 0-停用',
   PRIMARY KEY (`id`),
   UNIQUE KEY `type_code` (`type_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -777,6 +811,7 @@ CREATE TABLE `iot_device_type` (
 
 LOCK TABLES `iot_device_type` WRITE;
 /*!40000 ALTER TABLE `iot_device_type` DISABLE KEYS */;
+INSERT INTO `iot_device_type` VALUES (1,'FEEDER','自动投喂机','海兴智能','MQTT','自动定时定量投喂饲料',1),(2,'DO_METER','溶解氧传感器','杭州绿洁','Modbus','实时监测水中溶解氧浓度',1),(3,'PH_METER','pH传感器','杭州绿洁','Modbus','实时监测水体pH值',1),(4,'TEMP_METER','温度传感器','杭州绿洁','Modbus','实时监测水温',1),(5,'AERATOR','增氧机','渔夫科技','MQTT','叶轮式或微孔增氧设备',1),(6,'PUMP','水泵','南方泵业','MQTT','进排水泵，支持远程启停',1);
 /*!40000 ALTER TABLE `iot_device_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -953,7 +988,7 @@ CREATE TABLE `med_record` (
   CONSTRAINT `med_record_ibfk_2` FOREIGN KEY (`pond_id`) REFERENCES `pond_info` (`id`),
   CONSTRAINT `med_record_ibfk_3` FOREIGN KEY (`drug_mat_id`) REFERENCES `mat_info` (`id`),
   CONSTRAINT `med_record_ibfk_4` FOREIGN KEY (`log_id`) REFERENCES `prod_log` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1087,7 +1122,7 @@ CREATE TABLE `prod_log` (
   CONSTRAINT `prod_log_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `prod_task` (`id`),
   CONSTRAINT `prod_log_ibfk_2` FOREIGN KEY (`plan_id`) REFERENCES `prod_plan` (`id`),
   CONSTRAINT `prod_log_ibfk_3` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1096,7 +1131,6 @@ CREATE TABLE `prod_log` (
 
 LOCK TABLES `prod_log` WRITE;
 /*!40000 ALTER TABLE `prod_log` DISABLE KEYS */;
-INSERT INTO `prod_log` VALUES (1,1,1,1,'pond',101,NULL,'feeding','2026-05-05 07:15:00',50.50,'/upload/2026/05/feed_01.jpg,/upload/2026/05/feed_02.jpg',NULL,24.567890,118.123456,NULL,'app',5001,5001,0,'normal',NULL,NULL,'auto','2026-05-04 18:39:23','2026-05-04 19:14:38'),(2,1,1,1,'pond',101,NULL,'feeding','2026-05-05 17:30:00',48.00,'/upload/2026/05/feed_evening.jpg',NULL,24.567895,118.123460,NULL,'app',5002,5002,1,'normal','忘记打卡，下班前补录',NULL,'pending','2026-05-04 18:39:23','2026-05-04 19:14:38'),(3,2,1,1,'pond',101,NULL,'water_check','2026-05-05 08:00:00',NULL,'/upload/2026/05/water_quality.jpg',NULL,24.567892,118.123458,NULL,'admin',1001,5001,0,'normal',NULL,NULL,'auto','2026-05-04 18:39:23','2026-05-04 19:14:38'),(4,4,3,2,'vsl',301,NULL,'maintenance','2026-05-10 10:30:00',5.00,'/upload/2026/05/generator_oil.jpg',NULL,25.123456,119.765432,NULL,'app',5004,5004,0,'normal',NULL,NULL,'auto','2026-05-04 18:39:23','2026-05-04 19:14:38');
 /*!40000 ALTER TABLE `prod_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1109,6 +1143,56 @@ DROP TABLE IF EXISTS `prod_plan`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `prod_plan` (
   `id` bigint NOT NULL AUTO_INCREMENT,
+  `base_id` bigint DEFAULT NULL,
+  `parent_plan_id` bigint DEFAULT NULL,
+  `target_type` varchar(20) DEFAULT NULL,
+  `target_id` bigint DEFAULT NULL,
+  `plan_type` varchar(30) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `content_desc` text,
+  `feed_variety` varchar(100) DEFAULT NULL COMMENT '饲料品种',
+  `feed_amount` decimal(10,2) DEFAULT NULL COMMENT '计划投喂量(kg)',
+  `drug_name` varchar(100) DEFAULT NULL COMMENT '药品名称',
+  `dosage` varchar(100) DEFAULT NULL COMMENT '用量',
+  `withdrawal_days` int DEFAULT NULL COMMENT '休药期天数',
+  `weather_req` varchar(100) DEFAULT NULL COMMENT '气象要求',
+  `est_yield` decimal(10,2) DEFAULT NULL COMMENT '预计产量',
+  `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `cycle_rule` varchar(50) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'draft',
+  `owner_id` bigint DEFAULT NULL,
+  `assignee_group_id` bigint DEFAULT NULL,
+  `create_time` datetime DEFAULT (now()),
+  `update_time` datetime DEFAULT (now()),
+  `is_delete` tinyint NOT NULL DEFAULT '0',
+  `delete_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `base_id` (`base_id`),
+  KEY `parent_plan_id` (`parent_plan_id`),
+  CONSTRAINT `prod_plan_ibfk_1` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prod_plan`
+--
+
+LOCK TABLES `prod_plan` WRITE;
+/*!40000 ALTER TABLE `prod_plan` DISABLE KEYS */;
+INSERT INTO `prod_plan` VALUES (1,1,NULL,'pond',1,'feeding','5月鲍鱼育苗车间投喂计划','每日早晚各投喂一次，投喂前检查水质，清理残饵。雨天减少投喂量。','鲍鱼配合饲料',50.00,NULL,NULL,NULL,'晴天或阴天',NULL,'2026-06-01 06:00:00','2026-06-30 20:00:00','daily','active',1001,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(2,1,NULL,'pond',2,'feeding','石斑鱼高位池日常投喂','使用石斑鱼膨化浮性饲料，日投喂2次，根据水温、溶氧调整投喂量。','石斑鱼膨化饲料',80.00,NULL,NULL,NULL,NULL,NULL,'2026-06-01 07:00:00','2026-06-30 18:00:00','daily','active',1001,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(3,1,NULL,'pond',3,'medication','对虾塘弧菌预防方案','连续3天全池泼洒聚维酮碘，注意增氧。用药期间停止换水。',NULL,NULL,'聚维酮碘','500ml/亩·米',7,'晴天上午使用',NULL,'2026-06-03 08:00:00','2026-06-05 18:00:00',NULL,'published',1001,202,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(4,1,NULL,'pond',4,'harvest','螠蛏滩涂采捕计划','退潮后组织工人滩涂采捕，分级分拣，活鲜运输至加工厂。',NULL,NULL,NULL,NULL,NULL,NULL,2000.00,'2026-06-10 04:00:00','2026-06-10 12:00:00',NULL,'draft',1001,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(5,1,NULL,'cage',1,'maintenance','深海一号网箱检修维护','检查网衣破损情况，更换老化浮球，清理附着生物，检查锚固系统。',NULL,NULL,NULL,NULL,NULL,'风浪小于3级',NULL,'2026-06-08 09:00:00','2026-06-08 17:00:00',NULL,'draft',1001,202,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(6,2,NULL,'pond',6,'seeding','金鲳鱼养殖区放苗计划','从苗种基地运输金鲳鱼苗，先暂养适应水温，然后分批次投放。',NULL,NULL,NULL,NULL,NULL,'水温稳定在22°C以上',NULL,'2026-06-05 07:00:00','2026-06-05 12:00:00',NULL,'published',1004,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(7,2,NULL,'pond',5,'feeding','大黄鱼网箱投喂计划','使用大黄鱼专用浮性膨化料，每日投喂2次，注意观察摄食情况。','大黄鱼浮性料',120.00,NULL,NULL,NULL,NULL,NULL,'2026-06-01 06:00:00','2026-06-30 18:00:00','daily','active',1004,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(8,2,NULL,'pond',7,'harvest','黑鮶深水网箱成鱼捕捞','起网分级捕捞，活鱼舱运输，对接厦门批发市场。',NULL,NULL,NULL,NULL,NULL,'风浪小于4级',5000.00,'2026-06-15 04:00:00','2026-06-15 14:00:00',NULL,'draft',1004,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(9,2,NULL,'pond',8,'water_change','苗种池水质调理','排掉1/3老水，注入新水，开启增氧机，检测氨氮亚盐。',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-05-28 09:00:00','2026-05-28 15:00:00',NULL,'completed',1004,202,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(10,1,NULL,'vsl',1,'maintenance','国信先锋号制冷系统维保','检查氨压缩机运行状态，更换冷冻油，清洗冷凝器，补充制冷剂。',NULL,NULL,NULL,NULL,NULL,'停泊状态',NULL,'2026-06-12 09:00:00','2026-06-12 17:00:00',NULL,'draft',1001,202,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(11,1,NULL,'pond',2,'medication','石斑鱼出血病治疗','内服恩诺沙星拌料投喂，连续5天，同时外泼消毒。休药期严格执行。',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,'2026-06-07 08:00:00','2026-06-11 18:00:00',NULL,'published',1001,202,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL),(12,1,NULL,'pond',3,'harvest','南美白对虾塘出虾计划','地笼捕捞+拉网，分级过磅，加冰运输至加工厂。提前停食12小时。',NULL,NULL,NULL,NULL,NULL,NULL,3000.00,'2026-06-20 04:00:00','2026-06-20 10:00:00',NULL,'draft',1001,201,'2026-05-30 04:13:10','2026-05-30 04:13:10',0,NULL);
+/*!40000 ALTER TABLE `prod_plan` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prod_plan_backup`
+--
+
+DROP TABLE IF EXISTS `prod_plan_backup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `prod_plan_backup` (
+  `id` bigint NOT NULL DEFAULT '0',
   `base_id` bigint DEFAULT NULL COMMENT '所属基地ID (冗余字段，用于快速筛选)',
   `parent_plan_id` bigint DEFAULT NULL COMMENT '父计划ID (用于模板生成或计划拆分)',
   `target_type` varchar(20) DEFAULT NULL COMMENT '目标类型: pond(塘口), cage(网箱), vsl(工船)',
@@ -1125,56 +1209,18 @@ CREATE TABLE `prod_plan` (
   `create_time` datetime DEFAULT (now()) COMMENT '创建时间',
   `update_time` datetime DEFAULT (now()) COMMENT '更新时间',
   `is_delete` tinyint NOT NULL DEFAULT '0' COMMENT '是否删除: 0-正常, 1-已删除',
-  `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
-  PRIMARY KEY (`id`),
-  KEY `base_id` (`base_id`),
-  KEY `parent_plan_id` (`parent_plan_id`),
-  CONSTRAINT `prod_plan_ibfk_1` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`),
-  CONSTRAINT `prod_plan_ibfk_2` FOREIGN KEY (`parent_plan_id`) REFERENCES `prod_plan` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `prod_plan`
---
-
-LOCK TABLES `prod_plan` WRITE;
-/*!40000 ALTER TABLE `prod_plan` DISABLE KEYS */;
-INSERT INTO `prod_plan` VALUES (1,1,NULL,'pond',101,'feeding','5月常规投喂计划','每日早晚各一次，根据天气调整投喂量','2026-05-05 06:00:00','2026-05-31 20:00:00','Every Day','active',1001,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(2,1,NULL,'cage',205,'medication','网箱杀菌消毒专项','使用二氧化氯进行水体消毒，注意佩戴手套','2026-05-06 08:00:00','2026-05-06 12:00:00',NULL,'published',1001,202,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(3,2,NULL,'vsl',301,'maintenance','工船发电机月度维保','检查机油液位，更换空气滤芯','2026-05-10 09:00:00','2026-05-10 17:00:00',NULL,'draft',1002,203,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(4,1,1,'pond',102,'feeding','102号塘加餐计划','针对生长较快的鱼群增加10%投喂量','2026-05-07 07:00:00','2026-05-07 18:00:00',NULL,'completed',1001,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(5,2,NULL,'pond',105,'harvest','成鱼捕捞上市计划','准备捕捞网具，联系运输车辆','2026-05-15 04:00:00','2026-05-15 10:00:00',NULL,'cancelled',1002,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(6,1,NULL,'pond',103,'harvest','103号塘成鱼上市捕捞','联系收购商王老板，规格大于1kg的挑出来高价卖','2026-05-20 04:00:00','2026-05-20 12:00:00',NULL,'published',1001,201,'2026-05-04 22:21:54','2026-05-04 22:21:54',0,NULL),(7,1,NULL,'pond',104,'medication','104号塘出血病综合治疗','连续3天，内服恩诺沙星，外泼聚维酮碘','2026-05-21 08:00:00','2026-05-23 18:00:00',NULL,'published',1001,202,'2026-05-04 22:24:47','2026-05-04 22:24:47',0,NULL);
-/*!40000 ALTER TABLE `prod_plan` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `prod_plan_detail`
---
-
-DROP TABLE IF EXISTS `prod_plan_detail`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `prod_plan_detail` (
-  `plan_id` bigint NOT NULL,
-  `feed_amount` decimal(10,2) DEFAULT NULL COMMENT '计划投喂量(kg)',
-  `feed_variety` varchar(100) DEFAULT NULL COMMENT '饲料品种',
-  `drug_name` varchar(100) DEFAULT NULL COMMENT '药品名称',
-  `dosage` varchar(100) DEFAULT NULL COMMENT '用量',
-  `withdrawal_days` int DEFAULT NULL COMMENT '休药期天数',
-  `longitude` decimal(9,6) DEFAULT NULL COMMENT '作业海域经度',
-  `latitude` decimal(8,6) DEFAULT NULL COMMENT '作业海域纬度',
-  `weather_req` varchar(100) DEFAULT NULL COMMENT '气象要求',
-  `est_yield` decimal(10,2) DEFAULT NULL COMMENT '预计产量',
-  PRIMARY KEY (`plan_id`),
-  CONSTRAINT `prod_plan_detail_ibfk_1` FOREIGN KEY (`plan_id`) REFERENCES `prod_plan` (`id`)
+  `delete_time` datetime DEFAULT NULL COMMENT '删除时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `prod_plan_detail`
+-- Dumping data for table `prod_plan_backup`
 --
 
-LOCK TABLES `prod_plan_detail` WRITE;
-/*!40000 ALTER TABLE `prod_plan_detail` DISABLE KEYS */;
-INSERT INTO `prod_plan_detail` VALUES (1,1200.00,'深海石斑鱼专用饲料',NULL,NULL,NULL,118.123456,24.567890,'风力<4级',50000.00),(2,NULL,NULL,'二氧化氯','200g/亩',7,118.125000,24.569000,'晴天无雨',NULL),(5,200.00,'配合饲料',NULL,NULL,NULL,119.760000,25.120000,'无特殊要求',12000.00);
-/*!40000 ALTER TABLE `prod_plan_detail` ENABLE KEYS */;
+LOCK TABLES `prod_plan_backup` WRITE;
+/*!40000 ALTER TABLE `prod_plan_backup` DISABLE KEYS */;
+INSERT INTO `prod_plan_backup` VALUES (1,1,NULL,'pond',1,'feeding','5月常规投喂计划','每日早晚各一次，根据天气调整投喂量','2026-05-05 06:00:00','2026-05-31 20:00:00','Every Day','active',1001,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(2,1,NULL,'cage',5,'medication','网箱杀菌消毒专项','使用二氧化氯进行水体消毒，注意佩戴手套','2026-05-06 08:00:00','2026-05-06 12:00:00',NULL,'published',1001,202,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(3,2,NULL,'vsl',1,'maintenance','工船发电机月度维保','检查机油液位，更换空气滤芯','2026-05-10 09:00:00','2026-05-10 17:00:00',NULL,'draft',1002,203,'2026-05-04 18:39:23','2026-05-04 18:39:23',1,NULL),(4,1,1,'pond',2,'feeding','102号塘加餐计划','针对生长较快的鱼群增加10%投喂量','2026-05-07 07:00:00','2026-05-07 18:00:00',NULL,'completed',1001,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(5,2,NULL,'pond',5,'harvest','成鱼捕捞上市计划','准备捕捞网具，联系运输车辆','2026-05-15 04:00:00','2026-05-15 10:00:00',NULL,'cancelled',1002,201,'2026-05-04 18:39:23','2026-05-04 18:39:23',0,NULL),(6,1,NULL,'pond',3,'harvest','103号塘成鱼上市捕捞','联系收购商王老板，规格大于1kg的挑出来高价卖','2026-05-20 04:00:00','2026-05-20 12:00:00',NULL,'published',1001,201,'2026-05-04 22:21:54','2026-05-04 22:21:54',0,NULL),(7,1,NULL,'pond',4,'medication','104号塘出血病综合治疗','连续3天，内服恩诺沙星，外泼聚维酮碘','2026-05-21 08:00:00','2026-05-23 18:00:00',NULL,'cancelled',1001,202,'2026-05-04 22:24:47','2026-05-04 22:24:47',0,NULL);
+/*!40000 ALTER TABLE `prod_plan_backup` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1196,11 +1242,19 @@ CREATE TABLE `prod_task` (
   `status` varchar(20) DEFAULT 'pending' COMMENT '状态: pending(待办), assigned(已派发), doing(进行中), done(已完成), skipped(跳过/无需执行), expired(已过期)',
   `assignee_id` bigint DEFAULT NULL COMMENT '具体执行工人ID',
   `cancel_reason` varchar(255) DEFAULT NULL COMMENT '取消/跳过原因',
+  `device_id` bigint DEFAULT NULL COMMENT '关联 IoT 设备ID',
+  `device_action` varchar(50) DEFAULT NULL COMMENT '设备操作指令',
   `create_time` datetime DEFAULT (now()) COMMENT '创建时间',
   `update_time` datetime DEFAULT (now()) COMMENT '更新时间',
   `is_delete` tinyint NOT NULL DEFAULT '0' COMMENT '是否删除: 0-正常, 1-已删除',
   `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
   `priority` varchar(10) DEFAULT 'medium' COMMENT '优先级 (high, medium, low)',
+  `feed_variety` varchar(100) DEFAULT NULL COMMENT '饲料品种',
+  `feed_amount` decimal(10,2) DEFAULT NULL COMMENT '投喂量(kg)',
+  `drug_name` varchar(100) DEFAULT NULL COMMENT '药品名称',
+  `dosage` varchar(100) DEFAULT NULL COMMENT '用量',
+  `withdrawal_days` int DEFAULT NULL COMMENT '休药期天数',
+  `weather_req` varchar(100) DEFAULT NULL COMMENT '气象要求',
   `source_type` varchar(20) DEFAULT NULL COMMENT '来源类型 (plan:计划, alert:预警, manual:人工)',
   `source_id` bigint DEFAULT NULL COMMENT '来源ID (关联计划ID或预警ID)',
   PRIMARY KEY (`id`),
@@ -1208,7 +1262,7 @@ CREATE TABLE `prod_task` (
   KEY `base_id` (`base_id`),
   CONSTRAINT `prod_task_ibfk_1` FOREIGN KEY (`plan_id`) REFERENCES `prod_plan` (`id`),
   CONSTRAINT `prod_task_ibfk_2` FOREIGN KEY (`base_id`) REFERENCES `base_info` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1217,7 +1271,7 @@ CREATE TABLE `prod_task` (
 
 LOCK TABLES `prod_task` WRITE;
 /*!40000 ALTER TABLE `prod_task` DISABLE KEYS */;
-INSERT INTO `prod_task` VALUES (1,1,1,'101号塘早间投喂','pond',101,'2026-05-05 07:00:00','2026-05-05 09:00:00','done',5001,NULL,'2026-05-04 18:39:23','2026-05-04 19:14:51',0,NULL,'medium',NULL,NULL),(2,1,1,'101号塘晚间投喂','pond',101,'2026-05-05 17:00:00','2026-05-05 19:00:00','assigned',5002,NULL,'2026-05-04 18:39:23','2026-05-04 19:14:51',0,NULL,'medium',NULL,NULL),(3,2,1,'205号网箱消毒作业','cage',205,'2026-05-06 08:30:00','2026-05-06 11:30:00','pending',5003,NULL,'2026-05-04 18:39:23','2026-05-04 19:14:51',0,NULL,'medium',NULL,NULL),(4,3,2,'301工船发电机维保','vsl',301,'2026-05-10 09:00:00','2026-05-10 16:00:00','doing',5004,NULL,'2026-05-04 18:39:23','2026-05-04 19:14:51',0,NULL,'medium',NULL,NULL),(5,5,2,'105号塘捕捞作业','pond',105,'2026-05-15 05:00:00','2026-05-15 09:00:00','expired',5001,'因台风天气取消','2026-05-04 18:39:23','2026-05-04 19:14:51',0,NULL,'medium',NULL,NULL),(6,3,1,'103号塘拉网捕捞','pond',103,'2026-05-20 05:00:00','2026-05-20 10:00:00','assigned',5001,NULL,'2026-05-04 22:21:54','2026-05-04 22:21:54',0,NULL,'medium',NULL,NULL),(7,4,1,'104号塘投药(第1天)','pond',104,'2026-05-21 09:00:00','2026-05-21 11:00:00','assigned',5002,NULL,'2026-05-04 22:24:47','2026-05-04 22:24:47',0,NULL,'medium',NULL,NULL);
+INSERT INTO `prod_task` VALUES (1,1,1,'2026-06-01 早间投喂','pond',1,'2026-06-01 06:00:00','2026-06-01 08:00:00','done',1002,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','鲍鱼配合饲料',25.00,NULL,NULL,NULL,NULL,NULL,NULL),(2,1,1,'2026-06-01 晚间投喂','pond',1,'2026-06-01 17:00:00','2026-06-01 19:00:00','done',1003,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','鲍鱼配合饲料',25.00,NULL,NULL,NULL,NULL,NULL,NULL),(3,1,1,'2026-06-02 早间投喂','pond',1,'2026-06-02 06:00:00','2026-06-02 08:00:00','assigned',1002,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','鲍鱼配合饲料',25.00,NULL,NULL,NULL,NULL,NULL,NULL),(4,1,1,'2026-06-02 晚间投喂','pond',1,'2026-06-02 17:00:00','2026-06-02 19:00:00','pending',1003,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','鲍鱼配合饲料',25.00,NULL,NULL,NULL,NULL,NULL,NULL),(5,2,1,'2026-06-01 早间投喂','pond',2,'2026-06-01 07:00:00','2026-06-01 09:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'high','石斑鱼膨化饲料',40.00,NULL,NULL,NULL,NULL,NULL,NULL),(6,2,1,'2026-06-01 午间投喂','pond',2,'2026-06-01 12:00:00','2026-06-01 14:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'high','石斑鱼膨化饲料',40.00,NULL,NULL,NULL,NULL,NULL,NULL),(7,2,1,'2026-06-02 早间投喂','pond',2,'2026-06-02 07:00:00','2026-06-02 09:00:00','assigned',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'high','石斑鱼膨化饲料',40.00,NULL,NULL,NULL,NULL,NULL,NULL),(8,3,1,'配药-聚维酮碘','pond',3,'2026-06-03 08:00:00','2026-06-03 09:00:00','pending',1006,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'聚维酮碘','500ml/亩·米',NULL,NULL,NULL,NULL),(9,3,1,'第1天全池泼洒','pond',3,'2026-06-03 09:00:00','2026-06-03 11:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'聚维酮碘','500ml/亩·米',NULL,NULL,NULL,NULL),(10,3,1,'第2天全池泼洒','pond',3,'2026-06-04 09:00:00','2026-06-04 11:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'聚维酮碘','500ml/亩·米',NULL,NULL,NULL,NULL),(11,3,1,'第3天全池泼洒','pond',3,'2026-06-05 09:00:00','2026-06-05 11:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'聚维酮碘','500ml/亩·米',NULL,NULL,NULL,NULL),(12,6,2,'放苗准备-检查暂养池','pond',6,'2026-06-05 07:00:00','2026-06-05 08:00:00','pending',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'high',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(13,6,2,'金鲳鱼苗投放','pond',6,'2026-06-05 08:00:00','2026-06-05 11:00:00','pending',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'high',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(14,7,2,'2026-06-01 早间投喂','pond',5,'2026-06-01 06:00:00','2026-06-01 08:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','大黄鱼浮性料',60.00,NULL,NULL,NULL,NULL,NULL,NULL),(15,7,2,'2026-06-01 晚间投喂','pond',5,'2026-06-01 16:00:00','2026-06-01 18:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','大黄鱼浮性料',60.00,NULL,NULL,NULL,NULL,NULL,NULL),(16,7,2,'2026-06-02 早间投喂','pond',5,'2026-06-02 06:00:00','2026-06-02 08:00:00','assigned',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium','大黄鱼浮性料',60.00,NULL,NULL,NULL,NULL,NULL,NULL),(17,9,2,'排水及注水操作','pond',8,'2026-05-28 09:00:00','2026-05-28 11:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(18,9,2,'水质检测记录','pond',8,'2026-05-28 11:00:00','2026-05-28 12:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(19,9,2,'增氧机运行检查','pond',8,'2026-05-28 14:00:00','2026-05-28 15:00:00','done',1005,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'medium',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(20,11,1,'配药-恩诺沙星拌料','pond',2,'2026-06-07 08:00:00','2026-06-07 09:00:00','pending',1006,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL),(21,11,1,'第1天投药饲喂','pond',2,'2026-06-07 09:00:00','2026-06-07 10:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL),(22,11,1,'第2天投药饲喂','pond',2,'2026-06-08 09:00:00','2026-06-08 10:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL),(23,11,1,'第3天投药饲喂','pond',2,'2026-06-09 09:00:00','2026-06-09 10:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL),(24,11,1,'第4天投药饲喂','pond',2,'2026-06-10 09:00:00','2026-06-10 10:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL),(25,11,1,'第5天投药饲喂','pond',2,'2026-06-11 09:00:00','2026-06-11 10:00:00','pending',1007,NULL,NULL,NULL,'2026-05-30 04:13:30','2026-05-30 04:13:30',0,NULL,'urgent',NULL,NULL,'恩诺沙星','200g/吨饲料',15,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `prod_task` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1272,7 +1326,7 @@ CREATE TABLE `stk_record` (
   UNIQUE KEY `record_no` (`record_no`),
   KEY `mat_id` (`mat_id`),
   CONSTRAINT `stk_record_ibfk_1` FOREIGN KEY (`mat_id`) REFERENCES `mat_info` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1281,6 +1335,7 @@ CREATE TABLE `stk_record` (
 
 LOCK TABLES `stk_record` WRITE;
 /*!40000 ALTER TABLE `stk_record` DISABLE KEYS */;
+INSERT INTO `stk_record` VALUES (1,'STK-IN-20260501-001',1,13,'BATCH-20260501','IN',1000.0000,1001,'采购入库 - 通威草鱼配合饲料','2026-05-01 09:00:00'),(2,'STK-IN-20260501-002',1,14,'BATCH-20260501','IN',500.0000,1001,'采购入库 - 海大鲈鱼膨化料','2026-05-01 09:30:00'),(3,'STK-IN-20260502-003',1,15,'BATCH-20260502','IN',50.0000,1001,'采购入库 - 恩诺沙星粉','2026-05-02 10:00:00'),(4,'STK-IN-20260502-004',1,17,'BATCH-20260502','IN',100.0000,1001,'采购入库 - 聚维酮碘溶液','2026-05-02 10:30:00'),(5,'STK-OUT-20260520-005',1,13,'BATCH-20260501','OUT',-50.5000,5001,'投喂出库 - 1号塘早间投喂','2026-05-20 07:15:00'),(6,'STK-OUT-20260520-006',1,14,'BATCH-20260501','OUT',-120.0000,1001,'投喂出库 - 2号塘加餐','2026-05-20 08:00:00'),(7,'STK-OUT-20260521-007',1,13,'BATCH-20260501','OUT',-48.0000,5001,'投喂出库 - 1号塘晚间投喂','2026-05-21 17:30:00'),(8,'STK-OUT-20260521-008',1,15,'BATCH-20260502','OUT',-500.0000,5002,'用药出库 - 恩诺沙星治疗','2026-05-21 09:30:00'),(9,'STK-OUT-20260522-009',1,15,'BATCH-20260502','OUT',-500.0000,5002,'用药出库 - 恩诺沙星第2天','2026-05-22 09:30:00'),(10,'STK-OUT-20260510-010',1,17,'BATCH-20260502','OUT',-2000.0000,1001,'用药出库 - 聚维酮碘消毒','2026-05-10 14:00:00'),(11,'STK-ADJ-20260515-011',1,13,'BATCH-20260501','ADJUST',-10.0000,1001,'盘点调整 - 发现损耗10kg','2026-05-15 16:00:00'),(12,'STK-ADJ-20260515-012',1,14,'BATCH-20260501','ADJUST',5.0000,1001,'盘点调整 - 实际库存多出5kg','2026-05-15 16:30:00');
 /*!40000 ALTER TABLE `stk_record` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1310,7 +1365,7 @@ CREATE TABLE `stk_usage` (
   KEY `pond_id` (`pond_id`),
   CONSTRAINT `stk_usage_ibfk_1` FOREIGN KEY (`mat_id`) REFERENCES `mat_info` (`id`),
   CONSTRAINT `stk_usage_ibfk_2` FOREIGN KEY (`pond_id`) REFERENCES `pond_info` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1595,8 +1650,6 @@ CREATE TABLE `sys_notice_record` (
   KEY `biz_id` (`biz_id`),
   KEY `template_id` (`template_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `sys_notice_record_ibfk_1` FOREIGN KEY (`biz_id`) REFERENCES `iot_alert` (`id`),
-  CONSTRAINT `sys_notice_record_ibfk_2` FOREIGN KEY (`biz_id`) REFERENCES `warn_record` (`id`),
   CONSTRAINT `sys_notice_record_ibfk_3` FOREIGN KEY (`template_id`) REFERENCES `sys_notice_template` (`id`),
   CONSTRAINT `sys_notice_record_ibfk_4` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1918,8 +1971,7 @@ CREATE TABLE `vsl_info` (
   `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `vsl_code` (`vsl_code`),
-  KEY `breeder_id` (`breeder_id`),
-  CONSTRAINT `vsl_info_ibfk_1` FOREIGN KEY (`breeder_id`) REFERENCES `biz_breeder` (`id`)
+  KEY `breeder_id` (`breeder_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2034,10 +2086,6 @@ LOCK TABLES `warn_rule_param` WRITE;
 /*!40000 ALTER TABLE `warn_rule_param` DISABLE KEYS */;
 /*!40000 ALTER TABLE `warn_rule_param` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping routines for database 'artsail_admin'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -2048,4 +2096,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-06  0:03:48
+-- Dump completed on 2026-05-30 14:17:02

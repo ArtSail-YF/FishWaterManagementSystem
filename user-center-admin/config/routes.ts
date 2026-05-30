@@ -79,7 +79,6 @@ export default [
       {
         path: '/warning',
         redirect: '/warning/comprehensive',
-        // component: './warning/Comprehensive',
       },
       {
         path: '/warning/comprehensive',
@@ -101,7 +100,6 @@ export default [
       {
         path: '/weather',
         redirect: '/weather/real-time',
-     
       },
       {
         path: '/weather/real-time',
@@ -123,13 +121,13 @@ export default [
   {
     path: '/production',
     name: 'production',
-    icon: 'setting',
+    icon: 'deploymentUnit',
     routes: [
       {
         path: '/production',
         redirect: '/production/work',
-        // component: './production/Logs',
       },
+      // 生产作业 — 计划/任务/合格证
       {
         path: '/production/work',
         name: 'work',
@@ -139,7 +137,6 @@ export default [
             path: '/production/work',
             redirect: '/production/work/plans',
           },
-          
           {
             path: '/production/work/plans',
             name: 'plans',
@@ -151,37 +148,77 @@ export default [
             component: './production/Tasks',
           },
           {
-            path: '/production/work/feeding',
-            name: 'feeding',
-            component: './production/logs/Feeding',
-          },
-          {
-            path: '/production/work/medicine',
-            name: 'medicine',
-            component: './production/logs/Medicine',
-          },
-          {
-            path: '/production/work/fishing-records',
-            name: 'fishing-records',
-            component: './production/FishingRecords',
-          },
-          {
-            path: '/production/work/stock-records',
-            name: 'stock-records',
-            component: './production/StockRecords',
-          },
-          {
-            path: '/production/work/usage-records',
-            name: 'usage-records',
-            component: './production/UsageRecords',
-          },
-          {
             path: '/production/work/certificates',
             name: 'certificates',
             component: './production/Certificates',
           },
         ],
       },
+      // 养殖记录 — 投喂/用药/捕捞
+      {
+        path: '/production/records',
+        name: 'records',
+        icon: 'profile',
+        routes: [
+          {
+            path: '/production/records',
+            redirect: '/production/records/feeding',
+          },
+          {
+            path: '/production/records/feeding',
+            name: 'feeding',
+            component: './production/logs/Feeding',
+          },
+          {
+            path: '/production/records/medicine',
+            name: 'medicine',
+            component: './production/logs/Medicine',
+          },
+          {
+            path: '/production/records/fishing-records',
+            name: 'fishing-records',
+            component: './production/FishingRecords',
+          },
+        ],
+      },
+      // 物料管理 — 入库/领用/库存/档案/分类
+      {
+        path: '/production/material',
+        name: 'material',
+        icon: 'inbox',
+        routes: [
+          {
+            path: '/production/material',
+            redirect: '/production/material/input-records',
+          },
+          {
+            path: '/production/material/input-records',
+            name: 'input-records',
+            component: './production/InputRecords',
+          },
+          {
+            path: '/production/material/usage-records',
+            name: 'usage-records',
+            component: './production/UsageRecords',
+          },
+          {
+            path: '/production/material/stock-records',
+            name: 'stock-records',
+            component: './production/StockRecords',
+          },
+          {
+            path: '/production/material/material-archive',
+            name: 'material-archive',
+            component: './production/MaterialArchive',
+          },
+          {
+            path: '/production/material/material-category',
+            name: 'material-category',
+            component: './production/MaterialCategory',
+          },
+        ],
+      },
+      // 设备运维
       {
         path: '/production/operation',
         name: 'operation',
@@ -203,6 +240,7 @@ export default [
           },
         ],
       },
+      // 资源管理 — 基地/塘口/养殖户
       {
         path: '/production/resource',
         name: 'resource',
@@ -223,32 +261,12 @@ export default [
             component: './production/PondManagement',
           },
           {
-            path: '/production/resource/material-info',
-            redirect: '/production/resource/material-archive',
+            path: '/production/resource/farmer-management',
+            name: 'farmer-management',
+            component: './admin/FarmerManagement',
           },
         ],
       },
-      {
-        path: '/production/material',
-        name: 'material',
-        icon: 'inbox',
-        routes: [
-          {
-            path: '/production/material',
-            redirect: '/production/material/material-archive',
-          },
-          {
-            path: '/production/material/material-archive',
-            name: 'material-archive',
-            component: './production/MaterialArchive',
-          },
-          {
-            path: '/production/material/material-category',
-            name: 'material-category',
-            component: './production/MaterialCategory',
-          },
-        ],
-      }
     ],
   },
   {
@@ -259,7 +277,6 @@ export default [
       {
         path: '/info-nav',
         redirect: '/info-nav/market',
-        // component: './info-nav/Market',
       },
       {
         path: '/info-nav/market',
@@ -302,11 +319,6 @@ export default [
         path: '/admin/userManage',
         name: 'UserManage',
         component: './admin/userManage',
-      },
-      {
-        path: '/admin/farmerManagement',
-        name: 'FarmerManagement',
-        component: './admin/FarmerManagement',
       },
       {
         path: '/admin/dict',

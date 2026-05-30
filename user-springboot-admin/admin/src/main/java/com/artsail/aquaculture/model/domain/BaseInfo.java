@@ -1,5 +1,7 @@
 package com.artsail.aquaculture.model.domain;
 
+import com.artsail.common.domain.LogicDeleteEntity;
+
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,7 +16,7 @@ import lombok.AllArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaseInfo extends BaseEntity {
+public class BaseInfo extends LogicDeleteEntity {
     private String baseCode;
     private String baseName;
     private Long breederId;

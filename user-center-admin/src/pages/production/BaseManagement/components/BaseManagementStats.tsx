@@ -1,6 +1,8 @@
-import { Card, Col, Row, Statistic, Tag } from 'antd';
+import { Card, Col, Row, Statistic, Tag, Typography } from 'antd';
 import { AppstoreOutlined, EnvironmentOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 import React from 'react';
+
+const { Text } = Typography;
 
 interface StatsProps {
   data?: any[];
@@ -29,69 +31,52 @@ const BaseManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
   const uniqueManagers = new Set(data.map(item => item.contactPerson || item.manager)).size;
 
   return (
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+    <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
       <Col span={6}>
         <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
-            title="基地总数"
+            title={<Text type="secondary" style={{ fontSize: '12px' }}>基地总数</Text>}
             value={data.length}
             suffix="个"
-            valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
             prefix={<AppstoreOutlined />}
           />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            <Tag color="blue" size="small">海水养殖: {typeStats.海水养殖}</Tag>
-            <Tag color="green" size="small">淡水养殖: {typeStats.淡水养殖}</Tag>
-            <Tag color="orange" size="small">特种养殖: {typeStats.特种养殖}</Tag>
-            <Tag color="purple" size="small">综合养殖: {typeStats.综合养殖}</Tag>
-          </div>
         </Card>
       </Col>
       
       <Col span={6}>
         <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
-            title="总面积"
+            title={<Text type="secondary" style={{ fontSize: '12px' }}>总面积</Text>}
             value={totalArea}
             suffix="亩"
-            valueStyle={{ color: '#52c41a', fontFamily: 'AlibabaSans' }}
+valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
             prefix={<EnvironmentOutlined />}
           />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            平均面积: {data.length > 0 ? (totalArea / data.length).toFixed(1) : 0}亩
-          </div>
         </Card>
       </Col>
       
       <Col span={6}>
         <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
-            title="负责人数量"
+            title={<Text type="secondary" style={{ fontSize: '12px' }}>负责人数量</Text>}
             value={uniqueManagers}
             suffix="人"
-            valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
             prefix={<UserOutlined />}
           />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            平均管理: {data.length > 0 ? (data.length / uniqueManagers).toFixed(1) : 0}个/人
-          </div>
         </Card>
       </Col>
       
       <Col span={6}>
         <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
-            title="基地状态"
+            title={<Text type="secondary" style={{ fontSize: '12px' }}>运营中</Text>}
             value={statusStats.active}
             suffix={`/ ${data.length}`}
-            valueStyle={{ color: statusStats.active > 0 ? '#52c41a' : '#d9d9d9', fontFamily: 'AlibabaSans' }}
+valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
             prefix={<PhoneOutlined />}
           />
-          <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-            <Tag color="green" size="small">运营中: {statusStats.active}</Tag>
-            <Tag color="red" size="small">停用: {statusStats.inactive}</Tag>
-            <Tag color="orange" size="small">维护中: {statusStats.maintenance}</Tag>
-          </div>
         </Card>
       </Col>
     </Row>

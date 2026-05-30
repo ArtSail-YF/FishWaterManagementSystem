@@ -64,7 +64,7 @@ const StatusHeader: React.FC = () => {
                 value={(data?.maxWind || 0) * 1.5}
                 precision={1}
                 suffix="m/s"
-                valueStyle={{ fontSize: '18px', color: '#fa8c16' }}
+                valueStyle={{ fontSize: '18px', color: '#9ca3af' }}
                 className="fin-number"
               />
             </Col>
@@ -83,7 +83,7 @@ const StatusHeader: React.FC = () => {
 
         <Col span={6}>
           <div style={{ backgroundColor: '#f6ffed', padding: '8px 12px', borderRadius: '2px', border: '1px solid #b7eb8f' }}>
-            <div style={{ fontSize: '12px', color: '#52c41a', fontWeight: 'bold' }}>最佳纳水窗口期</div>
+            <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>最佳纳水窗口期</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <span className="fin-number" style={{ fontSize: '20px', color: '#389e0d' }}>01:42:05</span>
               <Text style={{ fontSize: '12px', color: '#389e0d' }}>适合纳水</Text>

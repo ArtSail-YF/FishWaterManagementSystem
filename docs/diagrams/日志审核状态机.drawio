@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron" modified="2026-05-29T10:10:00.000Z" agent="5.0" version="21.3.7">
+  <diagram id="log-state-machine" name="日志审核状态机">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- 标题 -->
+        <mxCell id="title" value="日志审核状态机" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="400" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- auto 初始态 -->
+        <mxCell id="auto-state" value="auto&#10;自动通过" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="100" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- pending 待审核 -->
+        <mxCell id="pending-state" value="pending&#10;待审核" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#f57c00;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="300" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- rejected 已驳回 -->
+        <mxCell id="rejected-state" value="rejected&#10;已驳回" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="450" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- 已确认 + 通过 -->
+        <mxCell id="approved-state" value="auto&#10;审核通过" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="450" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- 连线: auto -> pending (后台录入) -->
+        <mxCell id="auto-to-pending" value="管理员后台录入" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f57c00;strokeWidth=1.5;fontSize=11;fontColor=#f57c00;" edge="1" parent="1">
+          <mxGeometry x="380" y="160" relative="1" as="geometry">
+            <mxPoint x="380" y="160"/>
+            <mxPoint x="380" y="300"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 连线: pending -> approved (审核通过) -->
+        <mxCell id="pending-to-approved" value="主管审核通过" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#388e3c;strokeWidth=1.5;fontSize=11;fontColor=#388e3c;" edge="1" parent="1">
+          <mxGeometry x="440" y="360" relative="1" as="geometry">
+            <mxPoint x="440" y="360"/>
+            <mxPoint x="550" y="480"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 连线: pending -> rejected (驳回) -->
+        <mxCell id="pending-to-rejected" value="模板驳回" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d32f2f;strokeWidth=1.5;fontSize=11;fontColor=#d32f2f;" edge="1" parent="1">
+          <mxGeometry x="320" y="360" relative="1" as="geometry">
+            <mxPoint x="320" y="360"/>
+            <mxPoint x="160" y="450"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 连线: rejected -> pending (重新提交) -->
+        <mxCell id="rejected-to-pending" value="修改后重新提交" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f57c00;strokeWidth=1.5;fontSize=11;fontColor=#f57c00;dashed=1;" edge="1" parent="1">
+          <mxGeometry x="220" y="480" relative="1" as="geometry">
+            <mxPoint x="220" y="480"/>
+            <mxPoint x="320" y="360"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 说明框 -->
+        <mxCell id="note" value="说明：&#10;· App打卡 → auto（自动通过）&#10;· 后台录入/补录 → pending（待审核）&#10;· 驳回可修改后重新提交" style="text;whiteSpace=wrap;html=1;rounded=1;fillColor=#f5f5f5;strokeColor=#bdbdbd;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="580" width="300" height="80" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

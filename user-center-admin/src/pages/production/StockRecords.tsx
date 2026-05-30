@@ -165,7 +165,7 @@ const StockRecords: React.FC = () => {
         <a key="edit" onClick={() => { setCurrentRow(record); setModalVisible(true); }}>编辑</a>,
         <a
           key="delete"
-          style={{ color: '#ff4d4f' }}
+          style={{ color: '#ef4444' }}
           onClick={async () => {
             Modal.confirm({
               title: '删除确认',
@@ -199,7 +199,7 @@ const StockRecords: React.FC = () => {
               title="当前饲料库存"
               value={4250}
               suffix="kg"
-              valueStyle={{ color: '#cf1322', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
               prefix={<InboxOutlined />}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
@@ -213,7 +213,7 @@ const StockRecords: React.FC = () => {
               title="当前药品库存"
               value={128}
               suffix="瓶"
-              valueStyle={{ color: '#3f8600', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
               prefix={<InboxOutlined />}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
@@ -227,7 +227,7 @@ const StockRecords: React.FC = () => {
               title="待审核投入"
               value={8}
               suffix="笔"
-              valueStyle={{ color: '#faad14', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               涉及金额: <span className="fin-number">¥12,450.00</span>
@@ -241,7 +241,7 @@ const StockRecords: React.FC = () => {
               value={85600.00}
               prefix="¥"
               precision={2}
-              valueStyle={{ color: '#1890ff', fontFamily: 'AlibabaSans' }}
+valueStyle={{ color: '#2C2416', fontFamily: 'AlibabaSans' }}
             />
             <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
               年度预算执行率: <span className="fin-number">65%</span>
@@ -312,7 +312,6 @@ const StockRecords: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        bordered
       />
 
       <StockForm
