@@ -1,4 +1,4 @@
-/**
+﻿/**
  * API 类型统一导出
  * 后端返回的原始数据结构（契约）
  */
@@ -9,3 +9,6 @@ export * from './warning';
 export * from './input';
 export * from './pond';
 export * from './plan';
+export * from './feeding-record';
+export * from './medication-record';
+export * from './harvest-record';

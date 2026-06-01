@@ -1,433 +1,201 @@
-import { PlusOutlined, EditOutlined, DeleteOutlined, ExportOutlined, FileTextOutlined, FishOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons';
+﻿import {
+  PlusOutlined, EditOutlined, DeleteOutlined, ExportOutlined, ReloadOutlined, EyeOutlined,
+  BarsOutlined, FileTextOutlined, CheckCircleOutlined, SyncOutlined,
+  ClockCircleOutlined, TagOutlined, UserOutlined, DatabaseOutlined, EnvironmentOutlined,
+} from '@ant-design/icons';
 import { PageContainer, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Modal, message, Badge, Card, Row, Col, Statistic, Select } from 'antd';
-import React, { useState } from 'react';
+import { Button, Tag, Space, Modal, message, Card, Row, Col, Statistic, Typography, Descriptions } from 'antd';
+import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import { searchHarvestRecords, deleteHarvestRecord } from '@/services/api/harvest-record';
 
-const { Option } = Select;
+const { Text } = Typography;
 
-// 捕捞记录数据类型定义
-export interface FishingRecordItem {
-  id: string;
-  date: string;
-  pondName: string;
-  facilityCategory: 'pond' | 'cage' | 'workboat' | 'none';
-  species: string;
-  weight: number;
-  unit: string;
-  method: 'net' | 'trap' | 'hook' | 'other';
-  team: string;
-  operator: string;
-  status: 'completed' | 'in_progress' | 'planned';
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+const STATUS_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
+  completed: { label: '已完成', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
+  in_progress: { label: '进行中', bgColor: '#F5EDD6', textColor: '#A0843A' },
+  planned: { label: '计划中', bgColor: '#EBE5DE', textColor: '#5C4F42' },
+};
 
-// 模拟数据
-const mockData: FishingRecordItem[] = [
-  {
-    id: 'F001',
-    date: '2024-01-15',
-    pondName: '一号塘口',
-    facilityCategory: 'pond',
-    species: '南美白对虾',
-    weight: 1500,
-    unit: 'kg',
-    method: 'net',
-    team: '捕捞一组',
-    operator: '张三',
-    status: 'completed',
-    notes: '正常捕捞，虾体健康',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: 'F002',
-    date: '2024-01-16',
-    pondName: '二号网箱',
-    facilityCategory: 'cage',
-    species: '罗非鱼',
-    weight: 800,
-    unit: 'kg',
-    method: 'net',
-    team: '捕捞二组',
-    operator: '李四',
-    status: 'completed',
-    notes: '网箱捕捞，鱼体规格均匀',
-    createdAt: '2024-01-16',
-    updatedAt: '2024-01-16',
-  },
-  {
-    id: 'F003',
-    date: '2024-01-17',
-    pondName: '三号工船',
-    facilityCategory: 'workboat',
-    species: '海鲈鱼',
-    weight: 500,
-    unit: 'kg',
-    method: 'hook',
-    team: '捕捞三组',
-    operator: '王五',
-    status: 'in_progress',
-    notes: '工船作业中',
-    createdAt: '2024-01-17',
-    updatedAt: '2024-01-17',
-  },
-  {
-    id: 'F004',
-    date: '2024-01-18',
-    pondName: '四号塘口',
-    facilityCategory: 'pond',
-    species: '草鱼',
-    weight: 2000,
-    unit: 'kg',
-    method: 'net',
-    team: '捕捞一组',
-    operator: '张三',
-    status: 'planned',
-    notes: '计划明天捕捞',
-    createdAt: '2024-01-18',
-    updatedAt: '2024-01-18',
-  },
-];
-
-// 统计组件 - 简化版本，移除图标
-const FishingStats: React.FC<{ data: FishingRecordItem[] }> = ({ data }) => {
-  const completedCount = data.filter(item => item.status === 'completed').length;
-  const inProgressCount = data.filter(item => item.status === 'in_progress').length;
-  const plannedCount = data.filter(item => item.status === 'planned').length;
-  
-  const totalWeight = data.reduce((sum, item) => sum + item.weight, 0);
-  
-  const speciesStats = {
-    '南美白对虾': data.filter(item => item.species === '南美白对虾').length,
-    '罗非鱼': data.filter(item => item.species === '罗非鱼').length,
-    '海鲈鱼': data.filter(item => item.species === '海鲈鱼').length,
-    '草鱼': data.filter(item => item.species === '草鱼').length,
-  };
-
-  return (
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-      <Col span={6}>
-        <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-            {totalWeight} kg
-          </div>
-          <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
-            总捕捞量
-          </div>
-          <div style={{ marginTop: 4, fontSize: '12px', color: '#999' }}>
-            累计捕捞总量
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>
-            {data.length} 条
-          </div>
-          <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
-            捕捞记录
-          </div>
-          <div style={{ marginTop: 4, fontSize: '12px', color: '#999' }}>
-            <Tag color="green">完成: {completedCount}</Tag>
-            <Tag color="orange">进行中: {inProgressCount}</Tag>
-            <Tag color="blue">计划: {plannedCount}</Tag>
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#9ca3af' }}>
-            {new Set(data.map(item => item.team)).size} 组
-          </div>
-          <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
-            作业团队
-          </div>
-          <div style={{ marginTop: 4, fontSize: '12px', color: '#999' }}>
-            活跃捕捞团队
-          </div>
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card className="fin-card" bodyStyle={{ padding: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>
-            {Object.keys(speciesStats).length} 种
-          </div>
-          <div style={{ marginTop: 8, fontSize: '14px', color: '#666' }}>
-            养殖品种
-          </div>
-          <div style={{ marginTop: 4, fontSize: '12px', color: '#999' }}>
-            多样化养殖
-          </div>
-        </Card>
-      </Col>
-    </Row>
-  );
+const METHOD_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
+  net: { label: '网捕', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
+  trap: { label: '陷阱', bgColor: '#F5EDD6', textColor: '#A0843A' },
+  hook: { label: '钩钓', bgColor: '#EBE5DE', textColor: '#5C4F42' },
+  other: { label: '其他', bgColor: '#EBE5DE', textColor: '#7A6E64' },
 };
 
 const FishingRecords: React.FC = () => {
-  const [selectedRowsState, setSelectedRows] = useState<FishingRecordItem[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'completed' | 'in_progress' | 'planned'>('all');
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [stats, setStats] = useState({ total: 0, weight: 0, completed: 0, inProgress: 0 });
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<any>(null);
 
-  // 批量删除处理
-  const handleBatchDelete = (selectedRows: FishingRecordItem[]) => {
-    Modal.confirm({
-      title: '批量删除确认',
-      content: `确定要删除选中的 ${selectedRows.length} 条捕捞记录吗？此操作不可撤销。`,
-      okText: '确认删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: () => {
-        message.success(`已成功删除 ${selectedRows.length} 条捕捞记录`);
-        setSelectedRows([]);
-      },
-    });
+  const fetchStats = async () => {
+    try {
+      const res = await searchHarvestRecords({ current: 1, pageSize: 999 });
+      if (res.success) {
+        const records = res.data || [];
+        setStats({
+          total: records.length,
+          weight: records.reduce((s: number, r: any) => s + (r.weight || 0), 0),
+          completed: records.filter((r: any) => r.status === 'completed').length,
+          inProgress: records.filter((r: any) => r.status === 'in_progress').length,
+        });
+      }
+    } catch { /* ignore */ }
   };
 
-  // 批量导出处理
-  const handleBatchExport = (selectedRows: FishingRecordItem[]) => {
-    message.loading('正在生成导出文件...');
-    setTimeout(() => {
-      message.success(`已成功导出 ${selectedRows.length} 条捕捞记录数据 (Excel格式)`);
-    }, 1000);
+  useEffect(() => { fetchStats(); }, []);
+
+  const handleView = (record: any) => {
+    setDetailRecord(record);
+    setDetailVisible(true);
   };
 
-  // 设施分类渲染
-  const renderFacilityCategory = (category: string) => {
-    const categoryMap = {
-      pond: { color: 'blue', text: '塘口' },
-      cage: { color: 'green', text: '网箱' },
-      workboat: { color: 'orange', text: '工船' },
-      none: { color: 'default', text: '未关联' },
-    };
-    const config = categoryMap[category as keyof typeof categoryMap] || categoryMap.none;
-    return <Tag color={config.color} variant="filled" style={{ borderRadius: '2px' }}>{config.text}</Tag>;
-  };
-
-  // 捕捞方法渲染
-  const renderMethod = (method: string) => {
-    const methodMap = {
-      net: { color: 'blue', text: '网捕' },
-      trap: { color: 'green', text: '陷阱' },
-      hook: { color: 'orange', text: '钩钓' },
-      other: { color: 'default', text: '其他' },
-    };
-    const config = methodMap[method as keyof typeof methodMap] || methodMap.other;
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  // 状态渲染
-  const renderStatus = (status: string) => {
-    const statusMap = {
-      completed: { color: 'success', text: '已完成' },
-      in_progress: { color: 'processing', text: '进行中' },
-      planned: { color: 'default', text: '计划中' },
-    };
-    const config = statusMap[status as keyof typeof statusMap] || { color: 'default', text: status || '未知' };
-    return <Badge status={config.color as any} text={config.text} />;
-  };
-
-  // 表格列定义
-  const columns: ProColumns<FishingRecordItem>[] = [
-    {
-      title: '捕捞日期',
-      dataIndex: 'date',
-      width: 120,
-      fixed: 'left',
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  const columns: ProColumns<any>[] = [
+    { title: '记录编号', dataIndex: 'recordNo', width: 120, render: (t) => t || '-' },
+    { title: '时间', dataIndex: 'harvestTime', width: 150,
+      render: (_, r) => r.harvestTime ? dayjs(r.harvestTime).format('MM-DD HH:mm') : '-',
+    },
+    { title: '品种', dataIndex: 'species', width: 100 },
+    { title: '重量', dataIndex: 'weight', width: 100, align: 'right',
+      render: (t, r) => <Text className="fin-number" strong>{t} {r.unit || 'kg'}</Text>,
     },
     {
-      title: '塘口名称',
-      dataIndex: 'pondName',
-      width: 120,
-    },
-    {
-      title: '设施分类',
-      dataIndex: 'facilityCategory',
-      width: 100,
-      valueEnum: {
-        pond: { text: '塘口', color: 'blue' },
-        cage: { text: '网箱', color: 'green' },
-        workboat: { text: '工船', color: 'orange' },
-        none: { text: '未关联', color: 'default' },
-      },
-      render: (category) => renderFacilityCategory(category as string),
-    },
-    {
-      title: '养殖品种',
-      dataIndex: 'species',
-      width: 120,
-      valueEnum: {
-        '南美白对虾': { text: '南美白对虾' },
-        '罗非鱼': { text: '罗非鱼' },
-        '海鲈鱼': { text: '海鲈鱼' },
-        '草鱼': { text: '草鱼' },
+      title: '捕捞方式', dataIndex: 'method', width: 100,
+      render: (_, r) => {
+        const c = METHOD_MAP[r.method as string];
+        return c ? <Tag style={{ backgroundColor: c.bgColor, color: c.textColor, border: 'none', fontSize: '11px' }}>{c.label}</Tag> : (r.method || '-');
       },
     },
+    { title: '作业班组', dataIndex: 'teamName', width: 100 },
+    { title: '操作人', dataIndex: 'operatorName', width: 100 },
     {
-      title: '捕捞重量',
-      dataIndex: 'weight',
-      width: 100,
-      search: false,
-      render: (weight, record) => <span>{weight} {record.unit}</span>,
-      sorter: (a, b) => a.weight - b.weight,
-    },
-    {
-      title: '捕捞方法',
-      dataIndex: 'method',
-      width: 100,
-      valueEnum: {
-        net: { text: '网捕' },
-        trap: { text: '陷阱' },
-        hook: { text: '钩钓' },
-        other: { text: '其他' },
+      title: '状态', dataIndex: 'status', width: 100,
+      render: (_, r) => {
+        const c = STATUS_MAP[r.status as string];
+        return c ? <Tag style={{ backgroundColor: c.bgColor, color: c.textColor, border: 'none', fontSize: '11px' }}>{c.label}</Tag> : (r.status || '-');
       },
-      render: (method) => renderMethod(method as string),
     },
+    { title: '备注', dataIndex: 'remark', width: 200, ellipsis: true },
     {
-      title: '作业团队',
-      dataIndex: 'team',
-      width: 100,
-    },
-    {
-      title: '操作人',
-      dataIndex: 'operator',
-      width: 100,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 100,
-      valueEnum: {
-        completed: { text: '已完成', status: 'Success' },
-        in_progress: { text: '进行中', status: 'Processing' },
-        planned: { text: '计划中', status: 'Default' },
-      },
-      render: (status) => renderStatus(status as string),
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      fixed: 'right',
-      width: 120,
+      title: '操作', valueType: 'option', fixed: 'right', width: 180,
       render: (_, record) => [
-        <Button 
-          key="edit" 
-          type="link" 
-          size="small" 
-          icon={<EditOutlined />}
+        <Button key="view" type="link" size="small" icon={<EyeOutlined />} style={{ color: '#8c8c8c' }}
+          onClick={() => handleView(record)}>查看</Button>,
+        <Button key="edit" type="link" size="small" icon={<EditOutlined />} style={{ color: '#8c8c8c' }}
+          onClick={() => message.info('编辑捕捞记录: ' + (record.recordNo || record.id))}>编辑</Button>,
+        <Button key="delete" type="link" size="small" icon={<DeleteOutlined />} style={{ color: '#8c8c8c' }}
           onClick={() => {
-            message.info(`编辑捕捞记录: ${record.pondName}`);
-          }}
-        >
-          编辑
-        </Button>,
-        <Button 
-          key="delete" 
-          type="link" 
-          danger 
-          size="small" 
-          icon={<DeleteOutlined />}
-          onClick={() => {
-            Modal.confirm({
-              title: '删除确认',
-              content: `确定要删除 ${record.pondName} 的捕捞记录吗？`,
-              onOk: () => {
-                message.success('捕捞记录删除成功');
-              },
-            });
-          }}
-        >
-          删除
-        </Button>,
+            Modal.confirm({ title: '删除确认', content: '确定要删除该捕捞记录吗？', onOk: async () => { await deleteHarvestRecord(record.id); message.success('删除成功'); } });
+          }}>删除</Button>,
       ],
     },
   ];
 
   return (
     <PageContainer title={false}>
-      <FishingStats data={mockData} />
-      
-      <ProTable<FishingRecordItem>
+      <Row gutter={12} style={{ marginBottom: 16 }}>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>总捕捞量</Text>}
+              value={stats.weight}
+              suffix="kg"
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<BarsOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>捕捞记录</Text>}
+              value={stats.total}
+              suffix="条"
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<FileTextOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已完成</Text>}
+              value={stats.completed}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>进行中</Text>}
+              value={stats.inProgress}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+              prefix={<SyncOutlined spin={stats.inProgress > 0} />}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <ProTable<any>
         headerTitle="捕捞记录清单"
         columns={columns}
-        dataSource={mockData}
         rowKey="id"
-        search={{
-          labelWidth: 'auto',
+        search={{ labelWidth: 'auto' }}
+        request={async (params) => {
+          const res = await searchHarvestRecords({ current: params.current, pageSize: params.pageSize });
+          return { data: res.data || [], success: res.success, total: res.total };
         }}
-        pagination={{
-          pageSize: 10,
-        }}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        pagination={{ pageSize: 10, showSizeChanger: true }}
+        rowSelection={{ onChange: (_, rows) => setSelectedRows(rows) }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
-          <Space size={24}>
-            <span>
-              已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
-              <a style={{ marginLeft: 8 }} onClick={onCleanSelected}>
-                取消选择
-              </a>
-            </span>
-          </Space>
+          <Space size={24}><span>已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span><a onClick={onCleanSelected}>取消选择</a></Space>
         )}
-        tableAlertOptionRender={() => {
-          return (
-            <Space size={16}>
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />} 
-                onClick={() => handleBatchDelete(selectedRowsState)}
-              >
-                批量删除
-              </Button>
-              <Button 
-                type="link" 
-                icon={<ExportOutlined />} 
-                onClick={() => handleBatchExport(selectedRowsState)}
-              >
-                批量导出
-              </Button>
-            </Space>
-          );
-        }}
+        tableAlertOptionRender={() => (
+          <Space size={16}><Button type="link" icon={<ExportOutlined />} style={{ color: '#8c8c8c' }}>导出报表</Button></Space>
+        )}
         toolBarRender={() => [
-          <Select 
-            key="status"
-            value={selectedStatus}
-            onChange={setSelectedStatus}
-            style={{ width: 120 }}
-          >
-            <Option value="all">全部状态</Option>
-            <Option value="completed">已完成</Option>
-            <Option value="in_progress">进行中</Option>
-            <Option value="planned">计划中</Option>
-          </Select>,
-          <Button 
-            key="export" 
-            icon={<ExportOutlined />} 
-            onClick={() => handleBatchExport(mockData)}
-          >
-            导出全部
-          </Button>,
-          <Button 
-            key="add" 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={() => {
-              message.info('新增捕捞记录');
-            }}
-          >
-            新增记录
-          </Button>,
+          <Button key="refresh" icon={<ReloadOutlined />} style={{ color: '#8c8c8c', borderColor: '#d9d9d9' }} onClick={() => { fetchStats(); }}>刷新</Button>,
+          <Button key="add" type="primary" icon={<PlusOutlined />}>新增记录</Button>,
         ]}
         size="small"
+        scroll={{ x: 1200 }}
       />
+
+      <Modal title="捕捞记录详情" open={detailVisible} onCancel={() => setDetailVisible(false)} footer={null} width={700} destroyOnClose>
+        <Card size="small" style={{ marginBottom: 16, background: '#F7F3EF' }}>
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label={<><BarsOutlined style={{ marginRight: 4 }} />记录摘要</>}>
+              <span style={{ fontSize: 16, fontWeight: 'bold' }}>{detailRecord?.recordNo || '捕捞记录 #' + detailRecord?.id}</span>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+        <Descriptions bordered column={2} size="small">
+          <Descriptions.Item label={<><FileTextOutlined style={{ marginRight: 4 }} />记录编号</>}>{detailRecord?.recordNo || '-'}</Descriptions.Item>
+          <Descriptions.Item label={<><ClockCircleOutlined style={{ marginRight: 4 }} />时间</>}>{detailRecord?.harvestTime ? dayjs(detailRecord.harvestTime).format('YYYY-MM-DD HH:mm:ss') : '-'}</Descriptions.Item>
+          <Descriptions.Item label={<><TagOutlined style={{ marginRight: 4 }} />品种</>}>{detailRecord?.species || '-'}</Descriptions.Item>
+          <Descriptions.Item label={<><BarsOutlined style={{ marginRight: 4 }} />重量</>}>
+            <Text className="fin-number" strong>{detailRecord?.weight ? detailRecord.weight + ' ' + (detailRecord.unit || 'kg') : '-'}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="捕捞方式">
+            {detailRecord ? (METHOD_MAP[detailRecord.method as string]?.label || detailRecord.method || '-') : '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="状态">
+            {detailRecord ? <Tag style={{ backgroundColor: (STATUS_MAP[detailRecord.status as string]?.bgColor || '#f0f0f0'), color: (STATUS_MAP[detailRecord.status as string]?.textColor || '#666'), border: 'none' }}>{STATUS_MAP[detailRecord.status as string]?.label || detailRecord.status}</Tag> : '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={<><UserOutlined style={{ marginRight: 4 }} />作业班组</>}>{detailRecord?.teamName || '-'}</Descriptions.Item>
+          <Descriptions.Item label={<><UserOutlined style={{ marginRight: 4 }} />操作人</>}>{detailRecord?.operatorName || '-'}</Descriptions.Item>
+          <Descriptions.Item label="备注" span={2}>{detailRecord?.remark || '-'}</Descriptions.Item>
+        </Descriptions>
+        <div style={{ marginTop: 16 }}>
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label={<><DatabaseOutlined style={{ marginRight: 4 }} />创建时间</>}>{detailRecord?.createdAt || detailRecord?.createTime || '-'}</Descriptions.Item>
+          </Descriptions>
+        </div>
+      </Modal>
     </PageContainer>
   );
 };

@@ -14,3 +14,6 @@ export * from './model';
 
 // API接口类型
 export * from './api';
+export type { FeedingRecord } from './api/feeding-record';
+export type { MedicationRecord } from './api/medication-record';
+export type { HarvestRecord } from './api/harvest-record';

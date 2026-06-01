@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.FeedingRecordMapper">
+    <resultMap id="BaseResultMap" type="com.artsail.production.model.domain.FeedingRecord">
+        <id column="id" property="id"/><result column="task_id" property="taskId"/>
+        <result column="plan_id" property="planId"/><result column="base_id" property="baseId"/>
+        <result column="target_type" property="targetType"/><result column="target_id" property="targetId"/>
+        <result column="quantity" property="quantity"/><result column="unit" property="unit"/>
+        <result column="feed_type" property="feedType"/><result column="source" property="source"/>
+        <result column="photo_urls" property="photoUrls"/><result column="actual_worker_id" property="actualWorkerId"/>
+        <result column="verify_status" property="verifyStatus"/><result column="remark" property="remark"/>
+        <result column="action_time" property="actionTime"/><result column="create_time" property="createTime"/>
+        <result column="base_name" property="baseName"/><result column="target_name" property="targetName"/>
+    </resultMap>
+    <select id="searchWithNames" resultMap="BaseResultMap">
+        SELECT f.*, b.base_name,
+        CASE
+            WHEN f.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT('塘口#', f.target_id))
+            WHEN f.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', f.target_id))
+            WHEN f.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', f.target_id))
+            ELSE CONCAT(f.target_type, '#', f.target_id)
+        END AS target_name
+        FROM feeding_record f
+        LEFT JOIN base_info b ON f.base_id = b.id
+        LEFT JOIN pond_info po ON f.target_id = po.id AND f.target_type = 'pond'
+        LEFT JOIN cage_info ci ON f.target_id = ci.id AND f.target_type = 'cage'
+        LEFT JOIN vsl_info vi ON f.target_id = vi.id AND f.target_type = 'vsl'
+        <where>
+            <if test="query.baseId != null">AND f.base_id = #{query.baseId}</if>
+            <if test="query.targetId != null">AND f.target_id = #{query.targetId}</if>
+            <if test="query.targetType != null and query.targetType != ''">AND f.target_type = #{query.targetType}</if>
+            <if test="query.feedType != null and query.feedType != ''">AND f.feed_type = #{query.feedType}</if>
+            <if test="query.source != null and query.source != ''">AND f.source = #{query.source}</if>
+            <if test="query.verifyStatus != null and query.verifyStatus != ''">AND f.verify_status = #{query.verifyStatus}</if>
+            <if test="query.actionTimeStart != null">AND action_time &gt;= #{query.actionTimeStart}</if>
+            <if test="query.actionTimeEnd != null">AND action_time &lt;= #{query.actionTimeEnd}</if>
+        </where>
+        ORDER BY f.action_time DESC
+    </select>
+</mapper>

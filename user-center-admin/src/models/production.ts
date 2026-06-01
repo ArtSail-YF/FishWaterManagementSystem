@@ -4,6 +4,7 @@
  */
 
 import type { ProductionPlan, ProductionTask, PlanTypeEnum, PlanStatusEnum, TaskStatusEnum } from '@/types';
+import type { FeedingRecord, MedicationRecord, HarvestRecord } from '@/types';
 
 // ====== 生产计划模型扩展 ======
 
@@ -172,3 +173,45 @@ export interface PlanTemplateModel {
   createTime?: string;
   updateTime?: string;
 }
+
+// ====== 投喂记录模型 (feeding_record) ======
+
+
+export interface FeedingRecordModel extends FeedingRecord {
+  // 前端扩展字段
+  baseName?: string;            // 基地名称
+  targetName?: string;           // 目标名称
+  time?: string;                    // actionTime 别名
+  content?: string;                 // 显示内容
+  operator?: string;                // 执行人名称
+  status?: string;                  // 状态标签
+  targetLabel?: string;             // 目标对象显示文本
+  sourceLabel?: string;             // 来源显示文本
+  verifyLabel?: string;             // 审核状态显示文本
+}
+
+// ====== 用药记录模型 (medication_record) ======
+
+export interface MedicationRecordModel extends MedicationRecord {
+  // 前端扩展字段
+  baseName?: string;            // 基地名称
+  targetName?: string;           // 目标名称
+  time?: string;                    // actionTime 别名
+  content?: string;                 // 显示内容
+  operator?: string;                // 执行人
+  status?: string;                  // 休药期状态
+  targetLabel?: string;             // 目标对象显示文本
+  sourceLabel?: string;             // 来源显示文本
+  verifyLabel?: string;             // 审核状态显示文本
+  details?: {
+    medicineName?: string;
+    dose?: number;
+    withdrawalDays?: number;
+    status?: string;
+    remarks?: string;
+  };
+}
+
+// ====== 捕捞记录模型 (harvest_record) ======
+
+export interface HarvestRecordModel extends HarvestRecord {}

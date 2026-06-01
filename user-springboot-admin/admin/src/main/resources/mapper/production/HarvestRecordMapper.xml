@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.HarvestRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.artsail.production.model.domain.HarvestRecord">
+        <id column="id" property="id"/>
+        <result column="record_no" property="recordNo"/>
+        <result column="base_id" property="baseId"/>
+        <result column="pond_id" property="pondId"/>
+        <result column="species" property="species"/>
+        <result column="weight" property="weight"/>
+        <result column="unit" property="unit"/>
+        <result column="method" property="method"/>
+        <result column="team_name" property="teamName"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="harvest_time" property="harvestTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <sql id="baseCols">
+        r.id, r.record_no, r.base_id, r.pond_id, r.species, r.weight, r.unit,
+        r.method, r.team_name, r.operator_name, r.status, r.remark, r.harvest_time, r.create_time
+    </sql>
+
+    <select id="searchWithNames" resultMap="BaseResultMap">
+        SELECT <include refid="baseCols"/>,
+               b.base_name, p.pond_name
+        FROM harvest_record r
+        LEFT JOIN base_info b ON r.base_id = b.id
+        LEFT JOIN pond_info p ON r.pond_id = p.id
+        <where>
+            <if test="query.baseId != null">AND r.base_id = #{query.baseId}</if>
+            <if test="query.pondId != null">AND r.pond_id = #{query.pondId}</if>
+            <if test="query.species != null and query.species != ''">AND r.species LIKE CONCAT('%', #{query.species}, '%')</if>
+            <if test="query.status != null and query.status != ''">AND r.status = #{query.status}</if>
+            <if test="query.harvestTimeStart != null">AND r.harvest_time &gt;= #{query.harvestTimeStart}</if>
+            <if test="query.harvestTimeEnd != null">AND r.harvest_time &lt;= #{query.harvestTimeEnd}</if>
+        </where>
+        ORDER BY r.harvest_time DESC
+    </select>
+</mapper>

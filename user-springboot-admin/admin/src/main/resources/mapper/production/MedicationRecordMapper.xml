@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.production.mapper.MedicationRecordMapper">
+    <resultMap id="BaseResultMap" type="com.artsail.production.model.domain.MedicationRecord">
+        <id column="id" property="id"/><result column="task_id" property="taskId"/>
+        <result column="plan_id" property="planId"/><result column="base_id" property="baseId"/>
+        <result column="target_type" property="targetType"/><result column="target_id" property="targetId"/>
+        <result column="drug_name" property="drugName"/><result column="dosage" property="dosage"/>
+        <result column="unit" property="unit"/><result column="method" property="method"/>
+        <result column="withdrawal_days" property="withdrawalDays"/><result column="source" property="source"/>
+        <result column="photo_urls" property="photoUrls"/><result column="actual_worker_id" property="actualWorkerId"/>
+        <result column="verify_status" property="verifyStatus"/><result column="remark" property="remark"/>
+        <result column="action_time" property="actionTime"/><result column="create_time" property="createTime"/>
+        <result column="base_name" property="baseName"/><result column="target_name" property="targetName"/>
+    </resultMap>
+    <select id="searchWithNames" resultMap="BaseResultMap">
+        SELECT m.*, b.base_name,
+        CASE
+            WHEN m.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT('塘口#', m.target_id))
+            WHEN m.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', m.target_id))
+            WHEN m.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', m.target_id))
+            ELSE CONCAT(m.target_type, '#', m.target_id)
+        END AS target_name
+        FROM medication_record m
+        LEFT JOIN base_info b ON m.base_id = b.id
+        LEFT JOIN pond_info po ON m.target_id = po.id AND m.target_type = 'pond'
+        LEFT JOIN cage_info ci ON m.target_id = ci.id AND m.target_type = 'cage'
+        LEFT JOIN vsl_info vi ON m.target_id = vi.id AND m.target_type = 'vsl'
+        <where>
+            <if test="query.baseId != null">AND m.base_id = #{query.baseId}</if>
+            <if test="query.targetId != null">AND m.target_id = #{query.targetId}</if>
+            <if test="query.targetType != null and query.targetType != ''">AND m.target_type = #{query.targetType}</if>
+            <if test="query.drugName != null and query.drugName != ''">AND m.drug_name LIKE CONCAT('%', #{query.drugName}, '%')</if>
+            <if test="query.source != null and query.source != ''">AND m.source = #{query.source}</if>
+            <if test="query.verifyStatus != null and query.verifyStatus != ''">AND m.verify_status = #{query.verifyStatus}</if>
+            <if test="query.actionTimeStart != null">AND action_time &gt;= #{query.actionTimeStart}</if>
+            <if test="query.actionTimeEnd != null">AND action_time &lt;= #{query.actionTimeEnd}</if>
+        </where>
+        ORDER BY m.action_time DESC
+    </select>
+</mapper>

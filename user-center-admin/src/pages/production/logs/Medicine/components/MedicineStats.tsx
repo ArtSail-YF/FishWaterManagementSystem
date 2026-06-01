@@ -1,4 +1,4 @@
-import { AlertOutlined, HistoryOutlined, MedicineBoxOutlined, StockOutlined } from '@ant-design/icons';
+﻿import { AlertOutlined, HistoryOutlined, MedicineBoxOutlined, StockOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, Typography } from 'antd';
 import React from 'react';
 
@@ -8,29 +8,28 @@ const MedicineStats: React.FC = () => {
   return (
     <Row gutter={12}>
       <Col span={6}>
-        <Card variant="borderless" className="fin-card">
+        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
-            title={<Text type="secondary" style={{ fontSize: '12px' }}>今日用药总量 (g/ml)</Text>}
+            title={<Text type="secondary" style={{ fontSize: '12px' }}>今日用药总量</Text>}
             value={850}
             precision={0}
-            valueStyle={{ fontSize: '24px', fontWeight: 'bold' }}
-            prefix={<MedicineBoxOutlined style={{ color: '#1f2937', marginRight: '8px' }} />}
-            className="fin-number"
+            suffix="g/ml"
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+            prefix={<MedicineBoxOutlined />}
           />
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
-            <Text type="secondary">成本预估: </Text>
+            <Text type="secondary">成本预计: </Text>
             <Text className="fin-number" strong>¥2,450.00</Text>
           </div>
         </Card>
       </Col>
       <Col span={6}>
-        <Card variant="borderless" className="fin-card">
+        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>休药期监控中 (池塘)</Text>}
             value={5}
-valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
-            prefix={<HistoryOutlined style={{ marginRight: '8px' }} />}
-            className="fin-number"
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+            prefix={<HistoryOutlined />}
           />
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
             <Text type="secondary">最近出塘预计: </Text>
@@ -39,13 +38,12 @@ valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
         </Card>
       </Col>
       <Col span={6}>
-        <Card variant="borderless" className="fin-card">
+        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>库存周转警报 (品种)</Text>}
             value={2}
-valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
-            prefix={<StockOutlined style={{ marginRight: '8px' }} />}
-            className="fin-number"
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+            prefix={<StockOutlined />}
           />
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
             <Text type="secondary">急需采购: </Text>
@@ -54,13 +52,12 @@ valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
         </Card>
       </Col>
       <Col span={6}>
-        <Card variant="borderless" className="fin-card">
+        <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
           <Statistic
             title={<Text type="secondary" style={{ fontSize: '12px' }}>违禁/异常用药预警</Text>}
             value={0}
-valueStyle={{ fontSize: '24px', fontWeight: 'bold', color: '#2C2416' }}
-            prefix={<AlertOutlined style={{ marginRight: '8px' }} />}
-            className="fin-number"
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
+            prefix={<AlertOutlined />}
           />
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
             <Text type="secondary">状态: </Text>

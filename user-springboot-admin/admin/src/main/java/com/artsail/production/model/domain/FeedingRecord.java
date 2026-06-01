@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("medication_record")
-public class MedicationRecord implements Serializable {
+@TableName("feeding_record")
+public class FeedingRecord implements Serializable {
     private static final long serialVersionUID = 1L;
     @TableId(type = IdType.AUTO) private Long id;
     private Long taskId; private Long planId; private Long baseId;
     private String targetType; private Long targetId;
-    private String drugName; private BigDecimal dosage; private String unit;
-    private String method; private Integer withdrawalDays;
-    private String source; private String photoUrls; private Long actualWorkerId;
+    private BigDecimal quantity; private String unit;
+    private String feedType; private String source;
+    private String photoUrls; private Long actualWorkerId;
     private String verifyStatus; private String remark;
     @TableField(exist = false) private String baseName;
     @TableField(exist = false) private String targetName;
