@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.iot.mapper.IotDeviceMaintenanceMapper">
+
+    <resultMap id="IotDeviceMaintenanceVOMap" type="com.artsail.iot.model.domain.IotDeviceMaintenance">
+        <id column="id" property="id"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="maint_type" property="maintType"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="before_value" property="beforeValue"/>
+        <result column="after_value" property="afterValue"/>
+        <result column="remark" property="remark"/>
+        <result column="maint_time" property="maintTime"/>
+    </resultMap>
+
+    <select id="searchWithDevice" resultMap="IotDeviceMaintenanceVOMap">
+        SELECT
+            m.*
+        FROM iot_device_maintenance m
+        <where>
+            <if test="query.deviceId != null">
+                AND m.device_id = #{query.deviceId}
+            </if>
+            <if test="query.maintType != null and query.maintType != ''">
+                AND m.maint_type = #{query.maintType}
+            </if>
+            <if test="query.startTime != null">
+                AND m.maint_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND m.maint_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY m.maint_time DESC
+    </select>
+
+</mapper>

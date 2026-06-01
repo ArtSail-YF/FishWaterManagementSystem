@@ -1,1 +1,4 @@
+/docker/mysql/data
+/docker/mosquitto/data
+/docker/mosquitto/log
 /.idea

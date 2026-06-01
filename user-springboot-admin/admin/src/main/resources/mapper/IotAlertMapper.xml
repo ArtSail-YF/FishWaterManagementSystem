@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.iot.mapper.IotAlertMapper">
+
+    <resultMap id="IotAlertVOMap" type="com.artsail.iot.model.domain.IotAlert">
+        <id column="id" property="id"/>
+        <result column="alert_no" property="alertNo"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="alert_type" property="alertType"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="severity" property="severity"/>
+        <result column="status" property="status"/>
+        <result column="trigger_time" property="triggerTime"/>
+        <result column="handle_time" property="handleTime"/>
+        <result column="handler_id" property="handlerId"/>
+        <result column="handle_note" property="handleNote"/>
+    </resultMap>
+
+    <select id="searchWithDevice" resultMap="IotAlertVOMap">
+        SELECT
+            a.*
+        FROM iot_alert a
+        <where>
+            <if test="query.alertNo != null and query.alertNo != ''">
+                AND a.alert_no LIKE CONCAT('%', #{query.alertNo}, '%')
+            </if>
+            <if test="query.deviceId != null">
+                AND a.device_id = #{query.deviceId}
+            </if>
+            <if test="query.alertType != null and query.alertType != ''">
+                AND a.alert_type = #{query.alertType}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND a.status = #{query.status}
+            </if>
+            <if test="query.severity != null and query.severity != ''">
+                AND a.severity = #{query.severity}
+            </if>
+            <if test="query.startTime != null">
+                AND a.trigger_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND a.trigger_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY a.trigger_time DESC
+    </select>
+
+</mapper>

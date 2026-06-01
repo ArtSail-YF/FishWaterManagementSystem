@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/admin/src/main/resources/_localhost-2026_05_30_14_17_00-dump.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/admin/src/main/resources/_localhost-2026_05_30_14_17_00-dump.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/admin/src/main/resources/iot-data.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/admin/src/main/resources/upgrade-iot.sql" dialect="MySQL" />
   </component>
 </project>

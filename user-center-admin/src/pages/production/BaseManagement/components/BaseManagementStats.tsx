@@ -38,7 +38,7 @@ const BaseManagementStats: React.FC<StatsProps> = ({ data = [] }) => {
             title={<Text type="secondary" style={{ fontSize: '12px' }}>基地总数</Text>}
             value={data.length}
             suffix="个"
-valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#1890ff' }}
             prefix={<AppstoreOutlined />}
           />
         </Card>
@@ -50,7 +50,7 @@ valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', c
             title={<Text type="secondary" style={{ fontSize: '12px' }}>总面积</Text>}
             value={totalArea}
             suffix="亩"
-valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#52c41a' }}
             prefix={<EnvironmentOutlined />}
           />
         </Card>
@@ -62,7 +62,7 @@ valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', c
             title={<Text type="secondary" style={{ fontSize: '12px' }}>负责人数量</Text>}
             value={uniqueManagers}
             suffix="人"
-valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#faad14' }}
             prefix={<UserOutlined />}
           />
         </Card>
@@ -74,7 +74,7 @@ valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', c
             title={<Text type="secondary" style={{ fontSize: '12px' }}>运营中</Text>}
             value={statusStats.active}
             suffix={`/ ${data.length}`}
-valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#2C2416' }}
+            valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#13c2c2' }}
             prefix={<PhoneOutlined />}
           />
         </Card>

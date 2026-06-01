@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.iot.mapper.IotTsDataMapper">
+
+    <resultMap id="IotTsDataVOMap" type="com.artsail.iot.model.domain.IotTsData">
+        <id column="id" property="id"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="metric_key" property="metricKey"/>
+        <result column="metric_value" property="metricValue"/>
+        <result column="record_time" property="recordTime"/>
+        <result column="quality_flag" property="qualityFlag"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="device_sn" property="deviceSn"/>
+        <result column="device_name" property="deviceName"/>
+        <result column="type_name" property="typeName"/>
+    </resultMap>
+
+    <select id="searchWithDevice" resultMap="IotTsDataVOMap">
+        SELECT
+            d.id,
+            d.device_id,
+            d.metric_key,
+            d.metric_value,
+            d.record_time,
+            d.quality_flag,
+            d.source_type,
+            d.operator_id,
+            dev.device_sn,
+            dev.device_name,
+            t.type_name
+        FROM iot_ts_data d
+        LEFT JOIN iot_device dev ON d.device_id = dev.id
+        LEFT JOIN iot_device_type t ON dev.type_id = t.id
+        <where>
+            <if test="query.deviceId != null">
+                AND d.device_id = #{query.deviceId}
+            </if>
+            <if test="query.deviceSn != null and query.deviceSn != ''">
+                AND dev.device_sn LIKE CONCAT('%', #{query.deviceSn}, '%')
+            </if>
+            <if test="query.metricKey != null and query.metricKey != ''">
+                AND d.metric_key = #{query.metricKey}
+            </if>
+            <if test="query.startTime != null">
+                AND d.record_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND d.record_time &lt;= #{query.endTime}
+            </if>
+            <if test="query.sourceType != null and query.sourceType != ''">
+                AND d.source_type = #{query.sourceType}
+            </if>
+            <if test="query.qualityFlag != null">
+                AND d.quality_flag = #{query.qualityFlag}
+            </if>
+        </where>
+        ORDER BY d.record_time DESC
+    </select>
+
+</mapper>

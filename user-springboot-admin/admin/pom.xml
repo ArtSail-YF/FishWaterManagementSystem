@@ -8,7 +8,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.11</version>
-		<relativePath/> <!-- 从仓库查找父 POM -->
+		<relativePath/>
 	</parent>
 
 	<groupId>com.artsail</groupId>
@@ -16,16 +16,14 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>artsail-admin</name>
 	<description>Admin backend system for Artsail</description>
-	<url>https://github.com/artsail/admin</url> <!-- 建议填写实际 URL -->
+	<url>https://github.com/artsail/admin</url>
 
 	<properties>
 		<java.version>17</java.version>
-		<!-- 建议显式管理常用依赖版本 -->
 		<mybatis-plus.version>3.5.7</mybatis-plus.version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
 	</properties>
 
-	<!-- 授权协议 -->
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -33,49 +31,38 @@
 		</license>
 	</licenses>
 
-	<!-- 代码仓库信息 -->
 	<scm>
-		<!--		<connection>scm:git:https://github.com/artsail/admin.git</connection>-->
-		<!--		<developerConnection>scm:git:https://github.com/artsail/admin.git</developerConnection>-->
-		<!--		<tag>HEAD</tag>-->
-		<!--		<url>https://github.com/artsail/admin</url>-->
 	</scm>
 
 	<dependencies>
-		<!-- Web 开发 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- Redis -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
-		<!-- MyBatis-Plus (已包含 MyBatis 核心) -->
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-spring-boot3-starter</artifactId>
 			<version>${mybatis-plus.version}</version>
 		</dependency>
 
-		<!-- MySQL 驱动 -->
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
 
-		<!-- 开发工具 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -83,25 +70,41 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- 工具库 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang3.version}</version>
 		</dependency>
 
-		<!-- 验证器 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<!-- 测试 (使用 JUnit 5) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+
+		<!-- Spring Integration MQTT -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-integration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-mqtt</artifactId>
+		</dependency>
+
+		<!-- Eclipse Paho MQTT v3 Client (spring-integration-mqtt 的必需传递依赖，但被声明为 optional，需手动引入) -->
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>1.2.5</version>
+		</dependency>
+
 	</dependencies>
 
 

@@ -15,6 +15,9 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- 显式禁用外键检查（兼容不支持 MySQL 条件注释的 SQL 执行工具）
+SET FOREIGN_KEY_CHECKS = 0;
+
 --
 -- Table structure for table `base_info`
 --
@@ -2087,6 +2090,9 @@ LOCK TABLES `warn_rule_param` WRITE;
 /*!40000 ALTER TABLE `warn_rule_param` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+-- 显式恢复外键检查
+SET FOREIGN_KEY_CHECKS = 1;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

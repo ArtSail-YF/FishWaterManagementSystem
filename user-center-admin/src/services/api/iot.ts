@@ -1,4 +1,4 @@
-/**
+﻿/**
  * IoT 设备管理 API
  * 对应 iot_device 表
  */
@@ -70,5 +70,12 @@ export async function setDeviceStatus(id: number, status: number) {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     data: { status },
+  });
+}
+
+/** 发送测试 MQTT 数据 POST /iot/device/{id}/publish-test */
+export async function publishTestData(id: number) {
+  return request<BaseResponse<string>>('/iot/device/' + id + '/publish-test', {
+    method: 'POST',
   });
 }

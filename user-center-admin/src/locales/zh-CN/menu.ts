@@ -1,4 +1,4 @@
-﻿export default {
+export default {
   'menu.welcome': '欢迎页面',
   'menu.more-blocks': '更多区块',
   'menu.home': '系统首页',
@@ -37,6 +37,9 @@
   'menu.production.operation': '设备运维',
   'menu.production.operation.iot-devices': 'IoT设备管理',
   'menu.production.operation.warning-settings': '预警设置',
+  'menu.production.operation.iot-data-monitor': '数据监测',
+  'menu.production.operation.iot-alert-records': '告警记录',
+  'menu.production.operation.iot-maintenance': '维护记录',
   'menu.production.resource': '资源管理',
   'menu.production.resource.base-management': '基地管理',
   'menu.production.resource.pond-management': '塘口管理',
