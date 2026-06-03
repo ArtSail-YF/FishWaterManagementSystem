@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.env.mapper.EnvWeatherHistMapper">
+    <resultMap id="EnvWeatherHistMap" type="com.artsail.env.model.domain.EnvWeatherHist">
+        <id column="id" property="id"/>
+        <result column="base_id" property="baseId"/>
+        <result column="stat_date" property="statDate"/>
+        <result column="max_temp" property="maxTemp"/>
+        <result column="min_temp" property="minTemp"/>
+        <result column="total_rainfall" property="totalRainfall"/>
+        <result column="max_wind_speed" property="maxWindSpeed"/>
+        <result column="base_name" property="baseName"/>
+    </resultMap>
+    <select id="selectHistoryWithNames" resultMap="EnvWeatherHistMap" parameterType="map">
+        SELECT h.*, b.base_name
+        FROM env_weather_hist h
+        LEFT JOIN base_info b ON h.base_id = b.id
+        <where>
+            <if test="baseId != null">AND h.base_id = #{baseId}</if>
+            <if test="startDate != null">AND h.stat_date >= #{startDate}</if>
+            <if test="endDate != null">AND h.stat_date &lt;= #{endDate}</if>
+        </where>
+        ORDER BY h.stat_date DESC, h.base_id
+    </select>
+</mapper>

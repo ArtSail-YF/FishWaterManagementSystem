@@ -1,171 +1,152 @@
-import { Card, Table, Space, Button, Tag, Typography, Select, DatePicker, Input } from 'antd';
-import React, { useState, useEffect } from 'react';
-import { ExportOutlined, SearchOutlined } from '@ant-design/icons';
+import { Card, Table, Space, Button, Tag, Typography, Select, DatePicker, Input, message } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ExportOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
+import { searchCertificates, getCertificateDetail } from '@/services/api/certificate';
+import type { CertificateVO } from '@/types/api/certificate';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-interface Certificate {
-  key: string;
-  id: string;
-  pondId: string;
-  pondName: string;
-  productName: string;
-  type: 'A' | 'B';
-  batchNumber: string;
+interface CertificateRecord {
+  id: number;
+  certNo: string;
+  strategyName: string;
+  specType: string;
   issueDate: string;
-  expirationDate: string;
-  status: 'valid' | 'expired';
+  status: string;
 }
 
 const HistoryRecords: React.FC = () => {
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [current, setCurrent] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  const loadData = useCallback(async (page: number, status?: string) => {
+    setLoading(true);
+    try {
+      const params: any = { current: page, pageSize: 10 };
+      if (status) params.status = status;
+      const res = await searchCertificates(params);
+      if (res?.data) {
+        setCertificates(res.data as unknown as CertificateRecord[]);
+        setTotal(res?.total || 0);
+      }
+    } catch (e: any) {
+      message.error('获取历史记录失败: ' + (e?.message || '未知错误'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // 模拟获取历史记录
-    setLoading(true);
-    setTimeout(() => {
-      setCertificates([
-        {
-          key: '1',
-          id: 'C001',
-          pondId: 'P001',
-          pondName: '1号池塘',
-          productName: '南美白对虾',
-          type: 'A',
-          batchNumber: '20260301',
-          issueDate: '2026-03-01',
-          expirationDate: '2026-09-01',
-          status: 'valid',
-        },
-        {
-          key: '2',
-          id: 'C002',
-          pondId: 'P002',
-          pondName: '2号池塘',
-          productName: '大黄鱼',
-          type: 'B',
-          batchNumber: '20260302',
-          issueDate: '2026-03-02',
-          expirationDate: '2026-09-02',
-          status: 'valid',
-        },
-        {
-          key: '3',
-          id: 'C003',
-          pondId: 'P003',
-          pondName: '3号池塘',
-          productName: '南美白对虾',
-          type: 'A',
-          batchNumber: '20260201',
-          issueDate: '2026-02-01',
-          expirationDate: '2026-08-01',
-          status: 'valid',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
-  }, []);
+    loadData(current, statusFilter);
+  }, [current, statusFilter, loadData]);
+
+  const handleView = async (id: number) => {
+    try {
+      const res = await getCertificateDetail(id);
+      if (res?.code === 200 && res?.data) {
+        message.info('合格证编号: ' + res.data.certNo);
+      }
+    } catch (e) {
+      message.error('获取详情失败');
+    }
+  };
 
   const columns = [
     {
       title: '合格证编号',
-      dataIndex: 'id',
-      key: 'id',
+      dataIndex: 'certNo',
+      key: 'certNo',
       render: (text: string) => <Tag color="blue">{text}</Tag>,
     },
     {
-      title: '塘口信息',
-      key: 'pond',
-      render: (_, record) => (
+      title: '合格证类型',
+      key: 'strategy',
+      render: (_: any, record: CertificateRecord) => (
         <Space direction="vertical">
-          <Text>{record.pondName}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>{record.pondId}</Text>
+          <Text>{record.strategyName || '-'}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>{record.specType || ''}</Text>
         </Space>
       ),
     },
     {
-      title: '产品信息',
-      key: 'product',
-      render: (_, record) => (
-        <Space direction="vertical">
-          <Text>{record.productName}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>批次：{record.batchNumber}</Text>
-        </Space>
-      ),
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      render: (text: string) => (
-        <Tag color={text === 'A' ? 'green' : 'blue'}>
-          {text === 'A' ? 'A类' : 'B类'}
-        </Tag>
-      ),
-    },
-    {
-      title: '有效期',
-      key: 'validity',
-      render: (_, record) => (
-        <Space direction="vertical" style={{ fontSize: '12px' }}>
-          <Text>开具：{record.issueDate}</Text>
-          <Text>到期：{record.expirationDate}</Text>
-        </Space>
-      ),
+      title: '开具日期',
+      dataIndex: 'issueDate',
+      key: 'issueDate',
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (text: string) => (
-        <Tag color={text === 'valid' ? 'green' : 'red'}>
-          {text === 'valid' ? '有效' : '已过期'}
-        </Tag>
-      ),
+      render: (text: string) => {
+        const statusMap: Record<string, { color: string; label: string }> = {
+          valid: { color: 'green', label: '有效' },
+          expired: { color: 'red', label: '已过期' },
+          used: { color: 'blue', label: '已使用' },
+        };
+        const info = statusMap[text] || { color: 'default', label: text };
+        return <Tag color={info.color}>{info.label}</Tag>;
+      },
     },
     {
       title: '操作',
       key: 'action',
-      render: () => (
+      render: (_: any, record: CertificateRecord) => (
         <Space size={8}>
-          <Button type="link" size="small">查看</Button>
-          <Button type="link" size="small">下载</Button>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleView(record.id)}>
+            查看
+          </Button>
         </Space>
       ),
     },
   ];
 
   return (
-    <Card 
-      className="fin-card" 
+    <Card
+      className="fin-card"
       title={<span style={{ fontSize: '14px', fontWeight: 'bold' }}>历史记录查询 / HISTORY RECORDS</span>}
       variant="borderless"
       extra={
         <Space size={8}>
-          <Input 
-            placeholder="搜索编号或塘口" 
-            prefix={<SearchOutlined />} 
-            style={{ width: 200 }} 
+          <Input
+            placeholder="搜索编号"
+            prefix={<SearchOutlined />}
+            style={{ width: 160 }}
+            onPressEnter={(e) => setCurrent(1)}
           />
-          <Select placeholder="类型" style={{ width: 120 }}>
+          <Select
+            placeholder="状态"
+            style={{ width: 120 }}
+            value={statusFilter || undefined}
+            onChange={(val) => { setStatusFilter(val); setCurrent(1); }}
+            allowClear
+            onClear={() => { setStatusFilter(''); setCurrent(1); }}
+          >
             <Option value="">全部</Option>
-            <Option value="A">A类</Option>
-            <Option value="B">B类</Option>
+            <Option value="valid">有效</Option>
+            <Option value="expired">已过期</Option>
+            <Option value="used">已使用</Option>
           </Select>
-          <RangePicker style={{ width: 200 }} />
           <Button icon={<ExportOutlined />}>导出</Button>
         </Space>
       }
     >
-      <Table 
-        columns={columns} 
-        dataSource={certificates} 
+      <Table
+        columns={columns}
+        dataSource={certificates}
         loading={loading}
-        rowKey="key"
-        pagination={{ pageSize: 10 }}
+        rowKey="id"
+        pagination={{
+          current,
+          pageSize: 10,
+          total,
+          onChange: (page) => setCurrent(page),
+          showSizeChanger: false,
+        }}
         size="small"
       />
     </Card>

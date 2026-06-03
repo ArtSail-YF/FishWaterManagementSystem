@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { PageContainer, ProTable, type ActionType } from '@ant-design/pro-components';
 import { Tag, Space, Card, Select, Typography, Row, Col, Statistic } from 'antd';
-import { searchTsData } from '@/services/api/iot-ts-data';
+import { searchTsData, getLatestTsData } from '@/services/api/iot-ts-data';
+import { getMetricDefList } from '@/services/api/iot-metric-def';
 
 const { Text } = Typography;
 
@@ -24,6 +25,27 @@ const METRIC_UNITS: Record<string, string> = {
 };
 
 const IoTDataMonitor = () => {
+  const [latestData, setLatestData] = useState<any[]>([]);
+
+  useEffect(() => {
+    getMetricDefList().then(res => {
+      if (res?.data) {
+        const labels: Record<string, string> = {};
+        const units: Record<string, string> = {};
+        res.data.forEach((d: any) => {
+          labels[d.metricKey] = d.displayName;
+          units[d.metricKey] = d.unit || '';
+        });
+        if (Object.keys(labels).length > 0) {
+          setMetricLabels(labels);
+          setMetricUnits(units);
+        }
+      }
+    }).catch(() => {});
+    getLatestTsData().then(res => {
+      if (res?.data) setLatestData(res.data);
+    }).catch(() => {});
+  }, []);
   const actionRef = useRef<ActionType>();
   const [selectedMetric, setSelectedMetric] = useState<string>('temperature');
 
@@ -42,13 +64,13 @@ const IoTDataMonitor = () => {
       title: '指标',
       dataIndex: 'metricKey',
       width: 100,
-      render: (key: string) => METRIC_LABELS[key] || key,
+      render: (key: string) => metricLabels[key] || key,
     },
     {
       title: '数值',
       dataIndex: 'metricValue',
       width: 120,
-      render: (val: number, r: any) => `${val} ${METRIC_UNITS[r.metricKey] || ''}`,
+      render: (val: number, r: any) => `${val} ${metricUnits[r.metricKey] || ''}`,
     },
     {
       title: '设备类型',

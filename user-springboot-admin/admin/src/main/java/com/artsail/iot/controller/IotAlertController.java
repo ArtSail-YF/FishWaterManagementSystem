@@ -10,11 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
-/**
- * 告警管理
- */
 @RestController
 @RequestMapping("/iot/alert")
 public class IotAlertController extends BaseController<IotAlertService, IotAlert, IotAlert, IotAlertQuery> {
@@ -37,5 +35,15 @@ public class IotAlertController extends BaseController<IotAlertService, IotAlert
         alert.setHandleTime(LocalDateTime.now());
         alert.setHandleNote(body.getOrDefault("handleNote", ""));
         return Result.success(iotAlertService.updateById(alert));
+    }
+
+    @GetMapping("/stats")
+    public Result<Map<String, Object>> stats() {
+        return Result.success(iotAlertService.getStats());
+    }
+
+    @GetMapping("/recent")
+    public Result<List<IotAlert>> recent() {
+        return Result.success(iotAlertService.getRecentUnhandled(20));
     }
 }

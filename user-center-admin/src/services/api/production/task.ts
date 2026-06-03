@@ -143,12 +143,24 @@ export async function getPondTimeline(
   });
 }
 
-/** 获取计划统计数据 GET /api/task/stats */
+/** 获取任务统计数据 GET /api/task/stats */
 export async function getPlanStats(
   options?: { [key: string]: any },
 ) {
   return request<BaseResponse<any>>('/task/stats', {
     method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 按日期获取任务列表 GET /api/task/by-date?date=YYYY-MM-DD */
+export async function getTasksByDate(
+  date: string,
+  options?: { [key: string]: any },
+) {
+  return request<BaseResponse<any[]>>('/task/by-date', {
+    method: 'GET',
+    params: { date },
     ...(options || {}),
   });
 }

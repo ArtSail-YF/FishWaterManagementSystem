@@ -104,3 +104,11 @@ export async function getDisasterInfo(options?: any) {
     ...(options || {}),
   });
 }
+
+/**
+ * 获取各基地实时天气
+ * GET /api/weather/bases
+ */
+export async function getBasesWeather() {
+  return request('/weather/bases', { method: 'GET' });
+}

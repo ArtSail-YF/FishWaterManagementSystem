@@ -1,64 +1,91 @@
-import { Card, Space, Button, Form, Select, message, Modal, Typography, Divider, Badge } from 'antd';
-import React, { useState } from 'react';
+import { Card, Space, Button, Form, Select, message, Modal, Typography, Divider, Badge, Upload, Tag } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { getPondOptions } from '@/services/api/pond';
+import { getStrategyList, applyCertificate, getWithdrawalStatus } from '@/services/api/certificate';
+import type { CertificateStrategy, CertificateVO, WithdrawalStatus } from '@/types/api/certificate';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
-interface Pond {
-  value: string;
-  label: string;
-}
-
 const CertificateApplication: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
-  const [certificateData, setCertificateData] = useState<any>(null);
+  const [certificateData, setCertificateData] = useState<CertificateVO | null>(null);
+  const [pondOptions, setPondOptions] = useState<{ label: string; value: number }[]>([]);
+  const [strategies, setStrategies] = useState<CertificateStrategy[]>([]);
+  const [pondStatus, setPondStatus] = useState<WithdrawalStatus | null>(null);
+  const [selectedPondId, setSelectedPondId] = useState<number | null>(null);
+  const [testReportUrl, setTestReportUrl] = useState<string>('');
 
-  const ponds: Pond[] = [
-    { value: 'P001', label: '1号池塘 - 南美白对虾' },
-    { value: 'P002', label: '2号池塘 - 大黄鱼' },
-    { value: 'P003', label: '3号池塘 - 南美白对虾' },
-    { value: 'P004', label: '4号池塘 - 大黄鱼' },
-    { value: 'P005', label: '5号池塘 - 南美白对虾' },
-  ];
+  const loadPonds = useCallback(async () => {
+    const options = await getPondOptions(1);
+    setPondOptions(options);
+  }, []);
+
+  const loadStrategies = useCallback(async () => {
+    try {
+      const res = await getStrategyList();
+      if (res?.code === 200 && res?.data) {
+        setStrategies(res.data);
+      }
+    } catch (e) {
+      console.error('获取策略列表失败', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPonds();
+    loadStrategies();
+  }, [loadPonds, loadStrategies]);
+
+  const handlePondChange = async (pondId: number) => {
+    setSelectedPondId(pondId);
+    setPondStatus(null);
+    if (!pondId) return;
+    setChecking(true);
+    try {
+      const res = await getWithdrawalStatus(pondId);
+      if (res?.code === 200 && res?.data) {
+        setPondStatus(res.data);
+      }
+    } catch (e) {
+      console.error('查询休药期状态失败', e);
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
-    // 模拟系统校验
-    setTimeout(() => {
-      // 模拟校验结果
-      const isPass = values.pondId !== 'P005'; // 5号池塘有风险
-      
-      if (!isPass) {
-        message.error('该塘口存在未过休药期的用药记录，无法生成合格证');
-        setLoading(false);
-        return;
-      }
-
-      // 生成合格证
-      const certData = {
-        id: 'C' + Date.now(),
+    try {
+      const body = {
         pondId: values.pondId,
-        pondName: ponds.find(p => p.value === values.pondId)?.label || '',
-        type: values.type,
-        productName: values.pondId.includes('P001') || values.pondId.includes('P003') || values.pondId.includes('P005') ? '南美白对虾' : '大黄鱼',
-        batchNumber: '2026' + Math.floor(Math.random() * 10000),
-        issueDate: new Date().toISOString().split('T')[0],
-        expirationDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        issuer: '系统自动生成',
+        strategyId: values.strategyId,
+        quantity: values.quantity || 0,
+        testReportUrl: testReportUrl || undefined,
       };
-
-      setCertificateData(certData);
-      setPreviewVisible(true);
+      const res = await applyCertificate(body);
+      if (res?.code === 200 && res?.data) {
+        setCertificateData(res.data);
+        setPreviewVisible(true);
+        message.success(res.message || '合格证生成成功');
+      } else {
+        message.error(res?.message || '合格证生成失败');
+      }
+    } catch (e: any) {
+      const errMsg = e?.response?.data?.message || e?.message || '请求失败';
+      message.error(errMsg);
+    } finally {
       setLoading(false);
-      message.success('合格证生成成功');
-    }, 1500);
+    }
   };
 
   return (
-    <Card 
-      className="fin-card" 
+    <Card
+      className="fin-card"
       title={<span style={{ fontSize: '14px', fontWeight: 'bold' }}>合格证申请管理 / CERTIFICATE APPLICATION</span>}
       variant="borderless"
     >
@@ -73,32 +100,86 @@ const CertificateApplication: React.FC = () => {
             label="选择塘口"
             rules={[{ required: true, message: '请选择塘口' }]}
           >
-            <Select placeholder="请选择塘口">
-              {ponds.map(pond => (
+            <Select
+              placeholder="请选择塘口"
+              onChange={handlePondChange}
+              loading={checking}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {pondOptions.map(pond => (
                 <Option key={pond.value} value={pond.value}>
                   {pond.label}
-                  {pond.value === 'P005' && <Badge status="error" text="休药期风险" style={{ marginLeft: 8 }} />}
+                  {pondStatus?.pondId === pond.value && pondStatus?.locked && (
+                    <Badge status="error" text="休药期风险" style={{ marginLeft: 8 }} />
+                  )}
                 </Option>
               ))}
             </Select>
           </Form.Item>
 
+          {pondStatus?.locked && (
+            <div style={{ padding: '8px 12px', backgroundColor: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 6 }}>
+              <Tag color="red">休药期警告</Tag>
+              <Text type="danger">
+                该塘口当前处于休药期锁定状态（剩余 {pondStatus.remainingDays} 天），
+                涉及药品：{pondStatus.relatedDrugs?.map(d => d.drugName).join('、')}。
+                申请合格证将被拦截。
+              </Text>
+            </div>
+          )}
+
           <Form.Item
-            name="type"
+            name="strategyId"
             label="合格证类型"
             rules={[{ required: true, message: '请选择合格证类型' }]}
           >
             <Select placeholder="请选择合格证类型">
-              <Option value="A">A类合格证（质量控制）</Option>
-              <Option value="B">B类合格证（检测合格）</Option>
+              {strategies.map(s => (
+                <Option key={s.id} value={s.id}>{s.strategyName}</Option>
+              ))}
             </Select>
           </Form.Item>
 
+          <Form.Item
+            name="quantity"
+            label="数量（斤）"
+            rules={[{ required: false }]}
+          >
+            <Select placeholder="请选择或输入数量" mode="tags" maxCount={1}
+              onChange={(val: string[]) => form.setFieldsValue({ quantity: val[0] })}
+            />
+          </Form.Item>
+
+          <Form.Item label="检测报告（B类必传）">
+            <Upload
+              accept=".pdf,.jpg,.png"
+              maxCount={1}
+              beforeUpload={(file) => {
+                // 模拟上传，实际应该调用文件上传API
+                const url = '/upload/test-report/' + file.name;
+                setTestReportUrl(url);
+                message.success('文件已选择: ' + file.name);
+                return false;
+              }}
+              onRemove={() => setTestReportUrl('')}
+            >
+              <Button icon={<UploadOutlined />}>选择检测报告</Button>
+            </Upload>
+          </Form.Item>
+
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
-              生成合格证
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              disabled={pondStatus?.locked}
+              style={{ marginRight: 8 }}
+            >
+              {pondStatus?.locked ? '塘口休药期锁定，无法生成' : '生成合格证'}
             </Button>
-            <Button>预览模板</Button>
           </Form.Item>
         </Space>
       </Form>
@@ -109,11 +190,8 @@ const CertificateApplication: React.FC = () => {
         open={previewVisible}
         onCancel={() => setPreviewVisible(false)}
         footer={[
-          <Button key="print" type="primary">
+          <Button key="print" type="primary" onClick={() => window.print()}>
             打印
-          </Button>,
-          <Button key="download">
-            下载
           </Button>,
           <Button key="close" onClick={() => setPreviewVisible(false)}>
             关闭
@@ -126,13 +204,39 @@ const CertificateApplication: React.FC = () => {
             <Title level={4}>水产品质量安全承诺达标合格证</Title>
             <Divider />
             <Space direction="vertical" size={12} style={{ width: '100%' }}>
-              <Paragraph><Text strong>产品名称：</Text>{certificateData.productName}</Paragraph>
-              <Paragraph><Text strong>批次编号：</Text>{certificateData.batchNumber}</Paragraph>
-              <Paragraph><Text strong>塘口信息：</Text>{certificateData.pondName}</Paragraph>
-              <Paragraph><Text strong>开具类型：</Text>{certificateData.type === 'A' ? 'A类（质量控制）' : 'B类（检测合格）'}</Paragraph>
-              <Paragraph><Text strong>开具日期：</Text>{certificateData.issueDate}</Paragraph>
-              <Paragraph><Text strong>有效期至：</Text>{certificateData.expirationDate}</Paragraph>
-              <Paragraph><Text strong>开具人：</Text>{certificateData.issuer}</Paragraph>
+              <Paragraph>
+                <Text strong>合格证编号：</Text>{certificateData.certNo}
+              </Paragraph>
+              <Paragraph>
+                <Text strong>合格证类型：</Text>{certificateData.strategyName}
+              </Paragraph>
+              <Paragraph>
+                <Text strong>开具日期：</Text>{certificateData.issueDate}
+              </Paragraph>
+              <Paragraph>
+                <Text strong>状态：</Text>
+                <Tag color={certificateData.status === 'valid' ? 'green' : 'red'}>
+                  {certificateData.status === 'valid' ? '有效' : certificateData.status}
+                </Tag>
+              </Paragraph>
+              {certificateData.details?.map((detail, idx) => (
+                <div key={idx}>
+                  <Divider style={{ fontSize: '12px', color: '#999' }}>明细 {idx + 1}</Divider>
+                  <Paragraph><Text strong>数量：</Text>{detail.quantity} 斤</Paragraph>
+                  <Paragraph>
+                    <Text strong>休药期：</Text>
+                    <Tag color={detail.withdrawalPassed ? 'green' : 'red'}>
+                      {detail.withdrawalPassed ? '已通过' : '未通过'}
+                    </Tag>
+                  </Paragraph>
+                  <Paragraph>
+                    <Text strong>药残检测：</Text>
+                    <Tag color={detail.testPassed ? 'green' : 'orange'}>
+                      {detail.testPassed ? '合格' : '未检测'}
+                    </Tag>
+                  </Paragraph>
+                </div>
+              ))}
             </Space>
             <Divider />
             <Paragraph style={{ fontSize: '12px', color: '#666' }}>

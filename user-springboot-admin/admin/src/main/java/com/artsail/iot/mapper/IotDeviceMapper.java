@@ -14,5 +14,5 @@ public interface IotDeviceMapper extends BaseMapper<IotDevice> {
 
     Page<IotDevice> searchWithNames(Page<IotDevice> page, @Param("query") IotDeviceQuery query);
 
-    List<IotDevice> selectByBaseId(@Param("baseId") Long baseId);
+    List<IotDevice> selectDeviceOptions(@Param("baseId") Long baseId, @Param("typeId") Long typeId);
 }

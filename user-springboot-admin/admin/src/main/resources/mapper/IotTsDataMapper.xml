@@ -16,6 +16,22 @@
         <result column="type_name" property="typeName"/>
     </resultMap>
 
+    <resultMap id="WaterDataRawRowMap" type="com.artsail.iot.model.vo.WaterDataRawRow">
+        <result column="pond_id" property="pondId"/>
+        <result column="pond_name" property="pondName"/>
+        <result column="base_name" property="baseName"/>
+        <result column="pond_status" property="pondStatus"/>
+        <result column="metric_key" property="metricKey"/>
+        <result column="metric_value" property="metricValue"/>
+        <result column="record_time" property="recordTime"/>
+    </resultMap>
+
+    <resultMap id="WaterTrendRawRowMap" type="com.artsail.iot.model.vo.WaterTrendRawRow">
+        <result column="record_time" property="recordTime"/>
+        <result column="metric_key" property="metricKey"/>
+        <result column="metric_value" property="metricValue"/>
+    </resultMap>
+
     <select id="searchWithDevice" resultMap="IotTsDataVOMap">
         SELECT
             d.id,
@@ -56,6 +72,78 @@
             </if>
         </where>
         ORDER BY d.record_time DESC
+    </select>
+
+    <select id="selectLatestByDevice" resultMap="IotTsDataVOMap">
+        SELECT
+            d.id,
+            d.device_id,
+            d.metric_key,
+            d.metric_value,
+            d.record_time,
+            d.quality_flag,
+            d.source_type,
+            d.operator_id,
+            dev.device_sn,
+            dev.device_name,
+            t.type_name
+        FROM iot_ts_data d
+        INNER JOIN (
+            SELECT device_id, metric_key, MAX(record_time) AS max_time
+            FROM iot_ts_data
+            <where>
+                <if test="query.deviceId != null">
+                    AND device_id = #{query.deviceId}
+                </if>
+                <if test="query.metricKey != null and query.metricKey != ''">
+                    AND metric_key = #{query.metricKey}
+                </if>
+            </where>
+            GROUP BY device_id, metric_key
+        ) latest ON d.device_id = latest.device_id
+                AND d.metric_key = latest.metric_key
+                AND d.record_time = latest.max_time
+        LEFT JOIN iot_device dev ON d.device_id = dev.id
+        LEFT JOIN iot_device_type t ON dev.type_id = t.id
+        ORDER BY d.device_id, d.metric_key
+    </select>
+
+    <select id="selectLatestByPond" resultMap="WaterDataRawRowMap">
+        SELECT
+            p.id AS pond_id,
+            p.pond_name,
+            b.base_name,
+            p.status AS pond_status,
+            d.metric_key,
+            d.metric_value,
+            DATE_FORMAT(d.record_time, '%Y-%m-%d %H:%i:%s') AS record_time
+        FROM pond_info p
+        LEFT JOIN base_info b ON p.base_id = b.id
+        LEFT JOIN iot_device dev ON dev.pond_id = p.id
+        INNER JOIN (
+            SELECT device_id, metric_key, MAX(record_time) AS max_time
+            FROM iot_ts_data
+            WHERE metric_key IN ('dissolved_oxygen', 'temperature', 'ph')
+            GROUP BY device_id, metric_key
+        ) latest ON latest.device_id = dev.id
+        INNER JOIN iot_ts_data d ON d.device_id = latest.device_id
+                AND d.metric_key = latest.metric_key
+                AND d.record_time = latest.max_time
+        WHERE p.is_delete = 0
+        ORDER BY p.id, d.metric_key
+    </select>
+
+    <select id="selectTrendByPond" resultMap="WaterTrendRawRowMap">
+        SELECT
+            DATE_FORMAT(d.record_time, '%Y-%m-%d %H:%i:%s') AS record_time,
+            d.metric_key,
+            d.metric_value
+        FROM iot_ts_data d
+        INNER JOIN iot_device dev ON d.device_id = dev.id
+        WHERE dev.pond_id = #{pondId}
+          AND d.metric_key IN ('dissolved_oxygen', 'temperature', 'ph')
+          AND d.record_time &gt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        ORDER BY d.record_time ASC
     </select>
 
 </mapper>

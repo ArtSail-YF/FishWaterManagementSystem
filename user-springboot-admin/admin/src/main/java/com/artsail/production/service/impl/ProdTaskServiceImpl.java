@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +104,16 @@ public class ProdTaskServiceImpl extends ServiceImpl<ProdTaskMapper, ProdTask> i
     }
 
     @Override
+    public List<ProdTask> getTasksByDate(LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(LocalTime.MAX);
+        LambdaQueryWrapper<ProdTask> wrapper = new LambdaQueryWrapper<ProdTask>()
+                .between(ProdTask::getActionTime, start, end)
+                .orderByAsc(ProdTask::getActionTime);
+        return this.list(wrapper);
+    }
+
+    @Override
     public Map<String, Object> getStats() {
         Map<String, Object> stats = new HashMap<>();
         long total = this.count();
@@ -113,6 +125,26 @@ public class ProdTaskServiceImpl extends ServiceImpl<ProdTaskMapper, ProdTask> i
         stats.put("statusCounts", statusCounts);
         long done = statusCounts.getOrDefault("done", 0L);
         stats.put("completionRate", total > 0 ? (double) done / total : 0);
+
+        // 今日待执行任务
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
+        long todayTasks = this.count(new LambdaQueryWrapper<ProdTask>()
+                .between(ProdTask::getActionTime, todayStart, todayEnd)
+                .ne(ProdTask::getStatus, "done")
+                .ne(ProdTask::getStatus, "skipped"));
+        stats.put("todayTasks", todayTasks);
+
+        // 已完成任务数
+        stats.put("completedTasks", done);
+
+        // 逾期未完成
+        long overdueTasks = this.count(new LambdaQueryWrapper<ProdTask>()
+                .lt(ProdTask::getDeadlineTime, LocalDateTime.now())
+                .notIn(ProdTask::getStatus, "done", "skipped"));
+        stats.put("overdueTasks", overdueTasks);
+
         return stats;
     }
 }

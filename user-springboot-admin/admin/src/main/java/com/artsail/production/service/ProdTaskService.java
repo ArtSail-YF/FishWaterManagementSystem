@@ -6,6 +6,7 @@ import com.artsail.production.model.domain.Query.ProdTaskQuery;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -16,5 +17,6 @@ public interface ProdTaskService extends IService<ProdTask> {
     boolean completeTask(Long id, Map<String, Object> logData);
     boolean skipTask(Long id, String reason);
     List<ProdTask> getTimeline(Long pondId);
+    List<ProdTask> getTasksByDate(LocalDate date);
     Map<String, Object> getStats();
 }

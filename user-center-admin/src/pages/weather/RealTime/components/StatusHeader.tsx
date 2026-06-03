@@ -10,17 +10,22 @@ const StatusHeader: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRealTimeWeather()
-      .then(res => {
-        setData(res.data || {});
-      })
-      .catch(() => {
-        console.error('获取实时气象数据失败，使用降级数据');
-        setData(MOCK_REAL_TIME_WEATHER);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    const fetchData = () => {
+      getRealTimeWeather()
+        .then(res => {
+          setData(res.data || {});
+        })
+        .catch(() => {
+          console.error('获取实时气象数据失败，使用降级数据');
+          setData(MOCK_REAL_TIME_WEATHER);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+    fetchData();
+    const timer = setInterval(fetchData, 120000);
+    return () => clearInterval(timer);
   }, []);
 
   if (loading) {

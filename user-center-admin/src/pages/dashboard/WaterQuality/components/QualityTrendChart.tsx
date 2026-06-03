@@ -1,8 +1,8 @@
 import { Card, Segmented, Typography } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import React, { useMemo, useState } from 'react';
-import {type PondWaterLog}from '@/services/api/water';
-import { getPondDetailTrend } from '@/services/api/water';
+
+import { getPondTrend, PondWaterLog } from '@/services/api/iot-ts-data';
 import { useEffect } from 'react';
 import type { PondStatusItem } from '@/models/pond';
 
@@ -28,7 +28,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
     const fetchTrend = async () => {
       setLoading(true);
       try {
-        const response = await getPondDetailTrend(pond.id); // 拦截器已返回 data 数组
+        const response = await getPondTrend(pond.id); // 拦截器已返回 data 数组
         setTrendData(response.data || []);
       } catch (error) {
         console.error('获取趋势数据失败:', error);
@@ -69,9 +69,9 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
     
     //配置指标
     const metricLabels = {
-      oxygen: { name: '溶氧量', unit: 'mg/L', color: '#1f2937', warnLine: 5, errorLine: 4 },
+      oxygen: { name: '溶解氧', unit: 'mg/L', color: '#1f2937', warnLine: 5, errorLine: 4 },
       temp: { name: '水温', unit: '℃', color: '#9ca3af', warnLine: 28, errorLine: 32 },
-      ph: { name: 'PH值', unit: '', color: '#6b7280', warnLine: 8.5, errorLine: 9.0 },
+      ph: { name: "pH 值", unit: "", color: "#6b7280", warnLine: 8.5, errorLine: 9.0 },
     };
 
     const currentMetric = metricLabels[metric];
@@ -123,12 +123,12 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
             data: [
               {
                 yAxis: currentMetric.warnLine,
-                name: '预警线',
+                name: "预警线",
                 lineStyle: { color: '#9ca3af', type: 'dashed' },
               },
               {
                 yAxis: currentMetric.errorLine,
-                name: '报警线',
+                name: "报警线",
                 lineStyle: { color: '#ef4444', type: 'dashed' },
               },
             ],
@@ -154,7 +154,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
             options={[
               { label: '溶氧', value: 'oxygen' },
               { label: '水温', value: 'temp' },
-              { label: 'PH值', value: 'ph' },
+              { label: "pH 值", value: "ph" },
             ]}
             value={metric}
             onChange={(value) => setMetric(value as any)}
@@ -167,7 +167,7 @@ const QualityTrendChart: React.FC<QualityTrendChartProps> = ({ pond }) => {
         <ReactECharts option={chartOptions} style={{ height: '300px' }} showLoading={loading} />
       ) : (
         <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-          请从上方网格中选择一个塘口查看详细趋势
+          请从上方网格中选择一个塘口查看详细趋
         </div>
       )}
     </Card>

@@ -1,6 +1,7 @@
 package com.artsail.production.model.domain.Query;
 
 import lombok.Data;
+import java.time.LocalDate;
 
 /**
  * 生产任务查询参数
@@ -14,4 +15,5 @@ public class ProdTaskQuery {
     private Long targetId;
     private String status;
     private Long assigneeId;
+    private LocalDate actionDate;
 }

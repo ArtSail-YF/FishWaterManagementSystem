@@ -34,3 +34,6 @@ mqtt:
   broker: tcp://127.0.0.1:1883
   client-id: aquaculture-backend
   topic: aquaculture/+/+/data
+
+hefeng:
+  api-key: 1ac95a34352b45558512c9267c265b6b

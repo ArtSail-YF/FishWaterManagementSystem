@@ -9,10 +9,15 @@ const WeatherSummary: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getWeatherSummary().then(res => {
-      setData(res.data || []);
-      setLoading(false);
-    });
+    const fetchData = () => {
+      getWeatherSummary().then(res => {
+        setData(res.data || []);
+        setLoading(false);
+      });
+    };
+    fetchData();
+    const timer = setInterval(fetchData, 60000);
+    return () => clearInterval(timer);
   }, []);
 
   if (loading) {

@@ -10,6 +10,10 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.messaging.MessageHandler;
+import com.artsail.iot.constant.MqttTopics;
 
 @Slf4j
 @Configuration
@@ -53,6 +57,11 @@ public class MqttConfig {
     }
 
     @Bean
+    public MessageChannel mqttCmdResponseChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
     public MqttPahoMessageDrivenChannelAdapter mqttInbound() {
         MqttPahoMessageDrivenChannelAdapter adapter =
                 new MqttPahoMessageDrivenChannelAdapter(clientId, mqttClientFactory(), topic);
@@ -60,5 +69,31 @@ public class MqttConfig {
         adapter.setQos(1);
         adapter.setOutputChannel(mqttInputChannel());
         return adapter;
+    }
+
+    @Bean
+    public MqttPahoMessageDrivenChannelAdapter mqttCmdResponseInbound() {
+        String cmdClientId = clientId + "-cmd-response";
+        MqttPahoMessageDrivenChannelAdapter adapter =
+                new MqttPahoMessageDrivenChannelAdapter(cmdClientId, mqttClientFactory(), MqttTopics.CMD_RESPONSE_SUBSCRIBE);
+        adapter.setCompletionTimeout(5000);
+        adapter.setQos(1);
+        adapter.setOutputChannel(mqttCmdResponseChannel());
+        return adapter;
+    }
+
+    @Bean
+    public MessageChannel mqttOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttOutboundChannel")
+    public MessageHandler mqttOutbound() {
+        MqttPahoMessageHandler handler =
+                new MqttPahoMessageHandler(clientId + "-pub", mqttClientFactory());
+        handler.setDefaultQos(1);
+        handler.setDefaultRetained(false);
+        return handler;
     }
 }

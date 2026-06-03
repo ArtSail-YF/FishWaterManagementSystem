@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.compliance.mapper.MedRecordMapper">
+
+    <resultMap id="MedRecordResultMap" type="com.artsail.compliance.model.domain.MedRecord">
+        <id column="id" property="id"/>
+        <result column="base_id" property="baseId"/>
+        <result column="pond_id" property="pondId"/>
+        <result column="drug_mat_id" property="drugMatId"/>
+        <result column="usage_qty" property="usageQty"/>
+        <result column="admin_date" property="adminDate"/>
+        <result column="withdrawal_days" property="withdrawalDays"/>
+        <result column="ban_harvest_until" property="banHarvestUntil"/>
+        <result column="log_id" property="logId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="medicine_name" property="medicineName"/>
+        <result column="manufacturer" property="manufacturer"/>
+        <result column="pond_name" property="pondName"/>
+        <result column="pond_code" property="pondCode"/>
+    </resultMap>
+
+    <select id="searchWithNames" resultMap="MedRecordResultMap">
+        SELECT
+            mr.*,
+            mi.mat_name AS medicine_name,
+            mi.manufacturer,
+            pi.pond_name,
+            pi.pond_code
+        FROM med_record mr
+        LEFT JOIN mat_info mi ON mr.drug_mat_id = mi.id
+        LEFT JOIN pond_info pi ON mr.pond_id = pi.id
+        <where>
+            <if test="query.baseId != null">
+                AND mr.base_id = #{query.baseId}
+            </if>
+            <if test="query.pondId != null">
+                AND mr.pond_id = #{query.pondId}
+            </if>
+            <if test="query.drugMatId != null">
+                AND mr.drug_mat_id = #{query.drugMatId}
+            </if>
+            <if test="query.medicineName != null and query.medicineName != ''">
+                AND mi.mat_name LIKE CONCAT('%', #{query.medicineName}, '%')
+            </if>
+            <if test="query.startTime != null">
+                AND mr.admin_date &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND mr.admin_date &lt;= #{query.endTime}
+            </if>
+            <if test="query.logId != null">
+                AND mr.log_id = #{query.logId}
+            </if>
+        </where>
+        ORDER BY mr.ban_harvest_until DESC, mr.admin_date DESC
+    </select>
+
+    <!-- 查询指定塘口所有未过休药期的记录 -->
+    <select id="selectActiveWithdrawals" resultMap="MedRecordResultMap">
+        SELECT mr.*, mi.mat_name AS medicine_name, mi.manufacturer,
+               pi.pond_name, pi.pond_code
+        FROM med_record mr
+        LEFT JOIN mat_info mi ON mr.drug_mat_id = mi.id
+        LEFT JOIN pond_info pi ON mr.pond_id = pi.id
+        WHERE mr.pond_id = #{pondId}
+          AND mr.ban_harvest_until &gt;= CURDATE()
+        ORDER BY mr.ban_harvest_until DESC
+    </select>
+
+    <!-- 查询指定塘口在指定日期后仍有休药期的记录 -->
+    <select id="selectWithdrawalsAfter" resultMap="MedRecordResultMap">
+        SELECT mr.*, mi.mat_name AS medicine_name, mi.manufacturer,
+               pi.pond_name, pi.pond_code
+        FROM med_record mr
+        LEFT JOIN mat_info mi ON mr.drug_mat_id = mi.id
+        LEFT JOIN pond_info pi ON mr.pond_id = pi.id
+        WHERE mr.pond_id = #{pondId}
+          AND mr.ban_harvest_until &gt; #{date}
+        ORDER BY mr.ban_harvest_until DESC
+    </select>
+
+    <!-- 查询基地下所有在休药期内的塘口 -->
+    <select id="selectWithdrawalSummaryByBase" resultMap="MedRecordResultMap">
+        SELECT mr.*, mi.mat_name AS medicine_name, mi.manufacturer,
+               pi.pond_name, pi.pond_code
+        FROM med_record mr
+        LEFT JOIN mat_info mi ON mr.drug_mat_id = mi.id
+        LEFT JOIN pond_info pi ON mr.pond_id = pi.id
+        WHERE mr.base_id = #{baseId}
+          AND mr.ban_harvest_until &gt;= CURDATE()
+        ORDER BY mr.pond_id, mr.ban_harvest_until DESC
+    </select>
+
+</mapper>

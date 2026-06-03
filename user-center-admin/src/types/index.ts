@@ -17,3 +17,5 @@ export * from './api';
 export type { FeedingRecord } from './api/feeding-record';
 export type { MedicationRecord } from './api/medication-record';
 export type { HarvestRecord } from './api/harvest-record';
+export type { CertificateInfo, CertificateDetail, CertificateVO, CertificateStrategy } from './api/certificate';
+export type { CertificateApplyParams, CertificateSearchParams, ComplianceResult, WithdrawalStatus, WithdrawalDrugInfo } from './api/certificate';

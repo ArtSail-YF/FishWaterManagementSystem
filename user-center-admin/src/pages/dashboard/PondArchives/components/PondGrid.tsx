@@ -105,15 +105,15 @@ const PondGrid: React.FC<PondGridProps> = ({ ponds, loading, onPondClick, onPond
 
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
                       <span className="fin-number" style={{ fontSize: '18px', fontWeight: 'bold', color: pond.do < 4 ? '#cf1322' : '#262626' }}>
-                        {pond.do.toFixed(1)}
+                        {(pond.do ?? 0).toFixed(1)}
                       </span>
                       <Text type="secondary" style={{ fontSize: '10px' }}>mg/L (DO)</Text>
                     </div>
 
-                    <WaterQualitySparkline data={pond.doTrend} color={pond.do < 4 ? '#ef4444' : '#1f2937'} />
+                    <WaterQualitySparkline data={pond.doTrend ?? []} color={pond.do < 4 ? '#ef4444' : '#1f2937'} />
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', borderTop: '1px solid #f0f0f0', paddingTop: '4px' }}>
-                      <Text type="secondary" style={{ fontSize: '10px' }}>水温: <span className="fin-number">{pond.temp.toFixed(1)}°C</span></Text>
+                      <Text type="secondary" style={{ fontSize: '10px' }}>水温: <span className="fin-number">{(pond.temp ?? 0).toFixed(1)}°C</span></Text>
                       <Text type="secondary" style={{ fontSize: '10px' }}>预估: <span className="fin-number">{pond.estWeight}kg</span></Text>
                     </div>
                   </>

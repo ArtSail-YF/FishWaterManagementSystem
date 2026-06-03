@@ -11,7 +11,7 @@ const WaterQualitySparkline: React.FC<WaterQualitySparklineProps> = ({ data, col
   const option = {
     grid: { left: 0, right: 0, top: 5, bottom: 5 },
     xAxis: { type: 'category', show: false },
-    yAxis: { type: 'value', show: false, min: Math.min(...data) - 0.5 },
+    yAxis: { type: 'value', show: false, min: (data && data.length > 0 ? Math.min(...data) - 0.5 : 0) },
     series: [
       {
         data: data,

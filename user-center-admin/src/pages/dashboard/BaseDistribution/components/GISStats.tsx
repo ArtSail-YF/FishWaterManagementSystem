@@ -1,6 +1,10 @@
-import { Badge, Card, Col, Row, Statistic } from 'antd';
-import React from 'react';
-
+﻿import { Card, Col, Row, Statistic } from "antd";
+import {
+  EnvironmentOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
+import React from "react";
 
 interface GISStatsProps {
   stats: {
@@ -12,95 +16,66 @@ interface GISStatsProps {
 }
 
 const GISStats: React.FC<GISStatsProps> = ({ stats, onStatusClick }) => {
+  const total = stats.normal + stats.todo + stats.warning;
+
   return (
-    <Card 
-      variant="borderless" 
-      styles={{ body: { padding: '16px 24px' } }} 
-      style={{ 
-        marginBottom: 16, 
-
-
-      }}
-    >
-      <Row gutter={24} justify="space-around" style={{ width: '100%' }}>
+    <Card variant="borderless" styles={{ body: { padding: "10px 12px" } }}>
+      <Row gutter={8}>
         <Col span={8}>
-          <div 
-            onClick={() => onStatusClick('normal')}
-            style={{ 
-              cursor: 'pointer', 
-              padding: 8, 
-              borderRadius: 8, 
-              transition: 'all 0.3s',
-              '&:hover': {
-                backgroundColor: '#f0f0f0'
-              }
-            }}
+          <div
+            onClick={() => onStatusClick("normal")}
+            style={{ cursor: "pointer", textAlign: "center" }}
           >
             <Statistic
               title={
-                <span>
-                  <Badge status="success" style={{ marginRight: 8 }} />
-                  正常基地
+                <span style={{ fontSize: 12 }}>
+                  <EnvironmentOutlined style={{ marginRight: 4 }} />
+                  总基地
+                </span>
+              }
+              value={total}
+              valueStyle={{ color: "#1f2937", fontSize: 16 }}
+              suffix="个"
+            />
+          </div>
+        </Col>
+        <Col span={8}>
+          <div
+            onClick={() => onStatusClick("normal")}
+            style={{ cursor: "pointer", textAlign: "center" }}
+          >
+            <Statistic
+              title={
+                <span style={{ fontSize: 12 }}>
+                  <CheckCircleOutlined
+                    style={{ marginRight: 4, color: "#52c41a" }}
+                  />
+                  正常
                 </span>
               }
               value={stats.normal}
-              valueStyle={{ color: '#6b7280' }}
+              valueStyle={{ color: "#52c41a", fontSize: 16 }}
               suffix="个"
-              size="small"
             />
           </div>
         </Col>
         <Col span={8}>
-          <div 
-            onClick={() => onStatusClick('todo')}
-            style={{ 
-              cursor: 'pointer', 
-              padding: 8, 
-              borderRadius: 8, 
-              transition: 'all 0.3s',
-              '&:hover': {
-                backgroundColor: '#f0f0f0'
-              }
-            }}
+          <div
+            onClick={() => onStatusClick("warning")}
+            style={{ cursor: "pointer", textAlign: "center" }}
           >
             <Statistic
               title={
-                <span>
-                  <Badge status="processing" style={{ marginRight: 8 }} />
-                  待办任务
-                </span>
-              }
-              value={stats.todo}
-              valueStyle={{ color: '#1f2937' }}
-              suffix="项"
-              size="small"
-            />
-          </div>
-        </Col>
-        <Col span={8}>
-          <div 
-            onClick={() => onStatusClick('warning')}
-            style={{ 
-              cursor: 'pointer', 
-              padding: 8, 
-              borderRadius: 8, 
-              transition: 'all 0.3s',
-              '&:hover': {
-                backgroundColor: '#f0f0f0'
-              }
-            }}
-          >
-            <Statistic
-              title={
-                <span>
-                  <Badge status="error" style={{ marginRight: 8 }} />
-                  预警报警
+                <span style={{ fontSize: 12 }}>
+                  <WarningOutlined
+                    style={{ marginRight: 4, color: "#ef4444" }}
+                  />
+                  预警
                 </span>
               }
               value={stats.warning}
-              valueStyle={{ color: '#ef4444' }}
-              suffix="处"
-              size="small"
+              valueStyle={{ color: "#ef4444", fontSize: 16 }}
+              suffix="个"
             />
           </div>
         </Col>

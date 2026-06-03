@@ -12,48 +12,33 @@ interface WaterQualityStatsProps {
 
 const WaterQualityStats: React.FC<WaterQualityStatsProps> = ({ stats }) => {
   return (
-    <Card variant="borderless" styles={{ body: { padding: '16px 24px' } }} style={{ marginBottom: 16 }}>
-      <Row gutter={24} justify="space-around">
+    <Card styles={{ body: { padding: '14px 20px' } }}>
+      <Row gutter={16}>
         <Col span={6}>
-          <Statistic title="监测塘口总数" value={stats.total} suffix="个" />
+          <Statistic title="监测塘口" value={stats.total} suffix="个" valueStyle={{ fontSize: 20, fontWeight: 600 }} />
         </Col>
         <Col span={6}>
           <Statistic
-            title={
-              <span>
-                <Badge status="success" style={{ marginRight: 8 }} />
-                水质正常
-              </span>
-            }
+            title={<span><Badge status="success" />水质正常</span>}
             value={stats.normal}
-            valueStyle={{ color: '#6b7280' }}
             suffix="个"
+            valueStyle={{ color: '#52c41a', fontSize: 20, fontWeight: 600 }}
           />
         </Col>
         <Col span={6}>
           <Statistic
-            title={
-              <span>
-                <Badge status="warning" style={{ marginRight: 8 }} />
-                低溶氧预警
-              </span>
-            }
+            title={<span><Badge status="warning" />低氧预警</span>}
             value={stats.warning}
-            valueStyle={{ color: '#9ca3af' }}
             suffix="个"
+            valueStyle={{ color: '#faad14', fontSize: 20, fontWeight: 600 }}
           />
         </Col>
         <Col span={6}>
           <Statistic
-            title={
-              <span>
-                <Badge status="error" style={{ marginRight: 8 }} />
-                水质异常
-              </span>
-            }
+            title={<span><Badge status="error" />水质异常</span>}
             value={stats.error}
-            valueStyle={{ color: '#ef4444' }}
             suffix="个"
+            valueStyle={{ color: '#ff4d4f', fontSize: 20, fontWeight: 600 }}
           />
         </Col>
       </Row>

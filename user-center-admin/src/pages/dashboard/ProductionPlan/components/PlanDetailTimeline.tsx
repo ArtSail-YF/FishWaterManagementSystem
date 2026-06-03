@@ -1,98 +1,90 @@
 import { Badge, Card, Timeline, Typography } from 'antd';
 import React, { useEffect }  from 'react';
-import{ getPondTimeline } from '@/services/api/production/task'
+import{ getPondTimeline } from '@/services/api/production/task';
 
-
-//======类型定义=====
 const { Text, Title } = Typography;
 
 type TimelineStatus = 'finish' | 'process' | 'wait';
 
-type TimelineItem ={
+interface TimelineItem {
   time: string;
   title: string;
   content: string;
   status: TimelineStatus;
 }
 
-
 interface PlanDetailTimelineProps {
-  pond : {
-        Name: string;
-        Id: string;
-  }
+  pond: {
+    Name: string;
+    Id: string;
+  };
 }
-///==========
 
+/** 后端状态 → 时间线状态 */
+function mapTimelineStatus(status: string): TimelineStatus {
+  if (status === 'done') return 'finish';
+  if (status === 'doing') return 'process';
+  return 'wait';
+}
 
+/** 后端 ProdTask → TimelineItem */
+function toTimelineItem(task: any): TimelineItem {
+  const timeStr = task.actionTime || '';
+  const time = timeStr.length >= 10 ? timeStr.substring(0, 10) : timeStr;
+  // 构建更丰富的内容描述
+  const parts: string[] = [];
+  if (task.feedAmount) parts.push(`投喂量 ${task.feedAmount}kg`);
+  if (task.drugName) parts.push(`药品 ${task.drugName} ${task.dosage || ''}`);
+  if (task.feedVariety) parts.push(`饲料 ${task.feedVariety}`);
+  const content = parts.length > 0 ? parts.join('，') : (task.taskTitle || '');
+  return {
+    time,
+    title: task.taskTitle || '',
+    content,
+    status: mapTimelineStatus(task.status),
+  };
+}
 
-  const MOCK_timelineData: TimelineItem[] = [
-    {
-      time: '2026-03-01',
-      title: '投放鱼苗test',
-      content: '萧山 1 号塘 投放 3 万尾草鱼苗，平均规格 5cm。',
-      status: 'finish',
-    },
-    {
-      time: '2026-03-15',
-      title: '苗种期防疫test',
-      content: '全塘用药防疫，监测水质溶氧及 PH 值。',
-      status: 'finish',
-    },
-    {
-      time: '2026-04-01',
-      title: '生长期调水test',
-      content: '进入生长期，增加换水量，维持藻相平衡。',
-      status: 'process',
-    },
-    {
-      time: '2026-05-15',
-      title: '育肥期强化投喂test',
-      content: '增加投喂量，配合功能性饲料，促进生长。',
-      status: 'wait',
-    },
-    {
-      time: '2026-06-30',
-      title: '成品捕捞test',
-      content: '预计捕捞 2 万斤，规格 2 斤/尾以上。',
-      status: 'wait',
-    },
-  ];
 const PlanDetailTimeline: React.FC<PlanDetailTimelineProps> = ({ pond }) => {
+  const [timelineData, setTimelineData] = React.useState<TimelineItem[]>([]);
 
-  const [ timelineData, setTimelineData] = React.useState<TimelineItem[]>();
   const fetchTimeline = async () => {
+    if (!pond.Id) return;
     try {
       const response = await getPondTimeline(pond.Id);
       const data = response.data;
-      setTimelineData(data);
+      if (Array.isArray(data)) {
+        setTimelineData(data.map(toTimelineItem));
+      }
     } catch (error) {
-      setTimelineData(MOCK_timelineData);
-      console.error('Error fetching timeline:', error);
+      console.error('获取时间线失败:', error);
+      setTimelineData([]);
     }
   };
 
-
   useEffect(() => {
     fetchTimeline();
-  }, []);
+  }, [pond.Id]);
 
-  React.useEffect(() => {
-    if (!timelineData) {
-      fetchTimeline();
-    }
-  }, [timelineData,pond.Id]);
-
-  if (!timelineData) {
-    return null;
+  if (timelineData.length === 0) {
+    return (
+      <Card
+        title={`${pond.Name || '未选择塘口'} 全周期生产进度追踪`}
+        styles={{ body: { padding: '24px' } }}
+        style={{ height: '100%', minHeight: '500px' }}
+      >
+        <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
+          暂无生产进度数据
+        </div>
+      </Card>
+    );
   }
-
 
   return (
     <Card
       title={`${pond.Name} 全周期生产进度追踪`}
       styles={{ body: { padding: '24px' } }}
-      style={{ height: '100%', minHeight: '800px' }}
+      style={{ height: '100%', minHeight: '500px' }}
     >
       <Timeline
         mode="alternate"

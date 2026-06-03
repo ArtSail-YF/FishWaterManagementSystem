@@ -11,7 +11,5 @@ public interface IotDeviceService extends IService<IotDevice> {
 
     Page<IotDevice> search(Page<IotDevice> page, IotDeviceQuery query);
 
-    List<IotDevice> getByBaseId(Long baseId);
-
-    List<IotDevice> getByTypeAndBase(Long typeId, Long baseId);
+    List<IotDevice> getDeviceOptions(Long baseId, Long typeId);
 }

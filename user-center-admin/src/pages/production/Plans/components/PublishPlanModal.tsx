@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, Descriptions, Tag, Form, Input, Select, Checkbox, Space, Divider, Alert, message, Table, TimePicker, Button, InputNumber } from 'antd';
 import { CheckCircleOutlined, PlusOutlined, DeleteOutlined, FlagOutlined } from '@ant-design/icons';
 import { publishPlan, getTaskTemplates } from '@/services/api/production/plan';
 import { getEmployeesByBase } from '@/services/api/breeder';
-import { getIotDevicesByBase } from '@/services/api/iot';
+import { getIotDeviceOptions } from '@/services/api/iot';
 import type { ProductionPlan } from '@/types/model';
 import dayjs from 'dayjs';
 
@@ -81,7 +81,7 @@ const PublishPlanModal: React.FC<PublishPlanModalProps> = ({ visible, plan, onCa
   const fetchDevices = async (p: ProductionPlan) => {
     if (!p.baseId) return;
     try {
-      const res = await getIotDevicesByBase(p.baseId);
+      const res = await getIotDeviceOptions(p.baseId);
       const list = (res?.data || []).map((d: any) => ({
         label: d.deviceName,
         value: d.id,

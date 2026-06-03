@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 告警规则
+ */
 @RestController
 @RequestMapping("/iot/alert-rule")
 public class IotAlertRuleController extends BaseController<IotAlertRuleService, IotAlertRule, IotAlertRule, IotAlertRuleQuery> {

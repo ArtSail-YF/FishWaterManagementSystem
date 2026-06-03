@@ -44,13 +44,11 @@ export default [
       },
       {
         path: '/dashboard/pond-archives',
-        name: 'pond-archives',
-        component: './dashboard/PondArchives',
+        redirect: '/dashboard/integrated-dashboard',
       },
       {
         path: '/dashboard/water-quality',
-        name: 'water-quality',
-        component: './dashboard/WaterQuality',
+        redirect: '/dashboard/integrated-dashboard',
       },
       {
         path: '/dashboard/production-plan',
@@ -67,56 +65,36 @@ export default [
         name: 'integrated-dashboard',
         component: './dashboard/IntegratedDashboard',
       },
-    ],
-  },
-  {
-    path: '/warning',
-    name: 'warning',
-    icon: 'warning',
-    routes: [
       {
-        path: '/warning',
-        redirect: '/warning/comprehensive',
-      },
-      {
-        path: '/warning/comprehensive',
-        name: 'comprehensive',
+        path: '/dashboard/warning',
+        name: 'warning',
+        icon: 'warning',
         component: './warning/Comprehensive',
       },
       {
-        path: '/warning/records',
-        name: 'records',
-        component: './warning/Records',
-      },
-    ],
-  },
-  {
-    path: '/weather',
-    name: 'weather',
-    icon: 'cloud',
-    routes: [
-      {
-        path: '/weather',
-        redirect: '/weather/real-time',
-      },
-      {
-        path: '/weather/real-time',
-        name: 'real-time',
-        component: './weather/RealTime',
-      },
-      {
-        path: '/weather/disaster',
+        path: '/dashboard/disaster',
         name: 'disaster',
         component: './weather/Disaster',
       },
       {
-        path: '/weather/history',
-        name: 'history',
+        path: '/dashboard/weather-history',
+        name: 'weather-history',
         component: './weather/History',
+      },
+      {
+        path: '/dashboard/news',
+        name: 'news',
+        component: './news',
+      },
+      {
+        path: '/dashboard/news/:id',
+        name: 'news-detail',
+        component: './news/detail',
+        hideInMenu: true,
       },
     ],
   },
-  {
+    {
     path: '/production',
     name: 'production',
     icon: 'deploymentUnit',
@@ -247,6 +225,11 @@ export default [
             name: 'iot-maintenance',
             component: './production/IoTMaintenance',
           },
+          {
+            path: '/production/operation/iot-command-logs',
+            name: 'iot-command-logs',
+            component: './production/IoTCommandLogs',
+          },
         ],
       },
       {
@@ -353,13 +336,7 @@ export default [
   },
   {
     path: '/',
-    redirect: '/welcome',
-  },
-  {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'home',
-    component: './Welcome',
+    redirect: '/dashboard/base-distribution',
   },
   {
     path: '*',

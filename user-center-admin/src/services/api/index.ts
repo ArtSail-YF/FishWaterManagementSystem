@@ -15,6 +15,7 @@ import * as warning from './warning';
 import * as production from './production';
 import * as dict from './dict';
 import * as ai from './ai';
+import * as certificate from './certificate';
 
 export default {
   pond,
@@ -28,4 +29,5 @@ export default {
   production,
   dict,
   ai,
+  certificate,
 };

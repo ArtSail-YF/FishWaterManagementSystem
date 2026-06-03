@@ -1,7 +1,7 @@
-import { EditOutlined, SaveOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+﻿import { EditOutlined, SaveOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Descriptions, Divider, Drawer, Empty, Form, Input, InputNumber, Row, Select, Space, Statistic, Tabs, Tag, Timeline, Typography, message, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { getPondFullDetail, updatePond } from '@/services/api/pond';
+import { getPondById, updatePond } from '@/services/api/pond';
 
 const { Text, Title } = Typography;
 const { confirm } = Modal;
@@ -32,7 +32,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
   useEffect(() => {
     if (pondId && visible) {
       setLoading(true);
-      getPondFullDetail(pondId)
+      getPondById(pondId)
         .then(res => {
           setPond(res.data);
           form.setFieldsValue(res.data);
@@ -54,7 +54,7 @@ const PondDetailDrawer: React.FC<PondDetailDrawerProps> = ({ visible, pondId, on
       setIsEditing(false);
       
       // 重新加载当前详情
-      const res = await getPondFullDetail(pondId);
+      const res = await getPondById(pondId);
       setPond(res.data);
       form.setFieldsValue(res.data);
     } catch (error) {

@@ -69,7 +69,7 @@
         ORDER BY d.id ASC
     </select>
 
-    <select id="selectByBaseId" resultMap="IotDeviceVOMap">
+    <select id="selectDeviceOptions" resultMap="IotDeviceVOMap">
         SELECT
             d.id,
             d.device_sn,
@@ -85,10 +85,22 @@
             d.install_time,
             d.remark,
             t.type_name,
-            t.type_code
+            t.type_code,
+            b.base_name,
+            p.pond_name
         FROM iot_device d
         LEFT JOIN iot_device_type t ON d.type_id = t.id
-        WHERE d.base_id = #{baseId} AND d.status = 1
+        LEFT JOIN base_info b ON d.base_id = b.id
+        LEFT JOIN pond_info p ON d.pond_id = p.id
+        <where>
+            <if test="baseId != null">
+                AND d.base_id = #{baseId}
+            </if>
+            <if test="typeId != null">
+                AND d.type_id = #{typeId}
+            </if>
+            AND d.status = 1
+        </where>
         ORDER BY d.id ASC
     </select>
 

@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +49,12 @@ public class ProdTaskController extends BaseController<ProdTaskService, ProdTask
     @GetMapping("/timeline/{pondId}")
     public Result<List<ProdTask>> timeline(@PathVariable Long pondId) {
         return Result.success(prodTaskService.getTimeline(pondId));
+    }
+
+    @GetMapping("/by-date")
+    public Result<List<ProdTask>> byDate(@RequestParam("date") String dateStr) {
+        LocalDate date = LocalDate.parse(dateStr);
+        return Result.success(prodTaskService.getTasksByDate(date));
     }
 
     @GetMapping("/stats")

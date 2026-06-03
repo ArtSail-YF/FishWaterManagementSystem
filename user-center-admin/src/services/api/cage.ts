@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 网箱管理API接口
  * 统一管理网箱信息的增删查改接口
  * 遵循后端RESTful API规范
@@ -43,13 +43,6 @@ export async function searchCages(
   return convertToProTable(response);
 }
 
-/** 获取网箱列表 GET /api/cage/list (兼容旧版本) */
-export async function getCageList(
-  params: CageQueryParams,
-  options?: { [key: string]: any },
-) {
-  return searchCages(params, options);
-}
 
 /** 根据ID查询单个实体 GET /api/cage/{id} */
 export async function getCageById(
@@ -98,18 +91,4 @@ export async function deleteCage(
   });
 }
 
-/** 获取网箱详情 GET /api/cage/detail (兼容旧版本) */
-export async function getCageDetail(
-  id: string | number,
-  options?: { [key: string]: any },
-) {
-  return getCageById(id, options);
-}
 
-/** 获取网箱列表带汇总信息 (兼容旧版本) */
-export async function getCageListWithSummary(
-  params: CageQueryParams,
-  options?: { [key: string]: any },
-) {
-  return searchCages(params, options);
-}

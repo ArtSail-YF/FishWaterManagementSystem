@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 基地管理API接口
  * 统一管理基地信息的增删查改接口
  * 遵循后端RESTful API规范
@@ -119,13 +119,6 @@ export async function getBaseById(
   });
 }
 
-/** 获取基地详情 GET /api/base/detail (兼容旧版本) */
-export async function getBaseDetail(
-  id: string | number,
-  options?: { [key: string]: any },
-) {
-  return getBaseById(id, options);
-}
 
 /** 新增实体 POST /api/base */
 export async function createBase(

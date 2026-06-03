@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 工船管理API接口
  * 统一管理工船信息的增删查改接口
  * 遵循后端RESTful API规范
@@ -44,13 +44,6 @@ export async function searchVsles(
   return convertToProTable(response);
 }
 
-/** 获取工船列表 GET /api/vsl/list (兼容旧版本) */
-export async function getVslList(
-  params: VslQueryParams,
-  options?: { [key: string]: any },
-) {
-  return searchVsles(params, options);
-}
 
 /** 根据ID查询单个实体 GET /api/vsl/{id} */
 export async function getVslById(
@@ -99,18 +92,4 @@ export async function deleteVsl(
   });
 }
 
-/** 获取工船详情 GET /api/vsl/detail (兼容旧版本) */
-export async function getVslDetail(
-  id: string | number,
-  options?: { [key: string]: any },
-) {
-  return getVslById(id, options);
-}
 
-/** 获取工船列表带汇总信息 (兼容旧版本) */
-export async function getVslListWithSummary(
-  params: VslQueryParams,
-  options?: { [key: string]: any },
-) {
-  return searchVsles(params, options);
-}

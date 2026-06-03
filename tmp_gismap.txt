@@ -1,0 +1,345 @@
+﻿// 瀵煎叆楂樺痉鍦板浘鍔犺浇鍣?
+import AMapLoader from '@amap/amap-jsapi-loader';
+// 瀵煎叆 Ant Design 缁勪欢
+import { Card, Spin, Radio, RadioChangeEvent, Checkbox, CheckboxChangeEvent } from 'antd';
+// 瀵煎叆 React 鍙婄浉鍏抽挬瀛?
+import React, { useEffect, useRef, useState } from 'react';
+import type { Base } from '@/models/base';
+
+// 鍏ㄥ眬绫诲瀷澹版槑锛屾墿灞?Window 鎺ュ彛浠ユ敮鎸侀珮寰峰湴鍥剧浉鍏冲睘鎬?
+declare global {
+  interface Window {
+    AMap: any; // 楂樺痉鍦板浘涓诲璞?
+    _AMapSecurityConfig: any; // 楂樺痉鍦板浘瀹夊叏閰嶇疆
+  }
+}
+
+// 缁勪欢灞炴€ф帴鍙ｅ畾涔?
+interface GisMapProps {
+  bases: Base[]; // 鍩哄湴鏁版嵁鏁扮粍
+  selectedBase?: Base; // 閫変腑鐨勫熀鍦帮紙鍙€夛級
+  onMarkerClick: (base: Base) => void; // 鏍囪鐐圭偣鍑诲洖璋冨嚱鏁?
+}
+
+// GisMap 缁勪欢瀹氫箟锛屼娇鐢?React.FC 绫诲瀷骞舵帴鏀?GisMapProps 灞炴€?
+const GisMap: React.FC<GisMapProps> = ({ bases, selectedBase, onMarkerClick }) => {
+  // 鍦板浘瀹瑰櫒寮曠敤锛岀敤浜庢寕杞藉湴鍥?
+  const mapRef = useRef<HTMLDivElement>(null);
+  // 鍦板浘瀹炰緥鐘舵€?
+  const [map, setMap] = useState<any>(null);
+  // 鍔犺浇鐘舵€?
+  const [loading, setLoading] = useState(true);
+  // 鏍囪鐐瑰紩鐢紝鐢ㄤ簬绠＄悊鍦板浘涓婄殑鏍囪鐐?
+  const markersRef = useRef<{ [key: string]: any }>({});
+  // 搴曞浘绫诲瀷
+  const [mapType, setMapType] = useState<string>('standard');
+  // 鍥惧眰鎺у埗
+  const [layers, setLayers] = useState({
+    base: true,
+    pond: true,
+    device: true,
+    channel: true,
+  });
+  // 鍗槦鍥惧眰寮曠敤
+  const satelliteLayerRef = useRef<any>(null);
+  // 鍦板舰鍥惧眰寮曠敤
+  const terrainLayerRef = useRef<any>(null);
+  // 鏆楅粦妯″紡鐘舵€?
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  // 鍦板浘鍒濆鍖?useEffect
+  useEffect(() => {
+    // 瑙ｅ喅 AMap 2.0 INVALID_USER_KEY 閿欒锛岃缃畨鍏ㄥ瘑閽?
+    // 娉ㄦ剰锛氭寮忕幆澧冨缓璁€氳繃鐜鍙橀噺娉ㄥ叆
+    window._AMapSecurityConfig = {
+        securityJsCode: 'c45605948a17f054b3a28823baa42cf5', // 瀹夊叏瀵嗛挜
+      };
+
+    // 鍔犺浇楂樺痉鍦板浘
+    AMapLoader.load({
+      key: 'dc6e158e590e6dd03f973bb0eafba585', // 楂樺痉鍦板浘 API 瀵嗛挜
+      version: '2.0', // 鍦板浘鐗堟湰
+      plugins: ['AMap.Scale', 'AMap.ToolBar', 'AMap.ControlBar', 'AMap.InfoWindow', 'AMap.Marker', 'AMap.MapType', 'AMap.TileLayer'], // 鎵€闇€鎻掍欢
+    })
+      .then((AMap) => {
+        // 鍒涘缓鍦板浘瀹炰緥
+        const mapInstance = new AMap.Map(mapRef.current, {
+          viewMode: '3D', // 3D 瑙嗗浘妯″紡
+          zoom: 11, // 鍒濆缂╂斁绾у埆
+          center: [120.153576, 30.287459], // 榛樿涓績鐐癸紙鏉窞锛?
+          mapStyle: isDarkMode ? 'amap://styles/dark' : 'amap://styles/normal', // 鏍规嵁鏆楅粦妯″紡鐘舵€佽缃湴鍥炬牱寮?
+        });
+
+        // 娣诲姞姣斾緥灏烘帶浠?
+        mapInstance.addControl(new AMap.Scale());
+        // 娣诲姞宸ュ叿鏍忔帶浠?
+        mapInstance.addControl(new AMap.ToolBar());
+
+        // 璁剧疆鍦板浘瀹炰緥鍒扮姸鎬?
+        setMap(mapInstance);
+        // 璁剧疆鍔犺浇鐘舵€佷负 false
+        setLoading(false);
+      })
+      .catch((e) => {
+        // 鎹曡幏鍦板浘鍔犺浇閿欒
+        console.error('鍦板浘鍔犺浇 ', e);
+        // 鍗充娇澶辫触涔熻璁剧疆鍔犺浇鐘舵€佷负 false
+        setLoading(false);
+      });
+    // 娓呯悊鍑芥暟锛屽湪缁勪欢鍗歌浇鏃堕攢姣佸湴鍥惧疄渚?
+    return () => {
+      if (map) {
+        map.destroy();
+      }
+    };
+  }, [isDarkMode]); // 渚濊禆鏆楅粦妯″紡鐘舵€侊紝褰撳畠鍙樺寲鏃堕噸鏂板垵濮嬪寲鍦板浘
+
+  // 鐩戝惉鏆楅粦妯″紡鍙樺寲鐨?useEffect
+  useEffect(() => {
+    // 鍒濆鍖栨椂妫€鏌ユ湰鍦板瓨鍌ㄧ殑鏆楅粦妯″紡鐘舵€?
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode === 'true') {
+      setIsDarkMode(true);
+    }
+
+    // 鐩戝惉鑷畾涔変簨浠讹紝鍝嶅簲鏆楅粦妯″紡鍒囨崲
+    const handleDarkModeChange = (event: CustomEvent) => {
+      setIsDarkMode(event.detail.isDark);
+    };
+
+    // 娣诲姞浜嬩欢鐩戝惉鍣?
+    window.addEventListener('darkModeChanged', handleDarkModeChange as EventListener);
+
+    // 娓呯悊鍑芥暟锛岀Щ闄や簨浠剁洃鍚櫒
+    return () => {
+      window.removeEventListener('darkModeChanged', handleDarkModeChange as EventListener);
+    };
+  }, []);
+
+  // 澶勭悊搴曞浘鍒囨崲
+  const handleMapTypeChange = (e: RadioChangeEvent) => {
+    const type = e.target.value;
+    setMapType(type);
+    
+    if (!map || !window.AMap) return;
+
+    // 绉婚櫎鎵€鏈夎嚜瀹氫箟鍥惧眰
+    if (satelliteLayerRef.current) {
+      map.remove(satelliteLayerRef.current);
+      satelliteLayerRef.current = null;
+    }
+    if (terrainLayerRef.current) {
+      map.remove(terrainLayerRef.current);
+      terrainLayerRef.current = null;
+    }
+
+    // 閲嶇疆涓洪粯璁ゅ浘灞?
+    map.setLayers([]);
+
+    switch (type) {
+      case 'standard':
+        // 鏍囧噯鍦板浘 - 娣诲姞榛樿鍥惧眰
+        map.add(new window.AMap.TileLayer());
+        break;
+      case 'satellite':
+        // 鍗槦鍦板浘 - 娣诲姞鍗槦鍥惧眰
+        satelliteLayerRef.current = new window.AMap.TileLayer.Satellite();
+        map.add(satelliteLayerRef.current);
+        break;
+      case 'terrain':
+        // 鍦板舰鍦板浘 - 娣诲姞鍦板舰鍥惧眰
+        terrainLayerRef.current = new window.AMap.TileLayer.Terrain();
+        map.add(terrainLayerRef.current);
+        break;
+      default:
+        map.add(new window.AMap.TileLayer());
+    }
+  };
+
+  // 澶勭悊鍥惧眰鎺у埗
+  const handleLayerChange = (key: keyof typeof layers, checked: boolean) => {
+    const newLayers = {
+      ...layers,
+      [key]: checked,
+    };
+    setLayers(newLayers);
+    
+    // 鎺у埗鍩哄湴鏍囪鐨勬樉绀?闅愯棌
+    if (key === 'base') {
+      Object.values(markersRef.current).forEach((marker) => {
+        if (checked) {
+          marker.show();
+        } else {
+          marker.hide();
+        }
+      });
+    }
+    
+    // TODO: 鎺у埗濉樺彛銆佽澶囥€佽埅閬撳浘灞傜殑鏄剧ず/闅愯棌
+    // 杩欎簺闇€瑕佹牴鎹疄闄呮暟鎹疄鐜?
+  };
+
+  // 澶勭悊鏍囪鐐规覆鏌撶殑 useEffect
+  useEffect(() => {
+    // 鍦板浘鏈姞杞藉畬鎴愭椂鐩存帴杩斿洖
+    if (!map) return;
+
+    // 娓呴櫎鏃ф爣璁扮偣
+    Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
+    markersRef.current = {};
+
+    // 閬嶅巻鍩哄湴鏁版嵁锛屼负姣忎釜鍩哄湴鍒涘缓鏍囪鐐?
+    bases.forEach((base) => {
+      // 鏁版嵁鏍￠獙锛岄伩鍏?NaN 閿欒
+      if (!base.location || !Array.isArray(base.location) || base.location.length < 2 || 
+          isNaN(base.location[0]) || isNaN(base.location[1]) ||
+          base.location[0] < -180 || base.location[0] > 180 ||
+          base.location[1] < -90 || base.location[1] > 90) {
+        console.warn(`鍩哄湴 ${base.name} 鐨勫潗鏍囨棤鏁?`, base.location);
+        return;
+      }
+
+      // 鏍规嵁鍩哄湴鐘舵€佽缃爣璁扮偣棰滆壊
+      const color = base.status === 'warning' ? '#ef4444' : base.status === 'todo' ? '#1f2937' : '#6b7280';
+      // 鍒涘缓 DOM 鍏冪礌浣滀负鏍囪鐐瑰唴瀹癸紝閬垮厤 AMap 2.0 鐨?string content 鍏煎鎬ч棶棰?
+      const div = document.createElement('div');
+      // 璁剧疆鏍囪鐐规牱寮?
+      div.style.backgroundColor = color;
+      div.style.width = '26px';
+      div.style.height = '26px';
+      div.style.borderRadius = '50% 50% 50% 0';
+      div.style.transform = 'rotate(-45deg)';
+      div.style.border = '2px solid #fff';
+      div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+
+      // 鍒涘缓鏍囪鐐?
+      const marker = new window.AMap.Marker({
+        position: base.location, // 鏍囪鐐逛綅缃?
+        title: base.name, // 榧犳爣鎮仠鏃舵樉绀虹殑鏍囬
+        offset: new window.AMap.Pixel(-13, -30), // 鏍囪鐐瑰亸绉婚噺
+        content: div, // 鏍囪鐐瑰唴瀹癸紙鑷畾涔?DOM 鍏冪礌锛?
+      });
+
+      // 涓烘爣璁扮偣娣诲姞鐐瑰嚮浜嬩欢
+      marker.on('click', () => {
+        // 璋冪敤鐖剁粍浠朵紶閫掔殑鍥炶皟鍑芥暟
+        onMarkerClick(base);
+        // 鎵撳紑淇℃伅绐楀彛
+        openInfoWindow(base, marker);
+      });
+
+      // 灏嗘爣璁扮偣娣诲姞鍒板湴鍥?
+      marker.setMap(map);
+      // 鏍规嵁鍥惧眰鐘舵€佽缃樉绀?闅愯棌
+      if (!layers.base) {
+        marker.hide();
+      }
+      // 灏嗘爣璁扮偣瀛樺偍鍒板紩鐢ㄤ腑锛屼互渚垮悗缁搷浣?
+      markersRef.current[base.id] = marker;
+    });
+
+    // 濡傛灉鏈夊熀鍦版暟鎹紝璋冩暣鍦板浘瑙嗗浘浠ラ€傚簲鎵€鏈夋爣璁扮偣
+    if (bases.length > 0) {
+      map.setFitView();
+    }
+  }, [map, bases]); // 渚濊禆鍦板浘瀹炰緥鍜屽熀鍦版暟鎹紝褰撳畠浠彉鍖栨椂閲嶆柊娓叉煋鏍囪鐐?
+
+  // 澶勭悊閫変腑鍩哄湴鑱斿姩鐨?useEffect
+  useEffect(() => {
+    // 褰撳湴鍥俱€侀€変腑鍩哄湴鍜屽搴旂殑鏍囪鐐归兘瀛樺湪鏃?
+    if (map && selectedBase && markersRef.current[selectedBase.id]) {
+      const marker = markersRef.current[selectedBase.id];
+      // 鍐嶆鏍￠獙鍧愭爣
+      if (selectedBase.location && Array.isArray(selectedBase.location) && selectedBase.location.length >= 2 && !isNaN(selectedBase.location[0]) && !isNaN(selectedBase.location[1])) {
+        // 灏嗗湴鍥句腑蹇冭缃负閫変腑鍩哄湴鐨勪綅缃?
+        map.setCenter(selectedBase.location);
+        // 鏀惧ぇ鍦板浘
+        map.setZoom(15);
+        // 鎵撳紑閫変腑鍩哄湴鐨勪俊鎭獥鍙?
+        openInfoWindow(selectedBase, marker);
+      }
+    }
+  }, [selectedBase, map]); // 渚濊禆閫変腑鍩哄湴鍜屽湴鍥惧疄渚嬶紝褰撳畠浠彉鍖栨椂鎵ц
+
+  // 鎵撳紑淇℃伅绐楀彛鍑芥暟
+  const openInfoWindow = (base: Base, marker: any) => {
+    // 鍦板浘鏈姞杞藉畬鎴愭椂鐩存帴杩斿洖
+    if (!map) return;
+
+    // 鏍￠獙鍧愭爣鏁版嵁
+    if (!base.location || !Array.isArray(base.location) || base.location.length < 2) {
+      console.warn(`鏃犳硶鎵撳紑淇℃伅绐楀彛锛氬熀鍦?${base.name} 鐨勫潗鏍囨棤鏁?`, base.location);
+      return;
+    }
+
+    // 鍒涘缓淇℃伅绐楀彛
+    const waterQuality = base.waterQuality || { oxygen: '--', temp: '--', ph: '--' };
+    const infoWindow = new window.AMap.InfoWindow({
+      // 淇℃伅绐楀彛鍐呭锛屼娇鐢?HTML 瀛楃涓?
+      content: `
+        <div style="padding: 12px; min-width: 200px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 16px;">${base.name}</h4>
+          <div style="margin-bottom: 4px;">鐘舵€? <span style="color: ${base.status === 'warning' ? '#ef4444' : '#6b7280'}">${base.status === 'warning' ? '棰勮' : '姝ｅ父'}</span></div>
+          <div style="margin-bottom: 4px;">婧舵哀閲? ${waterQuality.oxygen} mg/L</div>
+          <div style="margin-bottom: 4px;">姘存俯: ${waterQuality.temperature} 鈩?/div>
+          <div style="margin-bottom: 4px;">PH鍊? ${waterQuality.ph}</div>
+          <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+            <a href="/dashboard/pond-archives?baseId=${base.id}" style="color: #1f2937; margin-right: 16px;">鏌ョ湅璇︽儏 &gt;</a>
+            <a href="/dashboard/water-quality?baseId=${base.id}" style="color: #1f2937;">姘磋川鐩戞帶 &gt;</a>
+          </div>
+        </div>
+      `,
+      // 淇℃伅绐楀彛鍋忕Щ閲?
+      offset: new window.AMap.Pixel(0, -30),
+    });
+
+    // 鍦ㄥ湴鍥句笂鎵撳紑淇℃伅绐楀彛锛屼綅缃负鍩哄湴鍧愭爣
+    infoWindow.open(map, base.location);
+  };
+
+  // 缁勪欢娓叉煋
+  return (
+    // 浣跨敤 Ant Design 鐨?Card 缁勪欢浣滀负瀹瑰櫒
+    <Card styles={{ body: { padding: 0 } }} style={{ height: 'calc(100vh - 250px)', position: 'relative' }}>
+      {/* 搴曞浘鍒囨崲鍜屽浘灞傛帶鍒?*/}
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, backgroundColor: 'white', padding: 12, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+        {/* 搴曞浘鍒囨崲 */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 'bold' }}>搴曞浘鍒囨崲</div>
+          <Radio.Group value={mapType} onChange={handleMapTypeChange} buttonStyle="solid">
+            <Radio.Button value="standard">鏍囧噯</Radio.Button>
+            <Radio.Button value="satellite">鍗槦</Radio.Button>
+          </Radio.Group>
+        </div>
+        
+        {/* 鍥惧眰鎺у埗 */}
+        <div>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 'bold' }}>鍥惧眰鎺у埗</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Checkbox checked={layers.base} onChange={(e: CheckboxChangeEvent) => handleLayerChange('base', e.target.checked)}>
+              鍩哄湴
+            </Checkbox>
+            <Checkbox checked={layers.pond} onChange={(e: CheckboxChangeEvent) => handleLayerChange('pond', e.target.checked)}>
+              濉樺彛
+            </Checkbox>
+            <Checkbox checked={layers.device} onChange={(e: CheckboxChangeEvent) => handleLayerChange('device', e.target.checked)}>
+              璁惧
+            </Checkbox>
+            <Checkbox checked={layers.channel} onChange={(e: CheckboxChangeEvent) => handleLayerChange('channel', e.target.checked)}>
+              鑸亾
+            </Checkbox>
+          </div>
+        </div>
+      </div>
+      
+      {/* 鍔犺浇鐘舵€佹樉绀?*/}
+      <Spin spinning={loading} tip="鍦板浘鍔犺浇涓?.." size="large">
+        {/* 鍦板浘瀹瑰櫒锛屼娇鐢?ref 寮曠敤 */}
+        <div ref={mapRef} style={{ width: '100%', height: 'calc(100vh - 250px)' }} />
+      </Spin>
+    </Card>
+  );
+};
+
+// 瀵煎嚭缁勪欢
+export default GisMap;

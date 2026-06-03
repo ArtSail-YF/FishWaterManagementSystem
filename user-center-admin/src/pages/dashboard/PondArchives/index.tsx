@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+﻿import { PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useSearchParams } from '@umijs/max';
 import { Button, Space ,message as antdmsg} from 'antd';
@@ -12,7 +12,7 @@ import PondSummaryStats, { type PondSummaryStatsProps } from './components/PondS
 import PondFilterBar from './components/PondFilterBar';
 
 // 服务引用 
-import { getPondListWithSummary, deletePond } from '@/services/api/pond';
+import { searchPonds, deletePond } from '@/services/api/pond';
 
 const PondArchives: React.FC = () => {
    // 1. 路由参数处理
@@ -40,7 +40,7 @@ const PondArchives: React.FC = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const response = await getPondListWithSummary(filterValues);
+      const response = await searchPonds(filterValues);
       if (response.data) {
         setPondData(response.data.list || []);
         setSummaryData(response.data.summary || {});

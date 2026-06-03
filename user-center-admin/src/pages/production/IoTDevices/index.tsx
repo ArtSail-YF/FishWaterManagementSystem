@@ -3,6 +3,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, WifiOutlined, 
 import { PageContainer, ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Modal, message, Card, Row, Col, Statistic, Typography, Descriptions, Select, Dropdown } from 'antd';
 const { Text } = Typography;
+import { getLatestTsData } from '@/services/api/iot-ts-data';
 import { searchIotDevices, deleteIotDevice, setDeviceStatus } from '@/services/api/iot';
 import type { IoTDevice } from '@/types/model';
 import DeviceConfigModal from './components/DeviceConfigModal';
@@ -39,6 +40,7 @@ const DEVICE_TYPE_FILTERS = [
   { label: '水泵', value: 6 },
 ];
 
+const [deviceMetrics, setDeviceMetrics] = useState<Record<number, any[]>>({});
 const IoTDevices = () => {
   const actionRef = useRef<ActionType>(null);
   const [devices, setDevices] = useState<any[]>([]);
@@ -114,6 +116,22 @@ const IoTDevices = () => {
   };
 
 
+
+
+  const handleCheckConnection = async (device: IoTDevice) => {
+    try {
+      const res: any = await getLatestTsData({ deviceId: device.id, pageSize: 1 });
+      if (res?.data?.records?.length > 0 || res?.data?.length > 0) {
+        message.success(`设备 ${device.deviceName} 连接正常`);
+      } else if (device.lastHeartbeat) {
+        message.info(`设备 ${device.deviceName} 最近心跳: ${device.lastHeartbeat}`);
+      } else {
+        message.warning(`设备 ${device.deviceName} 无心跳数据，可能未连接`);
+      }
+    } catch {
+      message.error('检测失败，请检查 MQTT 连接');
+    }
+  };
 
   const handleStatusChange = async (device: IoTDevice, newStatus: number) => {
     try {

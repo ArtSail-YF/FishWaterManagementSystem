@@ -7,7 +7,7 @@ import PondCardGrid from './components/PondCardGrid';
 import QualityTrendChart from './components/QualityTrendChart';
 import RecentAlerts from './components/RecentAlerts';
 import WaterQualityStats from './components/WaterQualityStats';
-import  {getWaterDataList } from '@/services/api/water';
+import { getPondSummary } from '@/services/api/iot-ts-data';
 
 const { Title } = Typography;
 
@@ -16,7 +16,7 @@ const MOCK_PONDS: API.PondStatus[] = [
   {
     id: '1',
     name: '海宁1号塘',
-    baseName: '海宁1号基地',
+    baseName: '海宁1号基�?,
     status: 'normal',
     indicators: {
       oxygen: { value: 6.8, trend: 'stable' },
@@ -27,7 +27,7 @@ const MOCK_PONDS: API.PondStatus[] = [
   {
     id: '2',
     name: '海宁2号塘',
-    baseName: '海宁1号基地',
+    baseName: '海宁1号基�?,
     status: 'warning',
     indicators: {
       oxygen: { value: 4.8, trend: 'down' },
@@ -95,7 +95,7 @@ const WaterQuality: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialBaseId = searchParams.get('baseId');
 
-  // 筛选状态
+  // 筛选状�?
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [baseFilter, setBaseFilter] = useState<string>(initialBaseId || 'all');
@@ -103,7 +103,7 @@ const WaterQuality: React.FC = () => {
   // 基地选项配置
   const baseOptions = [
     { label: '全部基地', value: 'all' },
-    { label: '海宁1号基地', value: 'B001' },
+    { label: '海宁1号基�?, value: 'B001' },
     { label: '嘉兴南湖基地', value: 'B002' },
     { label: '舟山定海基地', value: 'B003' },
     { label: '温州苍南基地', value: 'B004' },
@@ -111,7 +111,7 @@ const WaterQuality: React.FC = () => {
 
   // 基地id到基地名称的映射
   const baseIdToNameMap: { [key: string]: string } = {
-    'B001': '海宁1号基地',
+    'B001': '海宁1号基�?,
     'B002': '嘉兴南湖基地',
     'B003': '舟山定海基地',
     'B004': '温州苍南基地'
@@ -119,7 +119,7 @@ const WaterQuality: React.FC = () => {
 
   const fecthPondData = async () => {
      try{
-       const response=await getWaterDataList();
+       const response=await getPondSummary();
        const data = response?.data || [];
        setPondList(data);
        setFilteredPondList(data);
@@ -161,7 +161,7 @@ const WaterQuality: React.FC = () => {
       );
     }
     
-    // 状态过滤
+    // 状态过�?
     if (statusFilter !== 'all') {
       result = result.filter((p) => p.status === statusFilter);
     }
@@ -183,7 +183,7 @@ const WaterQuality: React.FC = () => {
     error: filteredPondList.filter(p => p.status === 'error').length,
   };
 
-  // 重置筛选
+  // 重置筛�?
   const handleReset = () => {
     setSearchText('');
     setStatusFilter('all');
@@ -202,7 +202,7 @@ const WaterQuality: React.FC = () => {
       <Card style={{ marginBottom: 16 }}>
         <Space size="middle" wrap>
           <Input
-            placeholder="搜索塘口名称或基地"
+            placeholder="搜索塘口名称或基�?
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -210,19 +210,19 @@ const WaterQuality: React.FC = () => {
             allowClear
           />
           <Select
-            placeholder="状态筛选"
+            placeholder="状态筛�?
             value={statusFilter}
             onChange={setStatusFilter}
             style={{ width: 140 }}
             options={[
-              { value: 'all', label: '全部状态' },
+              { value: 'all', label: '全部状�? },
               { value: 'normal', label: '正常' },
               { value: 'warning', label: '预警' },
               { value: 'error', label: '异常' },
             ]}
           />
           <Select
-            placeholder="基地筛选"
+            placeholder="基地筛�?
             value={baseFilter}
             onChange={setBaseFilter}
             style={{ width: 160 }}

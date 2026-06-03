@@ -1,105 +1,192 @@
+import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Row, message } from 'antd';
-import React, { useState } from 'react';
-import AlertSummary from './components/AlertSummary';
-import RealTimeAlertList, { AlertItem } from './components/RealTimeAlertList';
-import RiskDistribution from './components/RiskDistribution';
+import { Card, Col, Row, Statistic, Tag, Space, Button, message, Modal, Typography, Badge } from 'antd';
+import {
+  CheckCircleOutlined,
+  WarningOutlined,
+  ClockCircleOutlined,
+  CheckCircleFilled,
+  BellOutlined,
+  CloseOutlined,
+} from '@ant-design/icons';
+import { getRealTimeAlerts, processWarning, getWarningStats } from '@/services/api/warning';
+import RiskCharts from './components/RiskCharts';
 
-// 模拟预警流水数据
-const MOCK_ALERTS: AlertItem[] = [
-  {
-    key: '1',
-    level: 'P0',
-    time: '2026-03-27 10:45:12',
-    source: '萧山基地 / 1号塘',
-    description: '溶氧量 (DO) 骤降: 2.1 mg/L ↓ (阈值 5.0)',
-    duration: '15m',
-    status: 'pending',
-  },
-  {
-    key: '2',
-    level: 'P1',
-    time: '2026-03-27 10:30:45',
-    source: '余杭基地 / 2号塘',
-    description: '水温异常上升: 28.5 ℃ ↑ (阈值 26.0)',
-    duration: '30m',
-    status: 'pending',
-  },
-  {
-    key: '3',
-    level: 'P0',
-    time: '2026-03-27 10:15:00',
-    source: '富阳基地 / 3号塘',
-    description: '投喂设备离线 [ID: FD-003]',
-    duration: '45m',
-    status: 'pending',
-  },
-  {
-    key: '4',
-    level: 'P2',
-    time: '2026-03-27 09:50:22',
-    source: '桐庐基地 / 4号塘',
-    description: 'PH 值轻微偏移: 8.6 ↑ (阈值 8.5)',
-    duration: '1h 10m',
-    status: 'pending',
-  },
-  {
-    key: '5',
-    level: 'P1',
-    time: '2026-03-27 09:30:11',
-    source: '萧山基地 / 5号塘',
-    description: '水位偏低报警: 1.2m ↓ (阈值 1.5)',
-    duration: '1h 30m',
-    status: 'pending',
-  },
-  {
-    key: '6',
-    level: 'P0',
-    time: '2026-03-27 09:15:00',
-    source: '余杭基地 / 1号塘',
-    description: '氨氮超标预警: 0.8 mg/L ↑ (阈值 0.5)',
-    duration: '1h 45m',
-    status: 'pending',
-  },
-];
+const { Text } = Typography;
+
+const LEVEL_STYLE: Record<string, { label: string; color: string }> = {
+  HIGH: { label: 'P0', color: '#cf1322' },
+  MEDIUM: { label: 'P1', color: '#fa8c16' },
+  LOW: { label: 'P2', color: '#8c8c8c' },
+};
 
 const ComprehensiveWarning: React.FC = () => {
-  const [alerts, setAlerts] = useState<AlertItem[]>(MOCK_ALERTS);
+  const [stats, setStats] = useState({ unprocessed: 0, newInHour: 0, processedToday: 0, avgResponseTime: '--' });
+  const [alerts, setAlerts] = useState<any[]>([]);
 
-  const summaryData = {
-    unprocessed: 12,
-    newInHour: 4,
-    processedToday: 45,
-    avgResponseTime: '4m 30s',
+  const loadStats = () => {
+    getWarningStats().then(res => {
+      if (res?.data) setStats(res.data);
+    }).catch(() => {});
   };
 
-  const handleProcessAlert = (item: AlertItem) => {
-    message.success(`正在为您跳转至 [${item.source}] 的实时处理页面...`);
-    // 实际业务中这里会跳转到详情页或弹出处理弹窗
+  const loadAlerts = () => {
+    getRealTimeAlerts().then(res => {
+      if (Array.isArray(res?.data)) setAlerts(res.data);
+    }).catch(() => {});
   };
 
-  const handleIgnoreAlert = (item: AlertItem) => {
-    message.warning(`预警 [${item.key}] 已被标记为误报。`);
-    setAlerts(prev => prev.filter(a => a.key !== item.key));
+  useEffect(() => {
+    loadStats();
+    loadAlerts();
+    const timer = setInterval(() => { loadStats(); loadAlerts(); }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleProcess = (id: number) => {
+    Modal.confirm({
+      title: '确认处理',
+      content: '确认已处理该告警？',
+      onOk: async () => {
+        try {
+          await processWarning({ id });
+          message.success('已处理');
+          loadAlerts();
+          loadStats();
+        } catch {
+          message.error('操作失败');
+        }
+      },
+    });
+  };
+
+  const handleIgnore = (id: number) => {
+    setAlerts(prev => prev.filter((a: any) => a.id !== id));
   };
 
   return (
-    <PageContainer header={{ title: '综合预警 COMMAND CENTER' }}>
-      <AlertSummary data={summaryData} />
-      
-      <Row gutter={8}>
-        {/* 左侧：实时流水 */}
-        <Col xs={24} lg={16}>
-          <RealTimeAlertList 
-            data={alerts} 
-            onHandle={handleProcessAlert}
-            onIgnore={handleIgnoreAlert}
-          />
+    <PageContainer>
+      {/* KPI 卡片行 */}
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={6}>
+          <Card size="small" styles={{ body: { padding: '16px 20px' } }}>
+            <Statistic
+              title={<Space size={4}><WarningOutlined style={{ color: '#ff4d4f' }} /><Text type="secondary" style={{ fontSize: 13 }}>未处理</Text></Space>}
+              value={stats.unprocessed}
+              valueStyle={{ color: '#ff4d4f', fontSize: 28, fontWeight: 600 }}
+            />
+          </Card>
         </Col>
-        
-        {/* 右侧：风险分布 */}
+        <Col span={6}>
+          <Card size="small" styles={{ body: { padding: '16px 20px' } }}>
+            <Statistic
+              title={<Space size={4}><ClockCircleOutlined style={{ color: '#faad14' }} /><Text type="secondary" style={{ fontSize: 13 }}>近1小时新增</Text></Space>}
+              value={stats.newInHour}
+              valueStyle={{ color: '#faad14', fontSize: 28, fontWeight: 600 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card size="small" styles={{ body: { padding: '16px 20px' } }}>
+            <Statistic
+              title={<Space size={4}><CheckCircleFilled style={{ color: '#52c41a' }} /><Text type="secondary" style={{ fontSize: 13 }}>今日已处理</Text></Space>}
+              value={stats.processedToday}
+              valueStyle={{ color: '#52c41a', fontSize: 28, fontWeight: 600 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card size="small" styles={{ body: { padding: '16px 20px' } }}>
+            <Statistic
+              title={<Space size={4}><BellOutlined style={{ color: '#595959' }} /><Text type="secondary" style={{ fontSize: 13 }}>平均响应</Text></Space>}
+              value={stats.avgResponseTime}
+              valueStyle={{ color: '#1f2937', fontSize: 28, fontWeight: 600 }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 内容区域：左侧预警列表 + 右侧图表 */}
+      <Row gutter={16}>
+        <Col xs={24} lg={16}>
+          <Card
+            size="small"
+            title={
+              <Space>
+                <BellOutlined style={{ color: '#ff4d4f' }} />
+                <span>实时预警</span>
+                <Tag color="red" style={{ fontSize: 11 }}>{alerts.length} 条</Tag>
+              </Space>
+            }
+            styles={{ body: { padding: 0, maxHeight: 500, overflow: 'auto' } }}
+          >
+            {alerts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#bfbfbf' }}>
+                <CheckCircleFilled style={{ fontSize: 32, color: '#52c41a', display: 'block', marginBottom: 8 }} />
+                暂无告警
+              </div>
+            ) : (
+              alerts.map((alert: any) => {
+                const level = LEVEL_STYLE[alert.severity] || LEVEL_STYLE.LOW;
+                return (
+                  <div
+                    key={alert.id}
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f0f0f0',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                    }}
+                  >
+                    <Badge
+                      count={level.label}
+                      style={{
+                        backgroundColor: level.color,
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        minWidth: 28,
+                        lineHeight: '18px',
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 2 }}>
+                        {alert.triggerTime || ''}
+                      </div>
+                      <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 2 }}>
+                        {alert.title || `#${alert.id}`}
+                      </div>
+                      <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                        {alert.content || alert.alertNo || ''}
+                      </Text>
+                    </div>
+                    <Space size={4} style={{ flexShrink: 0 }}>
+                      {alert.status === 'UNHANDLED' && (
+                        <Button
+                          type="primary"
+                          size="small"
+                          icon={<CheckCircleOutlined />}
+                          onClick={() => handleProcess(alert.id)}
+                          style={{ fontSize: 11, height: 24 }}
+                        >
+                          处理
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        icon={<CloseOutlined />}
+                        onClick={() => handleIgnore(alert.id)}
+                        style={{ fontSize: 11, height: 24 }}
+                      />
+                    </Space>
+                  </div>
+                );
+              })
+            )}
+          </Card>
+        </Col>
         <Col xs={24} lg={8}>
-          <RiskDistribution />
+          <RiskCharts />
         </Col>
       </Row>
     </PageContainer>

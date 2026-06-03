@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.artsail.compliance.mapper.CertInfoMapper">
+
+    <resultMap id="CertInfoMap" type="com.artsail.compliance.model.domain.CertInfo">
+        <id column="id" property="id"/>
+        <result column="cert_no" property="certNo"/>
+        <result column="strategy_id" property="strategyId"/>
+        <result column="issue_date" property="issueDate"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="searchWithStrategy" resultType="java.util.Map">
+        SELECT
+            ci.id,
+            ci.cert_no AS certNo,
+            ci.strategy_id AS strategyId,
+            cs.strategy_name AS strategyName,
+            cs.spec_type AS specType,
+            ci.issue_date AS issueDate,
+            ci.status
+        FROM cert_info ci
+        LEFT JOIN cert_strategy cs ON ci.strategy_id = cs.id
+        <where>
+            <if test="status != null and status != ''">
+                AND ci.status = #{status}
+            </if>
+        </where>
+        ORDER BY ci.issue_date DESC, ci.id DESC
+    </select>
+
+    <select id="selectCertificateStats" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN ci.status = 'valid' THEN 1 ELSE 0 END) AS validCount,
+            SUM(CASE WHEN ci.status = 'expired' THEN 1 ELSE 0 END) AS expiredCount,
+            SUM(CASE WHEN ci.status = 'used' THEN 1 ELSE 0 END) AS usedCount,
+            COUNT(DISTINCT cs.id) AS strategyCount
+        FROM cert_info ci
+        LEFT JOIN cert_strategy cs ON ci.strategy_id = cs.id
+    </select>
+
+</mapper>

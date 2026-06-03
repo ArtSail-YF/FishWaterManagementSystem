@@ -10,17 +10,22 @@ const AquacultureAdvice: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAquacultureAdvice()
-      .then(res => {
-        setData(res.data || null);
-      })
-      .catch(() => {
-        console.error('获取养殖建议失败，使用降级数据');
-        setData(MOCK_AQUACULTURE_ADVICE);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    const fetchData = () => {
+      getAquacultureAdvice()
+        .then(res => {
+          setData(res.data || null);
+        })
+        .catch(() => {
+          console.error('获取养殖建议失败，使用降级数据');
+          setData(MOCK_AQUACULTURE_ADVICE);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+    fetchData();
+    const timer = setInterval(fetchData, 180000);
+    return () => clearInterval(timer);
   }, []);
 
   if (loading || !data) {

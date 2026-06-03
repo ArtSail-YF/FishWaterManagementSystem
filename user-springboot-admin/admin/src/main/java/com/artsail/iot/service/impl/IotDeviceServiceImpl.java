@@ -4,7 +4,6 @@ import com.artsail.iot.mapper.IotDeviceMapper;
 import com.artsail.iot.model.domain.IotDevice;
 import com.artsail.iot.model.domain.query.IotDeviceQuery;
 import com.artsail.iot.service.IotDeviceService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -26,16 +25,7 @@ public class IotDeviceServiceImpl extends ServiceImpl<IotDeviceMapper, IotDevice
     }
 
     @Override
-    public List<IotDevice> getByBaseId(Long baseId) {
-        return iotDeviceMapper.selectByBaseId(baseId);
-    }
-
-    @Override
-    public List<IotDevice> getByTypeAndBase(Long typeId, Long baseId) {
-        return this.lambdaQuery()
-                .eq(IotDevice::getBaseId, baseId)
-                .eq(typeId != null, IotDevice::getTypeId, typeId)
-                .eq(IotDevice::getStatus, 1)
-                .list();
+    public List<IotDevice> getDeviceOptions(Long baseId, Long typeId) {
+        return iotDeviceMapper.selectDeviceOptions(baseId, typeId);
     }
 }
