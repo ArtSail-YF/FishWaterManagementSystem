@@ -30,8 +30,6 @@ import { detectDisease, type DiseaseDetectResult } from '@/services/api/ai';
 const { Dragger } = Upload;
 const { Text, Title, Paragraph } = Typography;
 
-const backendOrigin = 'http://localhost:8080';
-
 const riskColorMap: Record<string, string> = {
   高: 'red',
   中: 'orange',
@@ -41,7 +39,7 @@ const riskColorMap: Record<string, string> = {
 const resolveImageUrl = (url?: string) => {
   if (!url) return '';
   if (/^https?:\/\//.test(url)) return url;
-  return `${backendOrigin}${url}`;
+  return `/api${url}`;
 };
 
 const unwrapResult = (response: any): DiseaseDetectResult => {

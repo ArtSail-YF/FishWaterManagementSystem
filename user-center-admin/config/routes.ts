@@ -289,12 +289,32 @@ export default [
         name: 'knowledge',
         component: './info-nav/Knowledge',
       },
+    ],
+  },
+  {
+    path: '/ai',
+    name: 'ai',
+    icon: 'robot',
+    routes: [
       {
-        path: '/info-nav/ai-disease',
-        name: 'ai-disease',
-        component: './info-nav/AiDisease',
+        path: '/ai',
+        redirect: '/ai/chat',
+      },
+      {
+        path: '/ai/chat',
+        name: 'chat',
+        component: './ai/Chat',
+      },
+      {
+        path: '/ai/disease',
+        name: 'disease',
+        component: './ai/Disease',
       },
     ],
+  },
+  {
+    path: '/info-nav/ai-disease',
+    redirect: '/ai/disease',
   },
   {
     path: '/admin',

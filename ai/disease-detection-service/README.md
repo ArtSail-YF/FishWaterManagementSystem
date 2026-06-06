@@ -5,7 +5,7 @@
 ## 启动
 
 ```powershell
-cd ai-detection-service
+cd ai/disease-detection-service
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
