@@ -22,6 +22,7 @@
 		<java.version>17</java.version>
 		<mybatis-plus.version>3.5.7</mybatis-plus.version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<langchain4j.version>1.15.1</langchain4j.version>
 	</properties>
 
 	<licenses>
@@ -82,6 +83,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-open-ai</artifactId>
+			<version>${langchain4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-core</artifactId>
+			<version>${langchain4j.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
@@ -98,7 +111,14 @@
 			<artifactId>spring-integration-mqtt</artifactId>
 		</dependency>
 
-		<!-- Eclipse Paho MQTT v3 Client (spring-integration-mqtt 的必需传递依赖，但被声明为 optional，需手动引入) -->
+
+		<!-- Spring AMQP / RabbitMQ -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
+		<!-- Eclipse Paho MQTT v3 Client (spring-integration-mqtt 鐨勫繀闇€浼犻€掍緷璧栵紝浣嗚澹版槑涓?optional锛岄渶鎵嬪姩寮曞叆) -->
 		<dependency>
 			<groupId>org.eclipse.paho</groupId>
 			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
@@ -114,6 +134,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
+					<release>${java.version}</release>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>

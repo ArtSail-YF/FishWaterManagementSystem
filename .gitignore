@@ -2,3 +2,9 @@
 /docker/mosquitto/data
 /docker/mosquitto/log
 /.idea
+**/.idea/
+**/.venv/
+.env
+.env.*
+!.env.example
+.playwright-cli/

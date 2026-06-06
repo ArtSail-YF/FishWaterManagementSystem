@@ -2,14 +2,21 @@ package com.artsail.production.controller;
 
 import com.artsail.common.controller.BaseController;
 import com.artsail.common.domain.Result;
+import com.artsail.approval.model.domain.PlanApprovalRecord;
 import com.artsail.production.model.domain.ProdPlan;
 import com.artsail.production.model.domain.VO.ProdPlanVO;
 import com.artsail.production.model.domain.Query.ProdPlanQuery;
+import com.artsail.approval.model.domain.request.ApprovalActionRequest;
+import com.artsail.approval.model.domain.request.SubmitApprovalRequest;
 import com.artsail.production.service.ProdPlanService;
+import com.artsail.admin.model.domain.User;
+import com.artsail.admin.contant.UserConstant;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -73,5 +80,51 @@ public class ProdPlanController extends BaseController<ProdPlanService, ProdPlan
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         return Result.success(prodPlanService.getTaskTemplates(planType, startTime, endTime));
+    }
+
+    // ====== 审批相关接口 ======
+
+    /** 提交审批 */
+    @PostMapping("/{id}/submit-approval")
+    public Result<Void> submitApproval(
+            @PathVariable Long id,
+            @RequestBody(required = false) SubmitApprovalRequest request,
+            HttpServletRequest httpRequest) {
+        User loginUser = (User) httpRequest.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        Long currentUserId = loginUser != null ? loginUser.getId() : 1L;
+        prodPlanService.submitForApproval(id, currentUserId,
+                request != null ? request.getApproverId() : null,
+                request != null ? request.getComment() : null);
+        return Result.success(null);
+    }
+
+    /** 审批通过 */
+    @PostMapping("/{id}/approve")
+    public Result<Void> approve(
+            @PathVariable Long id,
+            @RequestBody(required = false) ApprovalActionRequest request,
+            HttpServletRequest httpRequest) {
+        User loginUser = (User) httpRequest.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        Long currentUserId = loginUser != null ? loginUser.getId() : 1L;
+        prodPlanService.approve(id, currentUserId, request != null ? request.getComment() : null);
+        return Result.success(null);
+    }
+
+    /** 审批驳回 */
+    @PostMapping("/{id}/reject")
+    public Result<Void> reject(
+            @PathVariable Long id,
+            @RequestBody(required = false) ApprovalActionRequest request,
+            HttpServletRequest httpRequest) {
+        User loginUser = (User) httpRequest.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        Long currentUserId = loginUser != null ? loginUser.getId() : 1L;
+        prodPlanService.reject(id, currentUserId, request != null ? request.getComment() : null);
+        return Result.success(null);
+    }
+
+    /** 获取计划的审批记录 */
+    @GetMapping("/{id}/approval-records")
+    public Result<List<PlanApprovalRecord>> approvalRecords(@PathVariable Long id) {
+        return Result.success(prodPlanService.getApprovalRecords(id));
     }
 }

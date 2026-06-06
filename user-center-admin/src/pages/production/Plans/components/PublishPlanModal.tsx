@@ -181,7 +181,8 @@ const PublishPlanModal: React.FC<PublishPlanModalProps> = ({ visible, plan, onCa
             .filter(r => r.enabled)
             .map(row => ({
               taskTitle: row.taskTitle,
-              actionTime: `${row.actionDate} ${row.actionTime}:00`,
+              // LocalDateTime 需要 T 分隔
+              actionTime: `${row.actionDate}T${row.actionTime}:00`,
               durationMinutes: row.durationMinutes,
               priority: row.priority || 'medium',
               // 单行没选执行人时用默认执行人
@@ -373,7 +374,7 @@ const PublishPlanModal: React.FC<PublishPlanModalProps> = ({ visible, plan, onCa
       confirmLoading={submitting}
       okText="确认发布"
       cancelText="取消"
-      width={820}
+      width={960}
       destroyOnClose
     >
       {/* 计划信息卡片 */}
@@ -419,6 +420,7 @@ const PublishPlanModal: React.FC<PublishPlanModalProps> = ({ visible, plan, onCa
               size="small"
               bordered
               style={{ marginBottom: 12 }}
+              scroll={{ x: 'max-content' }}
             />
           ) : (
             <Alert

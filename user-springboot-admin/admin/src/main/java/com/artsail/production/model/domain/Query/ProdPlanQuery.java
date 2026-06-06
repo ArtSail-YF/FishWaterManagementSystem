@@ -7,34 +7,39 @@ import lombok.Data;
  */
 @Data
 public class ProdPlanQuery {
-    
+
     /**
      * 基地ID
      */
     private Long baseId;
-    
+
     /**
      * 目标类型: pond, cage, vsl
      */
     private String targetType;
-    
+
     /**
      * 目标ID
      */
     private Long targetId;
-    
+
     /**
      * 计划类型: feeding, medication, harvest, maintenance
      */
     private String planType;
-    
+
     /**
-     * 状态: draft, published, active, completed, cancelled
+     * 状态: draft, published, active, completed, cancelled, pending_approval, approved
      */
     private String status;
-    
+
     /**
      * 标题关键词
      */
     private String title;
+
+    /**
+     * 待我审批（当前用户ID）
+     */
+    private Long pendingApprovalUserId;
 }

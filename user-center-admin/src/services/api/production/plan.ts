@@ -16,6 +16,9 @@ import type {
   UpdatePlanRequest,
   CancelPlanRequest,
   PlanStatsDTO,
+  SubmitApprovalRequest,
+  ApprovalActionRequest,
+  ApprovalRecord,
 } from '@/types/api/plan';
 
 /** 分页及条件查询生产计划 GET /api/plan/search */
@@ -113,5 +116,41 @@ export async function getTaskTemplates(planType: string, startTime?: string, end
   return request<BaseResponse<any[]>>(`/plan/${planType}/task-templates`, {
     method: 'GET',
     params: { startTime, endTime },
+  });
+}
+
+// ====== 审批相关 API ======
+
+/** 提交审批 POST /api/plan/{id}/submit-approval */
+export async function submitForApproval(id: string | number, body?: SubmitApprovalRequest) {
+  return request<BaseResponse<void>>(`/plan/${id}/submit-approval`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+  });
+}
+
+/** 审批通过 POST /api/plan/{id}/approve */
+export async function approvePlan(id: string | number, body?: ApprovalActionRequest) {
+  return request<BaseResponse<void>>(`/plan/${id}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+  });
+}
+
+/** 审批驳回 POST /api/plan/{id}/reject */
+export async function rejectPlan(id: string | number, body?: ApprovalActionRequest) {
+  return request<BaseResponse<void>>(`/plan/${id}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+  });
+}
+
+/** 获取审批记录 GET /api/plan/{id}/approval-records */
+export async function getApprovalRecords(id: string | number) {
+  return request<BaseResponse<ApprovalRecord[]>>(`/plan/${id}/approval-records`, {
+    method: 'GET',
   });
 }

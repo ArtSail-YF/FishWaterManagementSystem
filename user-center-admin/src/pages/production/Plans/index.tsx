@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Typography } from 'antd';
+import { Button, Tag, Space, Modal, message, Row, Col, Card, Statistic, Typography, Tabs, Form, Input, Select } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -14,6 +14,10 @@ import {
   FileTextOutlined,
   SyncOutlined,
   BarChartOutlined,
+  CheckOutlined,
+  StopOutlined,
+  UnorderedListOutlined,
+  SolutionOutlined,
 } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -24,6 +28,7 @@ import PlanDetail from './components/PlanDetail';
 import BatchPlanModal from './components/BatchPlanModal';
 import PlanTemplate from './components/PlanTemplate';
 import PublishPlanModal from './components/PublishPlanModal';
+import PlanTaskModal from './components/PlanTaskModal';
 import {
   searchPlans,
   deletePlan,
@@ -33,8 +38,13 @@ import {
   completePlan,
   getPlanById,
   getPlanStats,
+  submitForApproval,
+  approvePlan,
+  rejectPlan,
+  getApprovalRecords,
 } from '@/services/api/production/plan';
 import { getBaseOptions } from '@/services/api/base';
+import { getUserOptions } from '@/services/api/user';
 import type { ProductionPlan } from '@/types/model';
 import type { PlanStatsDTO } from '@/types/api/plan';
 
@@ -55,6 +65,9 @@ const TARGET_TYPE_MAP: Record<string, string> = {
 
 const STATUS_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
   draft: { label: '草稿', bgColor: '#EBE5DE', textColor: '#5C4F42' },
+  pending_approval: { label: '待审批', bgColor: '#FFF3CD', textColor: '#856404' },
+  approved: { label: '已审批', bgColor: '#D1ECF1', textColor: '#0C5460' },
+  rejected: { label: '已驳回', bgColor: '#F5D0D0', textColor: '#B54E3C' },
   published: { label: '已发布', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
   active: { label: '执行中', bgColor: '#F5EDD6', textColor: '#A0843A' },
   completed: { label: '已完成', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
@@ -70,6 +83,9 @@ const Plans: React.FC = () => {
   const [batchVisible, setBatchVisible] = useState(false);
   const [templateVisible, setTemplateVisible] = useState(false);
   const [publishModalVisible, setPublishModalVisible] = useState(false);
+  const [taskModalVisible, setTaskModalVisible] = useState(false);
+  const [taskModalPlanId, setTaskModalPlanId] = useState(0);
+  const [taskModalPlanTitle, setTaskModalPlanTitle] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<ProductionPlan | null>(null);
   const [planToPublish, setPlanToPublish] = useState<ProductionPlan | null>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -78,11 +94,25 @@ const Plans: React.FC = () => {
   const [searchParams, setSearchParams] = useState<Record<string, any>>({});
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [stats, setStats] = useState<PlanStatsDTO>({ total: 0, draft: 0, published: 0, active: 0, completed: 0, cancelled: 0 });
+  // ====== 审批弹窗状态 ======
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [approvalModal, setApprovalModal] = useState<{
+    type: 'submit' | 'approve' | 'reject';
+    plan: ProductionPlan | null;
+  }>({ type: 'submit', plan: null });
+  const [approverOptions, setApproverOptions] = useState<{ label: string; value: number }[]>([]);
 
   useEffect(() => {
     fetchBases();
     fetchStats();
   }, []);
+
+  // 加载审批人选项（管理员角色）
+  useEffect(() => {
+    if (approvalModal.type === 'submit' && approvalModal.plan) {
+      getUserOptions({ userRole: 1 }).then(setApproverOptions);
+    }
+  }, [approvalModal]);
 
   const fetchBases = async () => {
     try {
@@ -115,7 +145,6 @@ const Plans: React.FC = () => {
       };
 
       const response = await searchPlans(apiParams);
-      // 后端已返回 baseName / targetName，无需客户端映射
       const planList = response.data || [];
 
       setPlans(planList);
@@ -167,7 +196,7 @@ const Plans: React.FC = () => {
     setPlanToPublish(null);
     message.success(`计划「${result.planTitle}」已发布，生成了${result.tasksGenerated}个任务`);
     actionRef.current?.reload();
-  };
+    fetchStats();  };
 
   const handleBatchPublish = async () => {
     const selectedPlans = plans.filter(p => selectedRowKeys.includes(p.id!));
@@ -209,6 +238,7 @@ const Plans: React.FC = () => {
           }
           setSelectedRowKeys([]);
           actionRef.current?.reload();
+          fetchStats();
         } catch (error: any) {
           message.error(error?.message || '批量发布失败');
         }
@@ -287,6 +317,60 @@ const Plans: React.FC = () => {
     });
   };
 
+  // ====== 审批操作 ======
+
+  const handleSubmitApprovalClick = (plan: ProductionPlan) => {
+    setApprovalModal({ type: 'submit', plan });
+  };
+
+  const handleApproveClick = (plan: ProductionPlan) => {
+    setApprovalModal({ type: 'approve', plan });
+  };
+
+  const handleRejectClick = (plan: ProductionPlan) => {
+    setApprovalModal({ type: 'reject', plan });
+  };
+
+  const handleApprovalModalCancel = () => {
+    setApprovalModal({ type: 'submit', plan: null });
+  };
+
+  const handleApprovalModalOk = async (values: { approverId?: number; comment?: string }) => {
+    const { plan, type } = approvalModal;
+    if (!plan?.id) return;
+
+    try {
+      switch (type) {
+        case 'submit':
+          await submitForApproval(plan.id, {
+            approverId: values.approverId!,
+            comment: values.comment,
+          });
+          message.success('计划已提交审批');
+          break;
+        case 'approve':
+          await approvePlan(plan.id, { comment: values.comment });
+          message.success('计划已审批通过，任务已自动生成');
+          break;
+        case 'reject':
+          await rejectPlan(plan.id, { comment: values.comment! });
+          message.success('计划已驳回');
+          break;
+      }
+      setApprovalModal({ type: 'submit', plan: null });
+      actionRef.current?.reload();
+      fetchStats();
+    } catch (error: any) {
+      message.error(error?.message || '操作失败');
+    }
+  };
+
+  const handleViewTasks = (plan: ProductionPlan) => {
+    setTaskModalPlanId(plan.id!);
+    setTaskModalPlanTitle(plan.title || '');
+    setTaskModalVisible(true);
+  };
+
   const columns: ProColumns<ProductionPlan>[] = [
     {
       title: '计划名称',
@@ -337,7 +421,7 @@ const Plans: React.FC = () => {
     },
     {
       title: '操作',
-      width: 320,
+      width: 420,
       fixed: 'right',
       render: (_, record) => [
         <Button type="link" size="small" icon={<EyeOutlined />} key="view" onClick={() => handleView(record)}>
@@ -349,7 +433,22 @@ const Plans: React.FC = () => {
           </Button>
         ),
         record.status === 'draft' && (
-          <Button type="link" size="small" icon={<SendOutlined />} key="publish" onClick={() => openPublishModal(record)} style={{ color: '#8c8c8c' }}>
+          <Button type="link" size="small" icon={<SolutionOutlined />} key="submit-approval" onClick={() => handleSubmitApprovalClick(record)} style={{ color: '#A0843A' }}>
+            提交审批
+          </Button>
+        ),
+        record.status === 'pending_approval' && (
+          <Button type="link" size="small" icon={<CheckOutlined />} key="approve" onClick={() => handleApproveClick(record)} style={{ color: '#5B8C5A' }}>
+            通过
+          </Button>
+        ),
+        record.status === 'pending_approval' && (
+          <Button type="link" size="small" icon={<StopOutlined />} key="reject" onClick={() => handleRejectClick(record)} style={{ color: '#B54E3C' }}>
+            驳回
+          </Button>
+        ),
+        record.status === 'approved' && (
+          <Button type="link" size="small" icon={<SendOutlined />} key="publish" onClick={() => openPublishModal(record)} style={{ color: '#2B6B8A' }}>
             发布
           </Button>
         ),
@@ -358,7 +457,12 @@ const Plans: React.FC = () => {
             完成
           </Button>
         ),
-        (record.status === 'draft' || record.status === 'published') && (
+        (record.status === 'published' || record.status === 'active') && (
+          <Button type="link" size="small" icon={<UnorderedListOutlined />} key="tasks" onClick={() => handleViewTasks(record)} style={{ color: '#8c8c8c' }}>
+            任务
+          </Button>
+        ),
+        (record.status === 'draft' || record.status === 'published' || record.status === 'rejected') && (
           <Button type="link" size="small" icon={<CloseCircleOutlined />} key="cancel" onClick={() => handleCancel(record.id!)} style={{ color: '#8c8c8c' }}>
             取消
           </Button>
@@ -375,7 +479,7 @@ const Plans: React.FC = () => {
   return (
     <PageContainer>
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
-        <Col span={4}>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>计划总数</Text>}
@@ -385,7 +489,7 @@ const Plans: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>草稿</Text>}
@@ -395,7 +499,17 @@ const Plans: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
+          <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+            <Statistic
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>待审批</Text>}
+              value={stats.pending_approval || 0}
+              valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#856404' }}
+              prefix={<SolutionOutlined style={{ color: '#856404' }} />}
+            />
+          </Card>
+        </Col>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>已发布</Text>}
@@ -405,7 +519,7 @@ const Plans: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>执行中</Text>}
@@ -415,7 +529,7 @@ const Plans: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>已完成</Text>}
@@ -425,7 +539,7 @@ const Plans: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: '12px' }}>已取消</Text>}
@@ -436,6 +550,24 @@ const Plans: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* 审批状态 Tab 筛选 */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => {
+          setActiveTab(key);
+          // 切换 tab 后重新加载列表
+          if (actionRef.current) {
+            actionRef.current.reload();
+          }
+        }}
+        items={[
+          { key: 'all', label: `全部计划 (${stats.total})` },
+          { key: 'pending', label: `待我审批 (${stats.pending_approval || 0})` },
+          { key: 'my', label: '我提交的' },
+        ]}
+        style={{ marginBottom: 16 }}
+      />
 
       <ProTable<ProductionPlan>
         actionRef={actionRef}
@@ -451,8 +583,16 @@ const Plans: React.FC = () => {
             current: params.current || 1,
             pageSize: params.pageSize || 10,
           }));
+          // 根据 activeTab 添加额外筛选条件
+          const filterParams: Record<string, any> = {};
+          if (activeTab === 'pending') {
+            filterParams.status = 'pending_approval';
+          } else if (activeTab === 'my') {
+            filterParams.ownerOnly = true;
+          }
           const result = await fetchPlans({
             ...params,
+            ...filterParams,
             current: params.current || 1,
             pageSize: params.pageSize || 10,
           });
@@ -525,7 +665,7 @@ const Plans: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        scroll={{ x: 1500 }}
+        scroll={{ x: 1600 }}
       />
 
       <PlanForm
@@ -553,6 +693,13 @@ const Plans: React.FC = () => {
         onSuccess={handlePublishSuccess}
       />
 
+      <PlanTaskModal
+        visible={taskModalVisible}
+        planId={taskModalPlanId}
+        planTitle={taskModalPlanTitle}
+        onCancel={() => setTaskModalVisible(false)}
+      />
+
       <BatchPlanModal
         visible={batchVisible}
         onCancel={() => setBatchVisible(false)}
@@ -571,6 +718,56 @@ const Plans: React.FC = () => {
       />
 
       <PlanTemplate visible={templateVisible} onCancel={() => setTemplateVisible(false)} />
+
+      {/* 审批弹窗 */}
+      <Modal
+        title={
+          approvalModal.type === 'submit' ? '提交审批' :
+          approvalModal.type === 'approve' ? '审批通过' : '驳回计划'
+        }
+        open={approvalModal.plan !== null}
+        onCancel={handleApprovalModalCancel}
+        onOk={() => {
+          const form = document.querySelector('#approval-form') as HTMLFormElement;
+          if (form) form.requestSubmit();
+        }}
+        okText={
+          approvalModal.type === 'submit' ? '提交审批' :
+          approvalModal.type === 'approve' ? '审批通过' : '确认驳回'
+        }
+        okType={approvalModal.type === 'reject' ? 'danger' : 'primary'}
+        destroyOnClose
+      >
+        <Form
+          id="approval-form"
+          layout="vertical"
+          onFinish={handleApprovalModalOk}
+          initialValues={{ comment: '' }}
+        >
+          {approvalModal.type === 'submit' && (
+            <Form.Item name="approverId" label="审批人" rules={[{ required: true, message: '请选择审批人' }]}>
+              <Select placeholder="请选择审批人">
+                {approverOptions.map(opt => (
+                  <Select.Option key={opt.value} value={opt.value}>{opt.label}</Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+          <Form.Item
+            name="comment"
+            label={approvalModal.type === 'reject' ? '驳回原因' : '审批意见'}
+            rules={approvalModal.type === 'reject' ? [{ required: true, message: '请填写驳回原因' }] : []}
+          >
+            <Input.TextArea
+              rows={3}
+              placeholder={
+                approvalModal.type === 'submit' ? '备注信息（可选）' :
+                approvalModal.type === 'approve' ? '审批意见（可选）' : '请填写驳回原因'
+              }
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </PageContainer>
   );
 };

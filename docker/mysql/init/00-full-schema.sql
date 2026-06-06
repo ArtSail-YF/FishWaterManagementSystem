@@ -4060,4 +4060,91 @@ CREATE TABLE `sys_news` (
 
 INSERT INTO `sys_news` VALUES (1,'基地A塘口2026基地A基地A?','基地A基地A基地A?...','<p>基地A...</p>','','基地A?','policy','2026-05-01 10:00:00',1,'2026-05-01 10:00:00','admin'),(2,'基地A基地A塘口23%','基地A基地A塘口...','<p>基地A...</p>','','基地A基地A塘口','market','2026-04-28 09:00:00',1,'2026-04-28 09:00:00','admin'),(3,'基地A基地A基地A','基地A基地A?...','<p>基地A...</p>','','基地A基地A?','tech','2026-04-25 14:00:00',1,'2026-04-25 14:00:00','admin'),(4,'2026基地A基地A塘口','基地A基地A?...','<p>基地A...</p>','','基地A基地A?','industry','2026-04-20 08:00:00',1,'2026-04-20 08:00:00','admin');
 
+-- AI intelligent Q&A tables are also available as the idempotent migration:
+-- docker/mysql/init/01-ai-chat-schema.sql
+
+CREATE TABLE IF NOT EXISTS `ai_chat_session` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `session_no` varchar(64) NOT NULL,
+  `user_id` bigint NOT NULL,
+  `title` varchar(200) NOT NULL DEFAULT 'New conversation',
+  `model_name` varchar(100) DEFAULT NULL,
+  `system_prompt_version` varchar(50) DEFAULT NULL,
+  `message_count` int NOT NULL DEFAULT 0,
+  `last_message_at` datetime DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'ACTIVE',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ai_chat_session_no` (`session_no`),
+  KEY `idx_ai_chat_session_user_status` (`user_id`, `status`),
+  KEY `idx_ai_chat_session_last_message` (`last_message_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI chat sessions';
+
+CREATE TABLE IF NOT EXISTS `ai_chat_message` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `session_id` bigint NOT NULL,
+  `role` varchar(20) NOT NULL,
+  `content` longtext NOT NULL,
+  `model_name` varchar(100) DEFAULT NULL,
+  `prompt_tokens` int DEFAULT NULL,
+  `completion_tokens` int DEFAULT NULL,
+  `sources_json` longtext,
+  `tool_calls_json` longtext,
+  `risk_level` varchar(20) NOT NULL DEFAULT 'NONE',
+  `risk_notice` varchar(500) DEFAULT NULL,
+  `request_id` varchar(100) DEFAULT NULL,
+  `latency_ms` int DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'SUCCESS',
+  `error_message` varchar(1000) DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_chat_message_session_time` (`session_id`, `create_time`),
+  KEY `idx_ai_chat_message_request` (`request_id`),
+  CONSTRAINT `fk_ai_chat_message_session`
+    FOREIGN KEY (`session_id`) REFERENCES `ai_chat_session` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI chat messages';
+
+CREATE TABLE IF NOT EXISTS `ai_knowledge_document` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `document_no` varchar(64) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `source_type` varchar(30) NOT NULL DEFAULT 'FILE',
+  `source_url` varchar(1000) DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_hash` varchar(64) DEFAULT NULL,
+  `content_type` varchar(100) DEFAULT NULL,
+  `chunk_count` int NOT NULL DEFAULT 0,
+  `embedding_model` varchar(100) DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'PENDING',
+  `error_message` varchar(1000) DEFAULT NULL,
+  `uploaded_by` bigint DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ai_knowledge_document_no` (`document_no`),
+  UNIQUE KEY `uk_ai_knowledge_document_hash` (`file_hash`),
+  KEY `idx_ai_knowledge_document_category_status` (`category`, `status`),
+  KEY `idx_ai_knowledge_document_uploader` (`uploaded_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI knowledge documents';
+
+CREATE TABLE IF NOT EXISTS `ai_knowledge_chunk` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `document_id` bigint NOT NULL,
+  `chunk_index` int NOT NULL,
+  `content` longtext NOT NULL,
+  `metadata_json` longtext,
+  `embedding_json` longtext,
+  `embedding_dimension` int DEFAULT NULL,
+  `token_count` int DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ai_knowledge_chunk_index` (`document_id`, `chunk_index`),
+  KEY `idx_ai_knowledge_chunk_document` (`document_id`),
+  CONSTRAINT `fk_ai_knowledge_chunk_document`
+    FOREIGN KEY (`document_id`) REFERENCES `ai_knowledge_document` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI knowledge chunks';
+
 

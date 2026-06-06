@@ -1,0 +1,313 @@
+L1: ﻿import React, { useState, useRef } from 'react';
+L2: import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, WifiOutlined, ApiOutlined, PoweroffOutlined, ToolOutlined, SettingOutlined, BarChartOutlined } from '@ant-design/icons';
+L3: import { PageContainer, ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
+L4: import { Button, Tag, Space, Modal, message, Card, Row, Col, Statistic, Typography, Descriptions, Select, Dropdown } from 'antd';
+L5: const { Text } = Typography;
+L6: import { history } from 'umi';
+L7: import { getLatestTsData } from '@/services/api/iot-ts-data';
+L8: import { searchIotDevices, deleteIotDevice, setDeviceStatus } from '@/services/api/iot';
+L9: import type { IoTDevice } from '@/types/model';
+L10: import DeviceConfigModal from './components/DeviceConfigModal';
+L11: import DeviceFormModal from './components/DeviceFormModal';
+L12: import DeviceControlModal from './components/DeviceControlModal';
+L13: import { searchTsData } from '@/services/api/iot-ts-data';
+L14: 
+L15: // 鍒ゆ柇璁惧鏄惁鐪熸鍦ㄧ嚎锛?鍒嗛挓鍐呮湁蹇冭烦锛?
+L16: const isTrulyOnline = (device) => {
+L17:   if (!device.lastHeartbeat) return false;
+L18:   const diff = Date.now() - new Date(device.lastHeartbeat).getTime();
+L19:   return diff < 5 * 60 * 1000; // 5鍒嗛挓鍐?
+L20: };
+L21: 
+L22: const STATUS_MAP: Record<number, { label: string; bgColor: string; textColor: string }> = {
+L23:   1: { label: '在线', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
+L24:   0: { label: '离线', bgColor: '#EBE5DE', textColor: '#7A6E64' },
+L25:   2: { label: '维修中', bgColor: '#F5EDD6', textColor: '#A0843A' },
+L26: };
+L27: 
+L28: const STATUS_OPTIONS = [
+L29:   { label: '在线', value: 1 },
+L30:   { label: '离线', value: 0 },
+L31:   { label: '维修中', value: 2 },
+L32: ];
+L33: 
+L34: const DEVICE_TYPE_FILTERS = [
+L35:   { label: '鍏ㄩ儴', value: '' },
+L36:   { label: '自动投喂机', value: 1 },
+L37:   { label: '溶氧传感器', value: 2 },
+L38:   { label: 'pH传感器', value: 3 },
+L39:   { label: '温度传感器', value: 4 },
+L40:   { label: '增氧机', value: 5 },
+L41:   { label: '姘存车', value: 6 },
+L42: ];
+L43: 
+L44: const IoTDevices = () => {
+L45:   const [deviceMetrics, setDeviceMetrics] = useState<Record<number, any[]>>({});
+L46:   const actionRef = useRef<ActionType>(null);
+L47:   const [devices, setDevices] = useState<any[]>([]);
+L48:   const [loading, setLoading] = useState(false);
+L49:   const [typeFilter, setTypeFilter] = useState<number | ''>('');
+L50:   const [stats, setStats] = useState({ total: 0, online: 0, offline: 0, maintenance: 0 });
+L51:   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+L52:   const [configModalVisible, setConfigModalVisible] = useState(false);
+L53:   const [configDevice, setConfigDevice] = useState<IoTDevice | null>(null);
+L54:   const [detailDevice, setDetailDevice] = useState<IoTDevice | null>(null);
+L55:   const [detailModalVisible, setDetailModalVisible] = useState(false);
+L56:   const [formModalVisible, setFormModalVisible] = useState(false);
+L57:   const [editingDevice, setEditingDevice] = useState<IoTDevice | null>(null);
+L58:   const [controlModalVisible, setControlModalVisible] = useState(false);
+L59:   const [controlDevice, setControlDevice] = useState<IoTDevice | null>(null);
+L60: 
+L61:   const fetchStats = (list: any[]) => {
+L62:     const total = list.length;
+L63:     const trulyOnline = list.filter(d => isTrulyOnline(d)).length;
+L64:     const heartbeatExpired = list.filter(d => d.lastHeartbeat && !isTrulyOnline(d)).length;
+L65:     const neverConnected = list.filter(d => !d.lastHeartbeat).length;
+L66:     setStats({ total, online: trulyOnline, offline: neverConnected, maintenance: heartbeatExpired });
+L67:   };
+L68: 
+L69:   const fetchDevices = async (params: any = {}) => {
+L70:     setLoading(true);
+L71:     try {
+L72:       const queryParams = { ...params };
+L73:       if (typeFilter) queryParams.typeId = typeFilter;
+L74:       const response = await searchIotDevices(queryParams);
+L75:       const list = response.data || [];
+L76:       setDevices(list);
+L77:       fetchStats(list);
+L78:       return { data: list, total: response.total || 0 };
+L79:     } catch (error) {
+L80:       message.error('鑾峰彇璁惧鍒楄〃澶辫触');
+L81:       return { data: [], total: 0 };
+L82:     } finally {
+L83:       setLoading(false);
+L84:     }
+L85:   };
+L86: 
+L87:   const handleDelete = (id: number) => {
+L88:     Modal.confirm({
+L89:       title: '纭鍒犻櫎',
+L90:       content: '纭瑕佸垹闄よ璁惧锛熷垹闄ゅ悗鏃犳硶鎭㈠',
+L91:       okType: 'danger',
+L92:       onOk: async () => {
+L93:         try {
+L94:           await deleteIotDevice(id);
+L95:           message.success('设备已删除');
+L96:           actionRef.current?.reload();
+L97:         } catch { message.error('鍒犻櫎澶辫触锛岃閲嶈瘯'); }
+L98:       },
+L99:     });
+L100:   };
+L101: 
+L102:   const handleBatchDelete = (selectedRows: any[]) => {
+L103:     Modal.confirm({
+L104:       title: '鎵归噺鍒犻櫎纭',
+L105:       content: '纭瑕佸垹闄ら€変腑鐨?' + selectedRows.length + ' 鍙拌澶囧悧锛熸鎿嶄綔涓嶅彲鎾ら攢',
+L106:       okType: 'danger',
+L107:       onOk: async () => {
+L108:         try {
+L109:           for (const row of selectedRows) {
+L110:             if (row.id) await deleteIotDevice(row.id);
+L111:           }
+L112:           message.success('已成功删除' + selectedRows.length + ' 台设备');
+L113:           actionRef.current?.reload();
+L114:         } catch { message.error('鍒犻櫎澶辫触'); }
+L115:       },
+L116:     });
+L117:   };
+L118: 
+L119: 
+L120: 
+L121: 
+L122:   const handleCheckConnection = async (device: IoTDevice) => {
+L123:     try {
+L124:       const res: any = await getLatestTsData({ deviceId: device.id, pageSize: 1 });
+L125:       if (res?.data?.records?.length > 0 || res?.data?.length > 0) {
+L126:         message.success('设备 ' + device.deviceName + ' 连接正常');
+L127:       } else if (device.lastHeartbeat) {
+L128:         message.info('设备 ' + device.deviceName + ' 最近心跳: ' + device.lastHeartbeat);
+L129:       } else {
+L130:         message.warning('设备 ' + device.deviceName + ' 无心跳数据，可能未连接');
+L131:       }
+L132:     } catch {
+L133:       message.error('妫€娴嬪け璐ワ紝璇锋鏌?MQTT 杩炴帴');
+L134:     }
+L135:   };
+L136: 
+L137:   const handleStatusChange = async (device: IoTDevice, newStatus: number) => {
+L138:     try {
+L139:       await setDeviceStatus(device.id!, newStatus);
+L140:       message.success('璁惧鐘舵€佸凡鍒囨崲');
+L141:       actionRef.current?.reload();
+L142:     } catch { message.error('状态切换失败'); }
+L143:   };
+L144: 
+L145:   const columns: ProColumns<IoTDevice>[] = [
+L146:     {
+L147:       title: '璁惧鍚嶇О',
+L148:       dataIndex: 'deviceName',
+L149:       width: 180,
+L150:       fixed: 'left',
+L151:       render: (_, r) => <>{r.deviceName || '-'}</>,
+L152:     },
+L153:     {
+L154:       title: '序列号',
+L155:       dataIndex: 'deviceSn',
+L156:       width: 130,
+L157:       copyable: true,
+L158:     },
+L159:     {
+L160:       title: '璁惧绫诲瀷',
+L161:       dataIndex: 'typeName',
+L162:       width: 120,
+L163:       render: (_, r) => r.typeName ? r.typeName + (r.typeCode ? ' (' + r.typeCode + ')' : '') : '-',
+L164:     },
+L165:     {
+L166:       title: '所在基地',
+L167:       dataIndex: 'baseName',
+L168:       width: 120,
+L169:       ellipsis: true,
+L170:     },
+L171:     {
+L172:       title: '缁戝畾濉樺彛',
+L173:       dataIndex: 'pondName',
+L174:       width: 110,
+L175:       render: (val) => val || '-',
+L176:     },
+L177:     {
+L178:       title: '运行状态',
+L179:       dataIndex: 'status',
+L180:       width: 100,
+L181:       render: (_, r) => {
+L182:         const trulyOnline = isTrulyOnline(r);
+L183:         const statusLabel = STATUS_MAP[r.status ?? -1];
+L184:         const label = trulyOnline ? (statusLabel?.label || '-') : (r.lastHeartbeat ? '连接超时' : '未连接');
+L185:         const bgColor = trulyOnline ? '#E2EDD8' : r.lastHeartbeat ? '#FFF3CD' : '#EBE5DE';
+L186:         const textColor = trulyOnline ? '#5B8C5A' : r.lastHeartbeat ? '#856404' : '#7A6E64';
+L187:         return (
+L188:           <Dropdown
+L189:             menu={{
+L190:               items: STATUS_OPTIONS.map(s => ({
+L191:                 key: String(s.value),
+L192:                 label: s.label,
+L193:               })),
+L194:               onClick: ({ key }) => handleStatusChange(r, Number(key)),
+L195:             }}
+L196:             trigger={['click']}
+L197:           >
+L198:             <Tag style={{ backgroundColor: bgColor, color: textColor, border: 'none', cursor: 'pointer' }}
+L199:               title={'心跳: ' + (r.lastHeartbeat || '无')}>
+L200:               {label} 鈻?
+L201:             </Tag>
+L202:           </Dropdown>
+L203:         );
+L204:       },
+L205:     },
+L206:     {
+L207:       title: '鎿嶄綔',
+L208:       width: 250,
+L209:       fixed: 'right',
+L210:       render: (_, record) => (
+L211:         <Space size={0}>
+L212:           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => { setDetailDevice(record); setDetailModalVisible(true); }}>鏌ョ湅</Button>
+L213:           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => { setEditingDevice(record); setFormModalVisible(true); }}>缂栬緫</Button>
+L214:           <Button type="link" size="small" icon={<SettingOutlined />} onClick={() => { setConfigDevice(record); setConfigModalVisible(true); }} style={{ color: '#8c8c8c' }}>配置</Button>
+L215:           <Button type="link" size="small" icon={<WifiOutlined />} onClick={() => handleCheckConnection(record)} style={{ color: '#1890ff' }}>检测</Button>
+L216:           <Button type="link" size="small" icon={<BarChartOutlined />} onClick={() => history.push('/production/operation/iot-data-monitor?deviceId=' + record.id + '&deviceName=' + encodeURIComponent(record.deviceName))} style={{ color: '#1890ff' }}>查看数据</Button>
+L217:           <Button type="link" size="small" icon={<ApiOutlined />} onClick={() => { setControlDevice(record); setControlModalVisible(true); }} style={{ color: '#722ed1' }}>鎺у埗</Button>
+L218:           <Button type="link" size="small" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id!)}>鍒犻櫎</Button>
+L219:         </Space>
+L220:       ),
+L221:     },
+L222:   ];
+L223: 
+L224:   return (
+L225:     <PageContainer>
+L226:       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+L227:         <Col span={6}><Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+L228:           <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>设备总数</Text>} value={stats.total}
+L229:             valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }} prefix={<ApiOutlined style={{ color: '#8C8C8C' }} />} />
+L230:         </Card></Col>
+L231:         <Col span={6}><Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
+L232:           <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>心跳超时</Text>} value={stats.maintenance}
+L233:             valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }} prefix={<ToolOutlined style={{ color: '#8C8C8C' }} />} />
+L234:         </Card></Col>
+L235:       </Row>
+L236: 
+L237:       <Card size="small" style={{ marginBottom: 16 }}>
+L238:         <Space wrap>
+L239:           <Text strong>璁惧绫诲瀷锛</Text>
+L240:           <Select value={typeFilter} onChange={(val) => { setTypeFilter(val); actionRef.current?.reload(); }}
+L241:             style={{ width: 150 }} options={DEVICE_TYPE_FILTERS.map(t => ({ label: t.label, value: t.value }))} />
+L242:         </Space>
+L243:       </Card>
+L244: 
+L245:       <ProTable<IoTDevice>
+L246:         actionRef={actionRef}
+L247:         headerTitle="IoT 璁惧鍒楄〃"
+L248:         columns={columns}
+L249:         loading={loading}
+L250:         rowKey="id"
+L251:         search={{ labelWidth: 'auto', defaultCollapsed: true }}
+L252:         request={async (params: any = {}) => {
+L253:           const queryParams = { ...params };
+L254:           if (typeFilter) queryParams.typeId = typeFilter;
+L255:           const result = await fetchDevices(queryParams);
+L256:           return { data: result.data, success: true, total: result.total };
+L257:         }}
+L258:         rowSelection={{ selectedRowKeys, onChange: keys => setSelectedRowKeys(keys) }}
+L259:         tableAlertRender={({ selectedRowKeys: keys, onCleanSelected }) => (
+L260:           <Space size={24}><span>宸查€?<a style={{ fontWeight: 600 }}>{keys.length}</a> 椤?/span><a onClick={onCleanSelected}>鍙栨秷閫夋嫨</a></Space>
+L261:         )}
+L262:         tableAlertOptionRender={({ selectedRows }) => (
+L263:           <Space size={16}>
+L264:             <Button size="small" icon={<DeleteOutlined />} onClick={() => handleBatchDelete(selectedRows)} style={{ color: '#8c8c8c' }}>鎵归噺鍒犻櫎</Button>
+L265:           </Space>
+L266:         )}
+L267:         toolBarRender={() => [
+L268:           <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => { setEditingDevice(null); setFormModalVisible(true); }}>娣诲姞璁惧</Button>,
+L269:         ]}
+L270:         size="small"
+L271:         scroll={{ x: 1500 }}
+L272:       />
+L273: 
+L274:       <Modal title={null} open={detailModalVisible} onCancel={() => { setDetailModalVisible(false); setDetailDevice(null); }}
+L275:         footer={null} closable width={500} destroyOnClose>
+L276:         {detailDevice && (() => {
+L277:           const d = detailDevice;
+L278:           return (
+L279:             <div style={{ padding: '4px 0' }}>
+L280:               <Descriptions title="设备信息" column={2} size="small" bordered style={{ marginBottom: 20 }}>
+L281:                 <Descriptions.Item label="所在基地" span={2}>{d.baseName || '-'}</Descriptions.Item>
+L282:                 <Descriptions.Item label="绑定塘口">{d.pondName || '未绑定'}</Descriptions.Item>
+L283:                 <Descriptions.Item label="序列号">{d.deviceSn || '-'}</Descriptions.Item>
+L284:                 <Descriptions.Item label="设备型号">{d.typeName ? d.typeName + (d.typeCode ? ' (' + d.typeCode + ')' : '') : '-'}</Descriptions.Item>
+L285:                 <Descriptions.Item label="运行状态"><Tag color={d.status === 1 ? 'success' : d.status === 0 ? 'default' : 'warning'}>{d.statusText || '-'}</Tag></Descriptions.Item>
+L286:               </Descriptions>
+L287:               <Descriptions title="技术信息" column={2} size="small" bordered>
+L288:                 <Descriptions.Item label="IP 地址">{d.ipAddress || '-'}</Descriptions.Item>
+L289:                 <Descriptions.Item label="端口号">{d.port != null ? String(d.port) : '-'}</Descriptions.Item>
+L290:                 <Descriptions.Item label="安装日期">{d.installTime || '-'}</Descriptions.Item>
+L291:                 <Descriptions.Item label="最近心跳">{d.lastHeartbeat || '-'}</Descriptions.Item>
+L292:                 <Descriptions.Item label="备注" span={2}>{d.remark || '无'}</Descriptions.Item>
+L293:               </Descriptions>
+L294:             </div>
+L295:           );
+L296:         })()}
+L297:       </Modal>
+L298: 
+L299:       <DeviceConfigModal visible={configModalVisible} deviceId={configDevice?.id || 0}
+L300:         deviceName={configDevice?.deviceName || ''}
+L301:         onCancel={() => { setConfigModalVisible(false); setConfigDevice(null); }} />
+L302: 
+L303:       <DeviceFormModal visible={formModalVisible} editingDevice={editingDevice}
+L304:         onCancel={() => { setFormModalVisible(false); setEditingDevice(null); }}
+L305:         onSuccess={() => { setFormModalVisible(false); setEditingDevice(null); actionRef.current?.reload(); }} />
+L306:     <DeviceControlModal visible={controlModalVisible} device={controlDevice}
+L307:         onCancel={() => { setControlModalVisible(false); setControlDevice(null); }} />
+L308:     </PageContainer>
+L309:   );
+L310: };
+L311: 
+L312: export default IoTDevices;
+L313: 

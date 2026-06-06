@@ -7,6 +7,8 @@
         <id property="id" column="id"/>
         <result property="planId" column="plan_id"/>
         <result property="baseId" column="base_id"/>
+        <result property="planTitle" column="plan_title"/>
+        <result property="planType" column="plan_type"/>
         <result property="baseName" column="base_name"/>
         <result property="taskTitle" column="task_title"/>
         <result property="targetType" column="target_type"/>
@@ -16,9 +18,11 @@
         <result property="deadlineTime" column="deadline_time"/>
         <result property="status" column="status"/>
         <result property="assigneeId" column="assignee_id"/>
+        <result property="assigneeName" column="assignee_name"/>
         <result property="cancelReason" column="cancel_reason"/>
         <result property="deviceId" column="device_id"/>
         <result property="deviceAction" column="device_action"/>
+        <result property="deviceName" column="device_name"/>
         <result property="priority" column="priority"/>
         <result property="contentDesc" column="content_desc"/>
 
@@ -39,6 +43,8 @@
             t.plan_id,
             t.base_id,
             b.base_name,
+            p.title AS plan_title,
+            p.plan_type,
             t.task_title,
             t.target_type,
             t.target_id,
@@ -47,8 +53,10 @@
             t.deadline_time,
             t.status,
             t.assignee_id,
+            br.breeder_name AS assignee_name,
             t.cancel_reason,
             t.device_id,
+            dev.device_name,
             t.device_action,
             t.priority,
             t.feed_variety,
@@ -66,6 +74,8 @@
         LEFT JOIN cage_info ci ON t.target_id = ci.id AND t.target_type = 'cage'
         LEFT JOIN vsl_info vi ON t.target_id = vi.id AND t.target_type = 'vsl'
         LEFT JOIN prod_plan p ON t.plan_id = p.id
+        LEFT JOIN biz_breeder br ON t.assignee_id = br.id
+        LEFT JOIN iot_device dev ON t.device_id = dev.id
 
         WHERE t.is_delete = 0
         <if test="query.planId != null">
@@ -85,6 +95,9 @@
         </if>
         <if test="query.assigneeId != null">
             AND t.assignee_id = #{query.assigneeId}
+        </if>
+        <if test="query.planType != null and query.planType != ''">
+            AND p.plan_type = #{query.planType}
         </if>
         ORDER BY t.create_time DESC
     </select>

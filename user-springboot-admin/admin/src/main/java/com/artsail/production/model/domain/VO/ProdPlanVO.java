@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 生产计划 VO — 带关联名称
+ * 生产计划 VO -- 带关联名称
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -16,4 +16,10 @@ public class ProdPlanVO extends ProdPlan {
 
     /** 目标名称（关联查询，如塘口名） */
     private String targetName;
+
+    /** 提交人名称（关联查询） */
+    private String submitterName;
+
+    /** 审批人名称（关联查询） */
+    private String approverName;
 }

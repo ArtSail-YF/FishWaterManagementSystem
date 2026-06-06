@@ -74,12 +74,6 @@ export async function sendDeviceCommand(id: number, command: string) {
   });
 }
 
-/** 获取设备类型的指令列表 GET /iot/device-type/{id}/commands */
-export async function getDeviceTypeCommands(deviceTypeId: number) {
-  return request<BaseResponse<{ id: number; commandKey: string; commandName: string; confirmText: string; isStop: number }[]>>('/iot/device-type/' + deviceTypeId + '/commands', {
-    method: 'GET',
-  });
-}
 
 /** 获取指令执行记录 GET /iot/command-log?deviceId= */
 export async function getCommandLogs(deviceId: number) {

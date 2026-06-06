@@ -1,12 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'umi';
 import { PageContainer, ProTable, type ActionType } from '@ant-design/pro-components';
-import { Tag, Space, Card, Select, Typography, Row, Col, Statistic } from 'antd';
+import { Tag, Space, Card, Select, Typography, Button } from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
 import { searchTsData, getLatestTsData } from '@/services/api/iot-ts-data';
 import { getMetricDefList } from '@/services/api/iot-metric-def';
 
 const { Text } = Typography;
 
-const METRIC_LABELS: Record<string, string> = {
+const DEFAULT_LABELS: Record<string, string> = {
   temperature: '温度',
   dissolved_oxygen: '溶氧',
   ph: 'pH值',
@@ -15,7 +17,7 @@ const METRIC_LABELS: Record<string, string> = {
   ammonia: '氨氮',
 };
 
-const METRIC_UNITS: Record<string, string> = {
+const DEFAULT_UNITS: Record<string, string> = {
   temperature: '°C',
   dissolved_oxygen: 'mg/L',
   ph: '',
@@ -25,7 +27,17 @@ const METRIC_UNITS: Record<string, string> = {
 };
 
 const IoTDataMonitor = () => {
-  const [latestData, setLatestData] = useState<any[]>([]);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const deviceIdFromUrl = params.get('deviceId') || '';
+  const deviceNameFromUrl = params.get('deviceName') || '';
+
+  const actionRef = useRef<ActionType>();
+  const [selectedMetric, setSelectedMetric] = useState<string>('temperature');
+  const [metricLabels, setMetricLabels] = useState(DEFAULT_LABELS);
+  const [metricUnits, setMetricUnits] = useState(DEFAULT_UNITS);
+  const [deviceId, setDeviceId] = useState(deviceIdFromUrl);
+  const [deviceName, setDeviceName] = useState(deviceNameFromUrl);
 
   useEffect(() => {
     getMetricDefList().then(res => {
@@ -42,12 +54,13 @@ const IoTDataMonitor = () => {
         }
       }
     }).catch(() => {});
-    getLatestTsData().then(res => {
-      if (res?.data) setLatestData(res.data);
-    }).catch(() => {});
   }, []);
-  const actionRef = useRef<ActionType>();
-  const [selectedMetric, setSelectedMetric] = useState<string>('temperature');
+
+  const clearDeviceFilter = () => {
+    setDeviceId('');
+    setDeviceName('');
+    actionRef.current?.reload();
+  };
 
   const columns = [
     {
@@ -70,7 +83,7 @@ const IoTDataMonitor = () => {
       title: '数值',
       dataIndex: 'metricValue',
       width: 120,
-      render: (val: number, r: any) => `${val} ${metricUnits[r.metricKey] || ''}`,
+      render: (val: number, r: any) => val + ' ' + (metricUnits[r.metricKey] || ''),
     },
     {
       title: '设备类型',
@@ -105,8 +118,17 @@ const IoTDataMonitor = () => {
               actionRef.current?.reload();
             }}
             style={{ width: 150 }}
-            options={Object.entries(METRIC_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+            options={Object.entries(metricLabels).map(([k, v]) => ({ value: k, label: v }))}
           />
+          {deviceName && (
+            <>
+              <Text type="secondary">|</Text>
+              <Text>当前设备：<Text strong>{deviceName}</Text></Text>
+              <Button size="small" icon={<CloseOutlined />} onClick={clearDeviceFilter}>
+                清除筛选
+              </Button>
+            </>
+          )}
         </Space>
       </Card>
 
@@ -120,7 +142,9 @@ const IoTDataMonitor = () => {
           defaultCollapsed: true,
         }}
         request={async (params) => {
-          const result = await searchTsData({ ...params, metricKey: selectedMetric });
+          const queryParams: any = { ...params, metricKey: selectedMetric };
+          if (deviceId) queryParams.deviceId = deviceId;
+          const result = await searchTsData(queryParams);
           return { data: result.data, success: true, total: result.total };
         }}
         size="small"

@@ -1,0 +1,5 @@
+L4: import { Button, Tag, Space, Modal, message, Card, Row, Col, Statistic, Typography, Descriptions, Select, Dropdown } from 'antd';
+L228: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>璁惧鎬绘暟</Text>} value={stats.total}
+L232: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>鐪熷湪绾?/Text>} value={stats.online}
+L236: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>鏈繛鎺?/Text>} value={stats.offline}
+L240: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>蹇冭烦瓒呮椂</Text>} value={stats.maintenance}

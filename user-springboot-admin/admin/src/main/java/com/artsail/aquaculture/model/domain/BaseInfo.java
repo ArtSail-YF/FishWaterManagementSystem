@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.time.LocalDate;
 
 /**
  * @author 13372
@@ -19,6 +20,11 @@ import lombok.AllArgsConstructor;
 public class BaseInfo extends LogicDeleteEntity {
     private String baseCode;
     private String baseName;
+    private String legalPerson;
+    private String businessLicense;
+    private String licenseNo;
+    private Double regCapital;
+    private LocalDate establishDate;
     private Long breederId;
     private Long deptId;
     private String address;

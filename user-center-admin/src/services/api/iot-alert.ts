@@ -19,7 +19,7 @@ export async function deleteAlert(id: number) {
   return request(`/iot/alert/${id}`, { method: 'DELETE' });
 }
 
-/** 水质告警记录 */
+/** 姘磋川鍛婅璁板綍 */
 export interface WaterAlarmLog {
   id: string;
   time: string;
@@ -27,7 +27,7 @@ export interface WaterAlarmLog {
   content: string;
 }
 
-/** 获取水质告警列表（用于综合监测看板） */
+/** 鑾峰彇姘磋川鍛婅鍒楄〃锛堢敤浜庣患鍚堢洃娴嬬湅鏉匡級 */
 export async function getWaterAlarmList(params?: {
   pondId?: string;
   alarmStatus?: string;
@@ -48,7 +48,7 @@ export async function getWaterAlarmList(params?: {
     }));
     return { code: 200, message: 'success', data: list };
   } catch (e) {
-    console.error('获取告警列表失败', e);
+    console.error('鑾峰彇鍛婅鍒楄〃澶辫触', e);
     return { code: 500, message: 'failed', data: [] };
   }
 }

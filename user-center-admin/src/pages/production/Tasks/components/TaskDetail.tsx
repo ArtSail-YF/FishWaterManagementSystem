@@ -18,6 +18,15 @@ const PRIORITY_MAP: Record<string, string> = {
   urgent: '紧急',
 };
 
+const PLAN_TYPE_MAP: Record<string, string> = {
+  feeding: '投喂计划',
+  medication: '用药计划',
+  harvest: '收获计划',
+  maintenance: '维护计划',
+  seeding: '放苗计划',
+  water_change: '换水/增氧计划',
+};
+
 const TARGET_TYPE_MAP: Record<string, string> = {
   pond: '塘口',
   cage: '网箱',
@@ -55,7 +64,8 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ visible, onCancel, task }) => {
 
       <Descriptions bordered column={2} size="small">
         <Descriptions.Item label="任务ID">{task.id}</Descriptions.Item>
-        <Descriptions.Item label="来源计划">{task.planId ? `计划 #${task.planId}` : '手动创建'}</Descriptions.Item>
+        <Descriptions.Item label="来源计划">{task.planTitle || (task.planId ? `计划 #${task.planId}` : '手动创建')}</Descriptions.Item>
+        <Descriptions.Item label="计划类型">{PLAN_TYPE_MAP[task.planType] || task.planType || '-'}</Descriptions.Item>
         <Descriptions.Item label="所属基地">{task.baseName || task.baseId || '-'}</Descriptions.Item>
         <Descriptions.Item label="作业对象">{task.targetName || `${targetLabel} #${task.targetId || ''}`}</Descriptions.Item>
         <Descriptions.Item label="任务状态">
@@ -74,7 +84,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ visible, onCancel, task }) => {
         <Descriptions.Item label="操作说明">{task.contentDesc || '-'}</Descriptions.Item>
         <Descriptions.Item label="IoT 设备">
           {task.deviceId ? (
-            <><CloudOutlined style={{ marginRight: 4 }} />设备 #{task.deviceId}{task.deviceAction ? ` (${DEVICE_ACTION_MAP[task.deviceAction] || task.deviceAction})` : ''}</>
+            <><CloudOutlined style={{ marginRight: 4 }} />{task.deviceName || `设备 #${task.deviceId}`}{task.deviceAction ? ` (${DEVICE_ACTION_MAP[task.deviceAction] || task.deviceAction})` : ''}</>
           ) : '-'}
         </Descriptions.Item>
         <Descriptions.Item label="操作指令">

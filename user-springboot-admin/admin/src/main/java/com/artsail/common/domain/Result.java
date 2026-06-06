@@ -29,7 +29,15 @@ public class Result<T> {
         result.setData(data);
         return result;
     }
-    
+
+    /** 无参成功响应（用于 void 操作） */
+    public static <T> Result<T> success() {
+        Result<T> result = new Result<>();
+        result.setCode(200);
+        result.setMessage("success");
+        return result;
+    }
+
     public static <T> Result<T> success(String message, T data) {
         Result<T> result = new Result<>();
         result.setCode(200);
@@ -37,7 +45,7 @@ public class Result<T> {
         result.setData(data);
         return result;
     }
-    
+
     public static <T> Result<T> error(Integer code, String message) {
         Result<T> result = new Result<>();
         result.setCode(code);

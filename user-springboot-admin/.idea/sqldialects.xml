@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/admin/src/main/resources/sql/00-full-schema.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/admin/src/main/resources/sql/01-approval-migration.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/admin/src/main/resources/sql/ai.sql" dialect="MySQL" />
   </component>
 </project>

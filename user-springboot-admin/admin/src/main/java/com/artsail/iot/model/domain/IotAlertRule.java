@@ -29,4 +29,7 @@ public class IotAlertRule implements Serializable {
     private Integer isEnabled;
 
     private String remark;
+
+    /** 通知渠道，逗号分隔：sms,email,system */
+    private String notifyChannels;
 }

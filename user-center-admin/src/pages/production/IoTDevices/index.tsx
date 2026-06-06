@@ -40,8 +40,8 @@ const DEVICE_TYPE_FILTERS = [
   { label: '水泵', value: 6 },
 ];
 
-const [deviceMetrics, setDeviceMetrics] = useState<Record<number, any[]>>({});
 const IoTDevices = () => {
+  const [deviceMetrics, setDeviceMetrics] = useState<Record<number, any[]>>({});
   const actionRef = useRef<ActionType>(null);
   const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -226,7 +226,7 @@ const IoTDevices = () => {
             valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }} prefix={<ApiOutlined style={{ color: '#8C8C8C' }} />} />
         </Card></Col>
         <Col span={6}><Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
-          <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>真在线</Text>} value={stats.online}
+          <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>在线</Text>} value={stats.online}
             valueStyle={{ fontSize: '22px', fontWeight: 'bold', color: '#2C2416' }} prefix={<WifiOutlined style={{ color: '#8C8C8C' }} />} />
         </Card></Col>
         <Col span={6}><Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>

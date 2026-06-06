@@ -1,5 +1,6 @@
 package com.artsail.production.service;
 
+import com.artsail.approval.model.domain.PlanApprovalRecord;
 import com.artsail.production.model.domain.ProdPlan;
 import com.artsail.production.model.domain.VO.ProdPlanVO;
 import com.artsail.production.model.domain.Query.ProdPlanQuery;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public interface ProdPlanService extends IService<ProdPlan> {
 
-    /** 分页查询（返回带名称的 VO） */
+    /** 分页查询（返回带名称的VO） */
     Page<ProdPlanVO> search(Page<ProdPlanVO> page, ProdPlanQuery query);
 
     /** 发布计划（增强版：返回发布结果） */
@@ -32,6 +33,20 @@ public interface ProdPlanService extends IService<ProdPlan> {
     Long copy(Long id);
 
     Map<String, Long> getStats();
+
+    // ====== 审批相关 ======
+
+    /** 提交审批 */
+    void submitForApproval(Long id, Long submitterId, Long approverId, String comment);
+
+    /** 审批通过 */
+    void approve(Long id, Long approverId, String comment);
+
+    /** 审批驳回 */
+    void reject(Long id, Long approverId, String comment);
+
+    /** 获取计划的审批记录 */
+    List<PlanApprovalRecord> getApprovalRecords(Long planId);
 
     // ====== DTO ======
 

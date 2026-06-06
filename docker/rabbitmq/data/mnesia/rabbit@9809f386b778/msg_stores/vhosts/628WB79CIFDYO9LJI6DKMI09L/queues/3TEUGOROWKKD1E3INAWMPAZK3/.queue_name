@@ -1,0 +1,3 @@
+VHOST: /
+QUEUE: plan.approval.request.queue
+INDEX: v2

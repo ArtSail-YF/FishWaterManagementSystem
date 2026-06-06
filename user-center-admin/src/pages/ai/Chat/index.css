@@ -1,0 +1,17 @@
+.ai-command-item,
+.ai-command-item-active {
+  background-color: transparent;
+}
+
+.ai-command-item-active {
+  background-color: #e6f4ff;
+}
+
+.ai-command-icon,
+.ai-command-icon-active {
+  background-color: #595959;
+}
+
+.ai-command-icon-active {
+  background-color: #1677ff;
+}

@@ -22,16 +22,27 @@
         <result property="assigneeGroupId" column="assignee_group_id"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <!-- 审批字段 -->
+        <result property="approverId" column="approver_id"/>
+        <result property="approveComment" column="approve_comment"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="submitterName" column="submitter_name"/>
+        <result property="approverName" column="approver_name"/>
     </resultMap>
 
-    <!-- 多表关联查询计划列表（带基地名称、目标名称） -->
+    <!-- 多表关联查询计划列表（带基地名称、目标名称、审批人名称） -->
     <select id="searchWithNames" resultMap="ProdPlanVOMap">
         SELECT
             p.id,
             p.base_id,
             b.base_name,
             p.target_id,
-            CASE WHEN p.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT(p.target_id, '号塘')) WHEN p.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', p.target_id)) WHEN p.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', p.target_id)) ELSE CONCAT(p.target_id, '') END AS target_name,
+            CASE
+                WHEN p.target_type = 'pond' THEN COALESCE(po.pond_name, CONCAT(p.target_id, '号塘'))
+                WHEN p.target_type = 'cage' THEN COALESCE(ci.cage_name, CONCAT('网箱#', p.target_id))
+                WHEN p.target_type = 'vsl' THEN COALESCE(vi.vsl_name, CONCAT('工船#', p.target_id))
+                ELSE CONCAT(p.target_id, '')
+            END AS target_name,
             p.parent_plan_id,
             p.target_type,
             p.plan_type,
@@ -44,12 +55,19 @@
             p.owner_id,
             p.assignee_group_id,
             p.create_time,
-            p.update_time
+            p.update_time,
+            p.approver_id,
+            p.approve_comment,
+            p.approve_time,
+            usub.user_name AS submitter_name,
+            uapp.user_name AS approver_name
         FROM prod_plan p
         LEFT JOIN base_info b ON p.base_id = b.id
         LEFT JOIN pond_info po ON p.target_id = po.id AND p.target_type = 'pond'
         LEFT JOIN cage_info ci ON p.target_id = ci.id AND p.target_type = 'cage'
         LEFT JOIN vsl_info vi ON p.target_id = vi.id AND p.target_type = 'vsl'
+        LEFT JOIN user usub ON p.owner_id = usub.id
+        LEFT JOIN user uapp ON p.approver_id = uapp.id
         WHERE p.is_delete = 0
         <if test="query.baseId != null">
             AND p.base_id = #{query.baseId}
@@ -68,6 +86,12 @@
         </if>
         <if test="query.title != null and query.title != ''">
             AND p.title LIKE CONCAT('%', #{query.title}, '%')
+        </if>
+        <!-- 待我审批：approver_id 等于当前用户ID -->
+        <if test="query.pendingApprovalUserId != null">
+            AND p.status = 'pending_approval'
+            AND (p.approver_id = #{query.pendingApprovalUserId} OR p.approver_id IS NULL)
+            AND p.owner_id != #{query.pendingApprovalUserId}
         </if>
         ORDER BY p.create_time DESC
     </select>

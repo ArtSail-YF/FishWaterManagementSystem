@@ -12,7 +12,7 @@ export type PlanType = 'feeding' | 'medication' | 'harvest' | 'maintenance' | 's
 export type TargetType = 'pond' | 'cage' | 'vsl';
 
 /** 计划状态枚举 */
-export type PlanStatus = 'draft' | 'published' | 'active' | 'completed' | 'cancelled';
+export type PlanStatus = 'draft' | 'published' | 'active' | 'completed' | 'cancelled' | 'pending_approval' | 'approved' | 'rejected';
 
 /** 计划查询参数 */
 export interface PlanQueryParams extends PageQueryParams {
@@ -49,6 +49,12 @@ export interface PlanDTO {
   deleteTime?: string;
   baseName?: string;
   targetName?: string;
+  // 审批字段
+  approverId?: number;
+  approveComment?: string;
+  approveTime?: string;
+  submitterName?: string;
+  approverName?: string;
 }
 
 /** 创建计划请求 */
@@ -94,6 +100,30 @@ export interface PlanStatsDTO {
   active: number;
   completed: number;
   cancelled: number;
+  pending_approval?: number;
+}
+
+/** 提交审批请求 */
+export interface SubmitApprovalRequest {
+  approverId?: number;
+  comment?: string;
+}
+
+/** 审批操作请求 */
+export interface ApprovalActionRequest {
+  comment?: string;
+}
+
+/** 审批记录 */
+export interface ApprovalRecord {
+  id: number;
+  planId: number;
+  submitterId: number;
+  approverId: number;
+  action: 'submit' | 'approve' | 'reject';
+  comment?: string;
+  actionTime: string;
+  createTime: string;
 }
 
 /** 分页响应 */

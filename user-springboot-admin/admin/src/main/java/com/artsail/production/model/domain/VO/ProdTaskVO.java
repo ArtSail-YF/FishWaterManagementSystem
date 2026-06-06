@@ -20,6 +20,18 @@ public class ProdTaskVO extends ProdTask {
     /** 计划详细描述（关联查询） */
     private String contentDesc;
 
+
+    /** 计划名称（关联查询） */
+    private String planTitle;
+
+    /** 计划类型（关联查询：feeding/medication/harvest/maintenance/seeding/water_change） */
+    private String planType;
+    /** 执行人名称（关联查询） */
+    private String assigneeName;
+
+    /** IoT 设备名称（关联查询） */
+    private String deviceName;
+
     /** 优先级文字 */
     private String priorityLabel;
 

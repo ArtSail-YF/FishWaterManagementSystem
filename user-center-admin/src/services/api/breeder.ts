@@ -12,7 +12,6 @@ type BreederQueryParams = {
   pageSize: number;
   breederCode?: string;
   breederName?: string;
-  legalPerson?: string;
   phone?: string;
   status?: number;
   [key: string]: any;

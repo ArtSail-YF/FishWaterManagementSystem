@@ -70,7 +70,8 @@ public class ProdPlan extends LogicDeleteEntity {
     private String cycleRule;
 
     /**
-     * 状态: draft(草稿), published(已发布), active(进行中), completed(已完成), cancelled(已取消)
+     * 状态: draft(草稿), published(已发布), active(执行中), completed(已完成), cancelled(已取消),
+     * pending_approval(待审批), approved(已审批), rejected(已驳回)
      */
     private String status;
 
@@ -83,6 +84,24 @@ public class ProdPlan extends LogicDeleteEntity {
      * 指派给哪个班组/角色
      */
     private Long assigneeGroupId;
+
+    /** ====== 审批相关字段 ====== */
+
+    /**
+     * 审批人ID
+     */
+    private Long approverId;
+
+    /**
+     * 审批意见
+     */
+    private String approveComment;
+
+    /**
+     * 审批时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private LocalDateTime approveTime;
 
     /** 饲料品种 */
     private String feedVariety;
@@ -99,4 +118,3 @@ public class ProdPlan extends LogicDeleteEntity {
     /** 预计产量 */
     private BigDecimal estYield;
 }
-

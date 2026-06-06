@@ -22,7 +22,7 @@ import { getUserOptions } from '@/services/api/user';
 
 const STATUS_MAP: Record<string, { label: string; bgColor: string; textColor: string }> = {
   pending: { label: '待办', bgColor: '#EBE5DE', textColor: '#5C4F42' },
-  assigned: { label: '已派发', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
+  assigned: { label: '已指派', bgColor: '#E1EEF4', textColor: '#2B6B8A' },
   doing: { label: '进行中', bgColor: '#F5EDD6', textColor: '#A0843A' },
   done: { label: '已完成', bgColor: '#E2EDD8', textColor: '#5B8C5A' },
   skipped: { label: '已跳过', bgColor: '#EBE5DE', textColor: '#7A6E64' },
@@ -42,9 +42,20 @@ const TARGET_TYPE_MAP: Record<string, string> = {
   vsl: '工船',
 };
 
+const PLAN_TYPE_MAP: Record<string, string> = {
+  feeding: '投喂计划',
+  medication: '用药计划',
+  harvest: '收获计划',
+  maintenance: '维护计划',
+  seeding: '放苗计划',
+  water_change: '换水/增氧计划',
+};
+
 interface Task {
   id: number;
   planId?: number;
+  planTitle?: string;
+  planType?: string;
   baseId: number;
   taskTitle: string;
   targetType: string;
@@ -58,6 +69,8 @@ interface Task {
   baseName?: string;
   targetName?: string;
   assigneeName?: string;
+  deviceId?: number;
+  deviceName?: string;
 }
 
 const Tasks: React.FC = () => {
@@ -134,6 +147,7 @@ const Tasks: React.FC = () => {
       setLoading(false);
     }
   };
+
   const handleCreate = async (formValues?: any) => {
     try {
       if (formValues) {
@@ -186,6 +200,7 @@ const Tasks: React.FC = () => {
       },
     });
   };
+
   const handleSkip = (id: number) => {
     Modal.confirm({
       title: '跳过确认',
@@ -217,13 +232,13 @@ const Tasks: React.FC = () => {
   const handleBatchDelete = (selectedRows: Task[]) => {
     Modal.confirm({
       title: '批量删除确认',
-      content: `确定要删除选中的 ${selectedRows.length} 条任务吗？`,
+      content: `确定要删除选中的${selectedRows.length}条任务吗？`,
       onOk: async () => {
         try {
           for (const row of selectedRows) {
             if (row.id) await deleteTask(row.id);
           }
-          message.success(`已删除 ${selectedRows.length} 条任务`);
+          message.success(`已删除${selectedRows.length}条任务`);
           fetchTasks();
         } catch (error) {
           message.error('批量删除失败');
@@ -240,8 +255,27 @@ const Tasks: React.FC = () => {
     });
     return s;
   }, [data]);
+
   const columns: ProColumns<Task>[] = [
     { title: '任务名称', dataIndex: 'taskTitle', width: 200, ellipsis: true },
+    {
+      title: '所属计划',
+      dataIndex: 'planTitle',
+      width: 160,
+      ellipsis: true,
+      render: (_, r) => r.planTitle ? (
+        <span>
+          {r.planTitle}
+          <Tag style={{ marginLeft: 4, fontSize: 10, lineHeight: '16px', border: 'none', backgroundColor: '#E1EEF4', color: '#2B6B8A' }}>自动</Tag>
+        </span>
+      ) : (
+        <Tag style={{ border: 'none', backgroundColor: '#EBE5DE', color: '#7A6E64', fontSize: 10 }}>手动创建</Tag>
+      ),
+    },
+    { title: '任务类型', dataIndex: 'planType', width: 100,
+      hideInSearch: true,
+      render: (_, r) => PLAN_TYPE_MAP[r.planType || ''] || r.planType || '-',
+    },
     { title: '所属基地', dataIndex: 'baseName', width: 120, hideInTable: true, hideInSearch: false },
     { title: '作业对象', dataIndex: 'targetName', width: 120 },
     {
@@ -274,11 +308,10 @@ const Tasks: React.FC = () => {
         return p ? <Tag style={{ backgroundColor: p.color + '20', color: p.color, border: 'none' }}>{p.label}</Tag> : '-';
       },
     },
-    // IoT 设备（预留）
     {
       title: 'IoT 设备', dataIndex: 'deviceId', width: 90,
-      render: (val: any) =>
-        val ? <Tag icon={<CloudOutlined />} color="#2B6B8A">设备 #{val}</Tag> : '-',
+      render: (_, r) =>
+        r.deviceName ? <Tag icon={<CloudOutlined />} color="#2B6B8A">{r.deviceName}</Tag> : (r.deviceId ? <Tag color="#2B6B8A">设备 #{r.deviceId}</Tag> : '-'),
     },
     {
       title: '操作', width: 300, fixed: 'right',
@@ -299,6 +332,7 @@ const Tasks: React.FC = () => {
       ],
     },
   ];
+
   return (
     <PageContainer>
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
@@ -325,7 +359,7 @@ const Tasks: React.FC = () => {
         <Col span={4}>
           <Card variant="borderless" className="fin-card" styles={{ body: { padding: '16px' } }}>
             <Statistic
-              title={<Text type="secondary" style={{ fontSize: '12px' }}>已派发</Text>}
+              title={<Text type="secondary" style={{ fontSize: '12px' }}>已指派</Text>}
               value={stats.assigned}
               valueStyle={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'AlibabaSans', color: '#262626' }}
               prefix={<SendOutlined />}
@@ -368,7 +402,10 @@ const Tasks: React.FC = () => {
         columns={columns}
         loading={loading}
         rowKey="id"
-        search={{ labelWidth: 'auto' }}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: false,
+        }}
         request={async (params = {}) => {
           setSearchParams(params);
           setPagination(prev => ({ ...prev, current: params.current || 1, pageSize: params.pageSize || 10 }));
@@ -384,7 +421,7 @@ const Tasks: React.FC = () => {
         rowSelection={{}}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <Space size={24}>
-            <span>已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
+            <span>已选 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项</span>
             <a onClick={onCleanSelected}>取消选择</a>
           </Space>
         )}
@@ -399,7 +436,7 @@ const Tasks: React.FC = () => {
           </Button>,
         ]}
         size="small"
-        scroll={{ x: 1500 }}
+        scroll={{ x: 1700 }}
       />
       <TaskForm
         visible={visible}

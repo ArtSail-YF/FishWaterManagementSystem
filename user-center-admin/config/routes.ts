@@ -180,14 +180,9 @@ export default [
             component: './production/StockRecords',
           },
           {
-            path: '/production/material/material-archive',
-            name: 'material-archive',
-            component: './production/MaterialArchive',
-          },
-          {
-            path: '/production/material/material-category',
-            name: 'material-category',
-            component: './production/MaterialCategory',
+            path: '/production/material/material-config',
+            name: 'material-config',
+            component: './production/MaterialConfig',
           },
         ],
       },
@@ -206,29 +201,19 @@ export default [
             component: './production/IoTDevices',
           },
           {
-            path: '/production/operation/warning-settings',
-            name: 'warning-settings',
-            component: './production/WarningSettings',
-          },
-          {
             path: '/production/operation/iot-data-monitor',
             name: 'iot-data-monitor',
             component: './production/IoTDataMonitor',
           },
           {
-            path: '/production/operation/iot-alert-records',
-            name: 'iot-alert-records',
-            component: './production/IoTAlertRecords',
+            path: '/production/operation/iot-operation-records',
+            name: 'iot-operation-records',
+            component: './production/IoTOperationRecords',
           },
           {
-            path: '/production/operation/iot-maintenance',
-            name: 'iot-maintenance',
-            component: './production/IoTMaintenance',
-          },
-          {
-            path: '/production/operation/iot-command-logs',
-            name: 'iot-command-logs',
-            component: './production/IoTCommandLogs',
+            path: '/production/operation/iot-config',
+            name: 'iot-config',
+            component: './production/IoTConfig',
           },
         ],
       },
@@ -239,17 +224,12 @@ export default [
         routes: [
           {
             path: '/production/resource',
-            redirect: '/production/resource/base-management',
+            redirect: '/production/resource/resource-config',
           },
           {
-            path: '/production/resource/base-management',
-            name: 'base-management',
-            component: './production/BaseManagement',
-          },
-          {
-            path: '/production/resource/pond-management',
-            name: 'pond-management',
-            component: './production/PondManagement',
+            path: '/production/resource/resource-config',
+            name: 'resource-config',
+            component: './production/ResourceConfig',
           },
           {
             path: '/production/resource/farmer-management',
@@ -289,12 +269,32 @@ export default [
         name: 'knowledge',
         component: './info-nav/Knowledge',
       },
+    ],
+  },
+  {
+    path: '/ai',
+    name: 'ai',
+    icon: 'robot',
+    routes: [
       {
-        path: '/info-nav/ai-disease',
-        name: 'ai-disease',
-        component: './info-nav/AiDisease',
+        path: '/ai',
+        redirect: '/ai/chat',
+      },
+      {
+        path: '/ai/chat',
+        name: 'chat',
+        component: './ai/Chat',
+      },
+      {
+        path: '/ai/disease',
+        name: 'disease',
+        component: './ai/Disease',
       },
     ],
+  },
+  {
+    path: '/info-nav/ai-disease',
+    redirect: '/ai/disease',
   },
   {
     path: '/admin',

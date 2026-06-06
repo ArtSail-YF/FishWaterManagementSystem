@@ -1,0 +1,2 @@
+L228: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>设备总数</Text>} value={stats.total}
+L232: <Statistic title={<Text type="secondary" style={{ fontSize: '12px' }}>心跳超时</Text>} value={stats.maintenance}

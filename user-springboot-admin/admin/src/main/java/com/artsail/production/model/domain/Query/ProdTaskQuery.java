@@ -8,12 +8,13 @@ import java.time.LocalDate;
  */
 @Data
 public class ProdTaskQuery {
-    
+
     private Long planId;
     private Long baseId;
     private String targetType;
     private Long targetId;
     private String status;
     private Long assigneeId;
+    private String planType;
     private LocalDate actionDate;
 }

@@ -106,7 +106,7 @@ export async function getDisasterInfo(options?: any) {
 }
 
 /**
- * »ñÈ¡¸÷»ùµØÊµÊ±ÌìÆø
+ * è·å–å„åŸºåœ°å®æ—¶å¤©æ°”
  * GET /api/weather/bases
  */
 export async function getBasesWeather() {

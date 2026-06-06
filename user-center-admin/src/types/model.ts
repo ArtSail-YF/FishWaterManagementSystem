@@ -33,7 +33,7 @@ export interface ProductionPlan extends BaseEntity {
   startTime?: string;                 // 计划开始时间
   endTime?: string;                   // 计划结束时间
   cycleRule?: string;                 // 循环规则
-  status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled'; // 状态
+  status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled' | 'pending_approval' | 'approved' | 'rejected'; // 状态
   ownerId?: number;                   // 制定人/管理员ID
   assigneeGroupId?: number;           // 指派班组/角色ID
   baseName?: string;                   // 基地名称（关联查询）
